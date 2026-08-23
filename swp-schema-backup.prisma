@@ -1,0 +1,221 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  WORKER
+}
+
+enum UserStatus {
+  ACTIVE
+  DEACTIVATED
+}
+
+enum WorkStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum SaleStatus {
+  ACTIVE
+  VOIDED
+}
+
+enum InventoryTransactionType {
+  INITIAL_STOCK
+  PRODUCTION
+  SALE
+  STOCK_ADJUSTMENT_ADD
+  STOCK_ADJUSTMENT_REMOVE
+  SALE_VOID
+  PRODUCTION_REVERSAL
+}
+
+enum ReferenceType {
+  INITIAL_STOCK
+  WORK_ENTRY
+  SALE
+  STOCK_ADJUSTMENT
+  SALE_VOID
+  WORK_ENTRY_EDIT
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DEACTIVATE
+  REACTIVATE
+  APPROVE
+  REJECT
+  VOID
+  LOGIN
+  LOGOUT
+  PASSWORD_CHANGE
+  PASSWORD_RESET
+}
+
+enum AuditEntityType {
+  USER
+  PRODUCT
+  WORK_ENTRY
+  SALE
+  INVENTORY
+}
+
+model User {
+  id           String     @id @default(cuid())
+  username     String     @unique
+  name         String
+  passwordHash String
+  role         UserRole
+  status       UserStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workEntries             WorkEntry[]        @relation("WorkerWorkEntries")
+  approvedWorkEntries     WorkEntry[]        @relation("ApprovedBy")
+  createdSales            Sale[]             @relation("SalesCreatedBy")
+  voidedSales             Sale[]             @relation("SalesVoidedBy")
+  inventoryTransactions   InventoryTransaction[]
+  auditLogs               AuditLog[]
+  changedWorkVersions     WorkEntryVersion[]
+
+  @@index([role])
+  @@index([status])
+}
+
+model Product {
+  id                  String   @id @default(cuid())
+  name                String   @unique
+  code                String?  @unique
+  initialStock        Int
+  lowStockThreshold   Int
+  isActive            Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workEntries           WorkEntry[]
+  sales                 Sale[]
+  inventoryTransactions InventoryTransaction[]
+
+  @@index([isActive])
+}
+
+model WorkEntry {
+  id        String     @id @default(cuid())
+  workerId  String
+  productId String
+  quantity  Int
+  status    WorkStatus @default(PENDING)
+
+  submittedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  approvedAt     DateTime?
+  approvedById   String?
+  rejectionReason String?
+
+  worker     User    @relation("WorkerWorkEntries", fields: [workerId], references: [id])
+  product    Product @relation(fields: [productId], references: [id])
+  approvedBy User?   @relation("ApprovedBy", fields: [approvedById], references: [id])
+
+  versions               WorkEntryVersion[]
+  inventoryTransactions  InventoryTransaction[]
+
+  @@index([workerId])
+  @@index([productId])
+  @@index([status])
+  @@index([submittedAt])
+}
+
+model WorkEntryVersion {
+  id          String   @id @default(cuid())
+  workEntryId String
+  quantity    Int
+  changedById String
+  changedAt   DateTime @default(now())
+  reason      String?
+
+  workEntry WorkEntry @relation(fields: [workEntryId], references: [id], onDelete: Cascade)
+  changedBy User      @relation(fields: [changedById], references: [id])
+
+  @@index([workEntryId])
+  @@index([changedAt])
+}
+
+model Sale {
+  id           String     @id @default(cuid())
+  customerName String
+  productId    String
+  quantity     Int
+  saleDate     DateTime
+  status       SaleStatus @default(ACTIVE)
+
+  createdById String
+  createdAt   DateTime @default(now())
+
+  voidedById String?
+  voidedAt   DateTime?
+
+  product  Product @relation(fields: [productId], references: [id])
+  createdBy User   @relation("SalesCreatedBy", fields: [createdById], references: [id])
+  voidedBy User?  @relation("SalesVoidedBy", fields: [voidedById], references: [id])
+
+  inventoryTransactions InventoryTransaction[]
+
+  @@index([productId])
+  @@index([saleDate])
+  @@index([status])
+  @@index([createdById])
+}
+
+model InventoryTransaction {
+  id          String                    @id @default(cuid())
+  productId   String
+  type        InventoryTransactionType
+  quantity    Int
+  referenceType ReferenceType
+  referenceId   String
+
+  createdById String
+  createdAt   DateTime @default(now())
+
+  product   Product @relation(fields: [productId], references: [id])
+  createdBy User    @relation(fields: [createdById], references: [id])
+  workEntry WorkEntry? @relation(fields: [workEntryId], references: [id])
+  sale      Sale?     @relation(fields: [saleId], references: [id])
+
+  workEntryId String?
+  saleId      String?
+
+  @@index([productId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([referenceId])
+}
+
+model AuditLog {
+  id         String          @id @default(cuid())
+  userId     String?
+  action     AuditAction
+  entityType AuditEntityType
+  entityId   String
+  oldValue   Json?
+  newValue   Json?
+  createdAt  DateTime        @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
