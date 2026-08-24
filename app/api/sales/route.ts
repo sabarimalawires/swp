@@ -37,10 +37,19 @@ export async function GET(request: Request) {
     const sales = await prisma.sale.findMany({
       select: {
         id: true,
-        customerName: true,
         quantity: true,
+        weight: true,
+        amount: true,
         saleDate: true,
         status: true,
+
+        customer: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+
         product: {
           select: {
             id: true,
@@ -48,27 +57,62 @@ export async function GET(request: Request) {
             code: true,
           },
         },
+
         createdBy: {
           select: {
             name: true,
             username: true,
           },
         },
+
         voidedBy: {
           select: {
             name: true,
             username: true,
           },
         },
+
         voidedAt: true,
+
+        payments: {
+          select: {
+            id: true,
+            amount: true,
+            paymentDate: true,
+            note: true,
+          },
+          orderBy: {
+            paymentDate: "asc",
+          },
+        },
       },
+
       orderBy: {
         saleDate: "desc",
       },
+
       take: 100,
     });
 
-    return NextResponse.json(sales);
+    const formattedSales = sales.map((sale) => {
+      const totalPaid = sale.payments.reduce(
+        (total, payment) =>
+          total + Number(payment.amount),
+        0
+      );
+
+      const balance = Number(sale.amount) - totalPaid;
+
+      return {
+        ...sale,
+        weight: Number(sale.weight),
+        amount: Number(sale.amount),
+        totalPaid,
+        balance: Math.max(0, balance),
+      };
+    });
+
+    return NextResponse.json(formattedSales);
   } catch (error) {
     console.error("Sales lookup failed:", error);
 
@@ -121,6 +165,11 @@ export async function POST(request: Request) {
     ).trim();
 
     const quantity = Number(body.quantity);
+    const weight = Number(body.weight);
+    const amount = Number(body.amount);
+    const initialPayment = Number(
+      body.initialPayment ?? 0
+    );
 
     const saleDateValue = String(
       body.saleDate ?? ""
@@ -158,6 +207,55 @@ export async function POST(request: Request) {
         {
           error:
             "Quantity must be a whole number greater than 0.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (
+      !Number.isFinite(weight) ||
+      weight <= 0
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Weight must be greater than 0.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (
+      !Number.isFinite(amount) ||
+      amount <= 0
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Amount must be greater than ₹0.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (
+      !Number.isFinite(initialPayment) ||
+      initialPayment < 0
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Initial payment cannot be negative.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (initialPayment > amount) {
+      return NextResponse.json(
+        {
+          error:
+            "Initial payment cannot be greater than the sale amount.",
         },
         { status: 400 }
       );
@@ -230,9 +328,7 @@ export async function POST(request: Request) {
                 "INITIAL_STOCK"
             );
 
-          if (
-            !hasInitialStockTransaction
-          ) {
+          if (!hasInitialStockTransaction) {
             stock += product.initialStock;
           }
 
@@ -263,24 +359,105 @@ export async function POST(request: Request) {
             throw new Error("INSUFFICIENT_STOCK");
           }
 
+          /*
+           * Find an existing customer by name.
+           *
+           * Customer names are intentionally the only
+           * customer information stored for now.
+           */
+          let customer =
+            await tx.customer.findFirst({
+              where: {
+                name: customerName,
+              },
+              select: {
+                id: true,
+                name: true,
+              },
+            });
+
+          /*
+           * Create the customer if this is a new customer.
+           */
+          if (!customer) {
+            customer =
+              await tx.customer.create({
+                data: {
+                  name: customerName,
+                },
+                select: {
+                  id: true,
+                  name: true,
+                },
+              });
+
+            await createAuditLog(
+              {
+                userId: employee.id,
+                action: "CREATE",
+                entityType: "CUSTOMER",
+                entityId: customer.id,
+                oldValue: null,
+                newValue: {
+                  name: customer.name,
+                },
+              },
+              tx
+            );
+          }
+
+          /*
+           * Create the sale.
+           */
           const sale = await tx.sale.create({
             data: {
-              customerName,
+              customerId: customer.id,
               productId,
               quantity,
+              weight,
+              amount,
               saleDate,
               status: "ACTIVE",
               createdById: employee.id,
             },
+
             select: {
               id: true,
-              customerName: true,
               quantity: true,
+              weight: true,
+              amount: true,
               saleDate: true,
               status: true,
+
+              customer: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
             },
           });
 
+          /*
+           * Create the initial customer payment when
+           * the customer pays something immediately.
+           */
+          if (initialPayment > 0) {
+            await tx.customerPayment.create({
+              data: {
+                customerId: customer.id,
+                saleId: sale.id,
+                amount: initialPayment,
+                paymentDate: saleDate,
+                createdById: employee.id,
+                note: "Initial payment at sale",
+              },
+            });
+          }
+
+          /*
+           * Record the inventory movement.
+           */
           await tx.inventoryTransaction.create({
             data: {
               productId,
@@ -293,6 +470,9 @@ export async function POST(request: Request) {
             },
           });
 
+          /*
+           * Audit the sale creation.
+           */
           await createAuditLog(
             {
               userId: employee.id,
@@ -301,9 +481,15 @@ export async function POST(request: Request) {
               entityId: sale.id,
               oldValue: null,
               newValue: {
-                customerName,
+                customerId: customer.id,
+                customerName: customer.name,
                 productId,
                 quantity,
+                weight,
+                amount,
+                initialPayment,
+                balance:
+                  amount - initialPayment,
                 saleDate,
                 status: "ACTIVE",
               },
@@ -311,7 +497,53 @@ export async function POST(request: Request) {
             tx
           );
 
-          return sale;
+          /*
+           * Audit the initial payment.
+           */
+          if (initialPayment > 0) {
+            const payment =
+              await tx.customerPayment.findFirst({
+                where: {
+                  saleId: sale.id,
+                  amount: initialPayment,
+                },
+                orderBy: {
+                  createdAt: "desc",
+                },
+                select: {
+                  id: true,
+                },
+              });
+
+            if (payment) {
+              await createAuditLog(
+                {
+                  userId: employee.id,
+                  action: "CREATE",
+                  entityType: "CUSTOMER_PAYMENT",
+                  entityId: payment.id,
+                  oldValue: null,
+                  newValue: {
+                    customerId: customer.id,
+                    saleId: sale.id,
+                    amount: initialPayment,
+                    paymentDate: saleDate,
+                  },
+                },
+                tx
+              );
+            }
+          }
+
+          return {
+            ...sale,
+            weight: Number(sale.weight),
+            amount: Number(sale.amount),
+            initialPayment,
+            balance:
+              Number(sale.amount) -
+              initialPayment,
+          };
         },
         {
           isolationLevel: "Serializable",
@@ -373,8 +605,7 @@ export async function POST(request: Request) {
       }
 
       if (
-        error.message ===
-        "INSUFFICIENT_STOCK"
+        error.message === "INSUFFICIENT_STOCK"
       ) {
         return NextResponse.json(
           {

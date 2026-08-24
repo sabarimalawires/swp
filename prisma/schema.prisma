@@ -71,6 +71,8 @@ enum AuditEntityType {
   WORK_ENTRY
   SALE
   INVENTORY
+  CUSTOMER
+  CUSTOMER_PAYMENT
 }
 
 // ============================================================
@@ -78,13 +80,13 @@ enum AuditEntityType {
 // ============================================================
 
 model User {
-  id            String    @id
+  id            String   @id
   name          String
   email         String
-  emailVerified Boolean   @default(false)
+  emailVerified Boolean  @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   username String? @unique
 
@@ -116,28 +118,28 @@ model Session {
 }
 
 model Account {
-  id                   String    @id
-  accountId            String
-  providerId           String
-  issuer               String
-  userId               String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String @id
+  accountId  String
+  providerId String
+  issuer     String
+  userId     String
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  accessToken          String?
-  refreshToken         String?
-  idToken              String?
+  accessToken  String?
+  refreshToken String?
+  idToken      String?
 
   accessTokenExpiresAt  DateTime?
   refreshTokenExpiresAt DateTime?
 
-  scope                 String?
-  password              String?
+  scope    String?
+  password String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([userId])
   @@unique([issuer, accountId])
+  @@index([userId])
   @@map("account")
 }
 
@@ -164,6 +166,7 @@ model Employee {
   // Links this business profile to Better Auth's User.
   authUserId String @unique
   authUser   User   @relation(fields: [authUserId], references: [id], onDelete: Cascade)
+
   username String @unique
   name     String
 
@@ -173,16 +176,35 @@ model Employee {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  workEntries           WorkEntry[]          @relation("WorkerWorkEntries")
-  approvedWorkEntries   WorkEntry[]          @relation("ApprovedBy")
-  createdSales          Sale[]               @relation("SalesCreatedBy")
-  voidedSales           Sale[]               @relation("SalesVoidedBy")
+  workEntries           WorkEntry[]            @relation("WorkerWorkEntries")
+  approvedWorkEntries   WorkEntry[]            @relation("ApprovedBy")
+  createdSales          Sale[]                 @relation("SalesCreatedBy")
+  voidedSales           Sale[]                 @relation("SalesVoidedBy")
   inventoryTransactions InventoryTransaction[]
   auditLogs             AuditLog[]
   changedWorkVersions   WorkEntryVersion[]
+  customerPayments      CustomerPayment[]      @relation("PaymentsCreatedBy")
 
   @@index([role])
   @@index([status])
+}
+
+// ============================================================
+// CUSTOMERS
+// ============================================================
+
+model Customer {
+  id String @id @default(cuid())
+
+  name String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sales    Sale[]
+  payments CustomerPayment[]
+
+  @@index([name])
 }
 
 // ============================================================
@@ -192,7 +214,7 @@ model Employee {
 model Product {
   id String @id @default(cuid())
 
-  name String @unique
+  name String  @unique
   code String? @unique
 
   initialStock      Int
@@ -230,8 +252,8 @@ model WorkEntry {
   approvedById    String?
   rejectionReason String?
 
-  worker     Employee @relation("WorkerWorkEntries", fields: [workerId], references: [id])
-  product    Product  @relation(fields: [productId], references: [id])
+  worker     Employee  @relation("WorkerWorkEntries", fields: [workerId], references: [id])
+  product    Product   @relation(fields: [productId], references: [id])
   approvedBy Employee? @relation("ApprovedBy", fields: [approvedById], references: [id])
 
   versions              WorkEntryVersion[]
@@ -272,10 +294,16 @@ model WorkEntryVersion {
 model Sale {
   id String @id @default(cuid())
 
-  customerName String
+  customerId String
+  productId  String
 
-  productId String
-  quantity   Int
+  quantity Int
+
+  // Weight of the product sold, stored in grams.
+  weight Decimal @db.Decimal(12, 3)
+
+  // Total sale amount in the business currency (INR).
+  amount Decimal @db.Decimal(14, 2)
 
   saleDate DateTime
   status   SaleStatus @default(ACTIVE)
@@ -286,15 +314,52 @@ model Sale {
   voidedById String?
   voidedAt   DateTime?
 
-  product   Product  @relation(fields: [productId], references: [id])
-  createdBy Employee @relation("SalesCreatedBy", fields: [createdById], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+  product  Product  @relation(fields: [productId], references: [id])
+
+  createdBy Employee  @relation("SalesCreatedBy", fields: [createdById], references: [id])
   voidedBy  Employee? @relation("SalesVoidedBy", fields: [voidedById], references: [id])
 
   inventoryTransactions InventoryTransaction[]
+  payments              CustomerPayment[]
 
+  @@index([customerId])
   @@index([productId])
   @@index([saleDate])
   @@index([status])
+  @@index([createdById])
+}
+
+// ============================================================
+// CUSTOMER PAYMENTS
+// ============================================================
+
+model CustomerPayment {
+  id String @id @default(cuid())
+
+  customerId String
+
+  // Optional because a payment can either be linked to a
+  // specific sale or treated as a general customer payment.
+  saleId String?
+
+  // Payment amount in INR.
+  amount Decimal @db.Decimal(14, 2)
+
+  paymentDate DateTime @default(now())
+
+  note String?
+
+  createdById String
+  createdAt   DateTime @default(now())
+
+  customer  Customer @relation(fields: [customerId], references: [id])
+  sale      Sale?    @relation(fields: [saleId], references: [id])
+  createdBy Employee @relation("PaymentsCreatedBy", fields: [createdById], references: [id])
+
+  @@index([customerId])
+  @@index([saleId])
+  @@index([paymentDate])
   @@index([createdById])
 }
 
@@ -307,7 +372,7 @@ model InventoryTransaction {
 
   productId String
 
-  type InventoryTransactionType
+  type     InventoryTransactionType
   quantity Int
 
   referenceType ReferenceType
@@ -316,8 +381,8 @@ model InventoryTransaction {
   createdById String
   createdAt   DateTime @default(now())
 
-  product   Product   @relation(fields: [productId], references: [id])
-  createdBy Employee  @relation(fields: [createdById], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+  createdBy Employee @relation(fields: [createdById], references: [id])
 
   workEntry WorkEntry? @relation(fields: [workEntryId], references: [id])
   sale      Sale?      @relation(fields: [saleId], references: [id])

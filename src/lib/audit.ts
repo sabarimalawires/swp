@@ -1,4 +1,5 @@
 import { prisma } from "@/src/lib/prisma";
+
 import type { Prisma } from "@/src/generated/prisma/client";
 
 type AuditAction =
@@ -19,7 +20,9 @@ type AuditEntityType =
   | "PRODUCT"
   | "WORK_ENTRY"
   | "SALE"
-  | "INVENTORY";
+  | "INVENTORY"
+  | "CUSTOMER"
+  | "CUSTOMER_PAYMENT";
 
 type AuditClient =
   | Prisma.TransactionClient
@@ -44,12 +47,14 @@ export async function createAuditLog(
       action: input.action,
       entityType: input.entityType,
       entityId: input.entityId,
+
       oldValue:
         input.oldValue === undefined
           ? undefined
           : JSON.parse(
               JSON.stringify(input.oldValue)
             ),
+
       newValue:
         input.newValue === undefined
           ? undefined

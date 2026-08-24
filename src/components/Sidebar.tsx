@@ -11,6 +11,7 @@ const adminNavigation = [
   { name: "Work Entries", href: "/work" },
   { name: "Inventory", href: "/inventory" },
   { name: "Sales", href: "/sales" },
+  { name: "Customers", href: "/customers"},
   { name: "History", href: "/history"},
   { name: "Reports", href: "/reports" },
   { name: "Products", href: "/products"},

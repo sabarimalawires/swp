@@ -82,7 +82,10 @@ export async function GET(request: Request) {
 
       if (!product) {
         return NextResponse.json(
-          { error: "Selected product was not found." },
+          {
+            error:
+              "Selected product was not found.",
+          },
           { status: 404 }
         );
       }
@@ -108,7 +111,10 @@ export async function GET(request: Request) {
         worker.status !== "ACTIVE"
       ) {
         return NextResponse.json(
-          { error: "Selected worker was not found." },
+          {
+            error:
+              "Selected worker was not found.",
+          },
           { status: 404 }
         );
       }
@@ -235,15 +241,35 @@ export async function GET(request: Request) {
         },
         select: {
           id: true,
-          customerName: true,
           productId: true,
           quantity: true,
+          weight: true,
+          amount: true,
           saleDate: true,
           status: true,
+
+          customer: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+
           product: {
             select: {
               name: true,
               code: true,
+            },
+          },
+
+          payments: {
+            select: {
+              id: true,
+              amount: true,
+              paymentDate: true,
+            },
+            orderBy: {
+              paymentDate: "asc",
             },
           },
         },
@@ -296,12 +322,14 @@ export async function GET(request: Request) {
           quantity: true,
           status: true,
           submittedAt: true,
+
           worker: {
             select: {
               name: true,
               username: true,
             },
           },
+
           product: {
             select: {
               name: true,
@@ -318,14 +346,35 @@ export async function GET(request: Request) {
         where: saleWhere,
         select: {
           id: true,
-          customerName: true,
+          productId: true,
           quantity: true,
+          weight: true,
+          amount: true,
           saleDate: true,
           status: true,
+
+          customer: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+
           product: {
             select: {
               name: true,
               code: true,
+            },
+          },
+
+          payments: {
+            select: {
+              id: true,
+              amount: true,
+              paymentDate: true,
+            },
+            orderBy: {
+              paymentDate: "asc",
             },
           },
         },
@@ -363,15 +412,12 @@ export async function GET(request: Request) {
 
     /*
      * Production is calculated from APPROVED work entries.
-     *
-     * This correctly respects the Worker and Product
-     * filters because workEntries already contains
-     * those filters.
      */
     const totalProduction =
       workEntries
         .filter(
-          (entry) => entry.status === "APPROVED"
+          (entry) =>
+            entry.status === "APPROVED"
         )
         .reduce(
           (total, entry) =>
@@ -390,70 +436,140 @@ export async function GET(request: Request) {
      * Current inventory is calculated from the
      * complete inventory ledger.
      */
-    const stockByProduct = products.map((product) => {
-      const transactions =
-        inventoryTransactions.filter(
-          (transaction) =>
-            transaction.productId === product.id
-        );
+    const stockByProduct = products.map(
+      (product) => {
+        const transactions =
+          inventoryTransactions.filter(
+            (transaction) =>
+              transaction.productId ===
+              product.id
+          );
 
-      let stock = 0;
+        let stock = 0;
 
-      const hasInitialStockTransaction =
-        transactions.some(
-          (transaction) =>
-            transaction.type === "INITIAL_STOCK"
-        );
+        const hasInitialStockTransaction =
+          transactions.some(
+            (transaction) =>
+              transaction.type ===
+              "INITIAL_STOCK"
+          );
 
-      if (!hasInitialStockTransaction) {
-        stock += product.initialStock;
-      }
-
-      for (const transaction of transactions) {
-        switch (transaction.type) {
-          case "INITIAL_STOCK":
-          case "PRODUCTION":
-          case "STOCK_ADJUSTMENT_ADD":
-            stock += transaction.quantity;
-            break;
-
-          case "SALE":
-          case "STOCK_ADJUSTMENT_REMOVE":
-          case "PRODUCTION_REVERSAL":
-            stock -= transaction.quantity;
-            break;
-
-          case "SALE_VOID":
-            stock += transaction.quantity;
-            break;
-
-          default:
-            break;
+        if (!hasInitialStockTransaction) {
+          stock += product.initialStock;
         }
-      }
 
-      return {
-        id: product.id,
-        name: product.name,
-        code: product.code,
-        stock,
-        lowStockThreshold:
-          product.lowStockThreshold,
-        isLowStock:
-          stock <= product.lowStockThreshold,
-      };
-    });
+        for (const transaction of transactions) {
+          switch (transaction.type) {
+            case "INITIAL_STOCK":
+            case "PRODUCTION":
+            case "STOCK_ADJUSTMENT_ADD":
+              stock += transaction.quantity;
+              break;
+
+            case "SALE":
+            case "STOCK_ADJUSTMENT_REMOVE":
+            case "PRODUCTION_REVERSAL":
+              stock -= transaction.quantity;
+              break;
+
+            case "SALE_VOID":
+              stock += transaction.quantity;
+              break;
+
+            default:
+              break;
+          }
+        }
+
+        return {
+          id: product.id,
+          name: product.name,
+          code: product.code,
+          stock,
+          lowStockThreshold:
+            product.lowStockThreshold,
+          isLowStock:
+            stock <=
+            product.lowStockThreshold,
+        };
+      }
+    );
 
     const lowStockProducts =
       stockByProduct.filter(
-        (product) => product.isLowStock
+        (product) =>
+          product.isLowStock
       );
+
+    /*
+     * Convert Prisma Decimal values to regular
+     * numbers for the JSON response and calculate
+     * the customer's outstanding balance per sale.
+     */
+    const formatSales = (saleList: typeof sales) =>
+      saleList.map((sale) => {
+        const totalPaid =
+          sale.payments.reduce(
+            (total, payment) =>
+              total + Number(payment.amount),
+            0
+          );
+
+        const saleAmount =
+          Number(sale.amount);
+
+        return {
+          id: sale.id,
+
+          customer: sale.customer,
+
+          productId: sale.productId,
+
+          product: sale.product,
+
+          quantity: sale.quantity,
+
+          weight: Number(sale.weight),
+
+          amount: saleAmount,
+
+          totalPaid,
+
+          balance: Math.max(
+            0,
+            saleAmount - totalPaid
+          ),
+
+          saleDate: sale.saleDate,
+
+          status: sale.status,
+
+          payments:
+            sale.payments.map(
+              (payment) => ({
+                id: payment.id,
+                amount: Number(
+                  payment.amount
+                ),
+                paymentDate:
+                  payment.paymentDate,
+              })
+            ),
+        };
+      });
+
+    const formattedActiveSales =
+      formatSales(activeSales);
+
+    const formattedSales =
+      formatSales(sales);
 
     return NextResponse.json({
       report: {
         type: "OVERALL",
 
-        generatedAt: new Date().toISOString(),
+        generatedAt:
+          new Date().toISOString(),
 
         generatedBy: {
           id: admin.id,
@@ -477,23 +593,31 @@ export async function GET(request: Request) {
             ? {
                 id: selectedWorker.id,
                 name: selectedWorker.name,
-                username: selectedWorker.username,
+                username:
+                  selectedWorker.username,
               }
             : null,
         },
 
         summary: {
-          totalWorkEntries: totalWork,
-          approvedWorkEntries: approvedWork,
-          rejectedWorkEntries: rejectedWork,
-          pendingWorkEntries: pendingWork,
+          totalWorkEntries:
+            totalWork,
+
+          approvedWorkEntries:
+            approvedWork,
+
+          rejectedWorkEntries:
+            rejectedWork,
+
+          pendingWorkEntries:
+            pendingWork,
 
           totalProduction,
 
           totalSalesQuantity,
 
           totalActiveSales:
-            activeSales.length,
+            formattedActiveSales.length,
 
           totalVoidedSales:
             voidedSales,
@@ -508,7 +632,8 @@ export async function GET(request: Request) {
         },
 
         workEntries,
-        sales,
+
+        sales: formattedSales,
       },
     });
   } catch (error) {
@@ -518,7 +643,10 @@ export async function GET(request: Request) {
     );
 
     return NextResponse.json(
-      { error: "Failed to generate report." },
+      {
+        error:
+          "Failed to generate report.",
+      },
       { status: 500 }
     );
   }
