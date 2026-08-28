@@ -2,12 +2,13 @@ import { auth } from "../src/lib/auth";
 import { prisma } from "../src/lib/prisma";
 
 const username = "HARIKARAN.R";
+const authUsername = username.toLowerCase();
 const password = "swp_h_2010";
 const name = "Harikaran";
 
 async function main() {
   const existing = await prisma.user.findUnique({
-    where: { username },
+    where: { username: authUsername },
   });
 
   if (existing) {
@@ -30,14 +31,14 @@ async function main() {
   await prisma.user.update({
     where: { id: result.user.id },
     data: {
-      username,
+      username: authUsername,
     },
   });
 
   await prisma.employee.create({
   data: {
     authUserId: result.user.id,
-    username,
+    username: authUsername,
     name,
     role: "ADMIN",
     status: "ACTIVE",
