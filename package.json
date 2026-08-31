@@ -7,7 +7,8 @@
     "build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
     "lint": "eslint",
-    "create:admin": "tsx --env-file=.env.local scripts/create-admin.ts"
+    "create:admin": "tsx --env-file=.env.local scripts/create-admin.ts",
+    "reset:admin-password": "tsx --env-file=.env.local scripts/reset-admin-password.ts"
   },
   "dependencies": {
     "@better-auth/prisma-adapter": "^1.7.1",
