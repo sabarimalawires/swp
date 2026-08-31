@@ -3,18 +3,20 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { username } from "better-auth/plugins";
 import { prisma } from "./prisma";
 
+const appUrl =
+  process.env.BETTER_AUTH_URL ??
+  "https://swp-flame.vercel.app";
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
 
-  baseURL: process.env.BETTER_AUTH_URL,
+  baseURL: appUrl,
 
   trustedOrigins: [
     "http://localhost:3000",
-    ...(process.env.BETTER_AUTH_URL
-      ? [process.env.BETTER_AUTH_URL]
-      : []),
+    appUrl,
   ],
 
   emailAndPassword: {
