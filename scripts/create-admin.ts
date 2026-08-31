@@ -1,24 +1,49 @@
 import { auth } from "../src/lib/auth";
 import { prisma } from "../src/lib/prisma";
 
-const username = "HARIKARAN.R";
-const authUsername = username.toLowerCase();
-const password = "swp_h_2010";
+const username = "harikaran.r";
 const name = "Harikaran";
+const password = process.env.ADMIN_PASSWORD;
 
 async function main() {
+  if (!password || password.length < 8) {
+    throw new Error(
+      "ADMIN_PASSWORD must be set to a password of at least 8 characters."
+    );
+  }
+
   const existing = await prisma.user.findUnique({
-    where: { username: authUsername },
+    where: { username },
+    select: {
+      id: true,
+      employee: {
+        select: {
+          id: true,
+        },
+      },
+    },
   });
 
   if (existing) {
-    console.log(`User ${username} already exists.`);
+    if (!existing.employee) {
+      await prisma.employee.create({
+        data: {
+          authUserId: existing.id,
+          username,
+          name,
+          role: "ADMIN",
+          status: "ACTIVE",
+        },
+      });
+    }
+
+    console.log("Admin bootstrap already completed.");
     return;
   }
 
   const result = await auth.api.signUpEmail({
     body: {
-      email: `${username.toLowerCase().replace(/\./g, "_")}@swp.local`,
+      email: `${username.replace(/\./g, "_")}@swp.local`,
       password,
       name,
     },
@@ -31,21 +56,21 @@ async function main() {
   await prisma.user.update({
     where: { id: result.user.id },
     data: {
-      username: authUsername,
+      username,
     },
   });
 
   await prisma.employee.create({
   data: {
     authUserId: result.user.id,
-    username: authUsername,
+    username,
     name,
     role: "ADMIN",
     status: "ACTIVE",
   },
 });
 
-  console.log(`Admin ${username} created successfully.`);
+  console.log("Admin bootstrap completed successfully.");
 }
 
 main()

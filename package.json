@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "create:admin": "tsx --env-file=.env.local scripts/create-admin.ts"
   },
   "dependencies": {
     "@better-auth/prisma-adapter": "^1.7.1",
