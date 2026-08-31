@@ -12,7 +12,9 @@ export const auth = betterAuth({
 
   trustedOrigins: [
     "http://localhost:3000",
-    "https://swp-nine.vercel.app",
+    ...(process.env.BETTER_AUTH_URL
+      ? [process.env.BETTER_AUTH_URL]
+      : []),
   ],
 
   emailAndPassword: {

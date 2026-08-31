@@ -1,10 +1,12 @@
 "use client";
 
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import OverallReportPdf from "./OverallReportPdf";
+import OverallReportPdf, {
+  type ReportData,
+} from "./OverallReportPdf";
 
 type Props = {
-  data: any;
+  data: ReportData;
 };
 
 export default function DownloadOverallReportPdf({

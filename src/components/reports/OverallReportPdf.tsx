@@ -6,7 +6,7 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 
-type ReportData = {
+export type ReportData = {
   report: {
     generatedAt: string;
 

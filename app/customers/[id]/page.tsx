@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Sidebar from "@/src/components/Sidebar";
 import { authClient } from "@/src/lib/auth-client";
@@ -86,7 +86,7 @@ export default function CustomerPage() {
   const [success, setSuccess] =
     useState("");
 
-  const loadCustomer = async () => {
+  const loadCustomer = useCallback(async () => {
     const response =
       await fetch("/api/customers");
 
@@ -113,7 +113,7 @@ export default function CustomerPage() {
     }
 
     setCustomer(foundCustomer);
-  };
+  }, [customerId]);
 
   useEffect(() => {
     const initialize = async () => {
@@ -166,7 +166,7 @@ export default function CustomerPage() {
     };
 
     initialize();
-  }, [customerId, router]);
+  }, [loadCustomer, router]);
 
   const handlePayment = async (
     event: React.FormEvent<HTMLFormElement>

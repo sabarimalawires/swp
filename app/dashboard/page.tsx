@@ -171,7 +171,7 @@ export default function DashboardPage() {
               </h1>
 
               <p className="mt-2 text-[#7b5a49]">
-                Here's your current business overview.
+                Here&apos;s your current business overview.
               </p>
             </div>
 
@@ -224,7 +224,7 @@ export default function DashboardPage() {
                 />
 
                 <MetricCard
-                  label="Today's Sales"
+                  label="Today&apos;s Sales"
                   value={
                     dashboard.todaysSales
                   }
@@ -253,7 +253,7 @@ export default function DashboardPage() {
 
                 <div>
                   <h2 className="text-lg font-bold text-[#3b2117]">
-                    Today's Activity
+                    Today&apos;s Activity
                   </h2>
 
                   <p className="mt-1 text-sm text-[#7b5a49]">
