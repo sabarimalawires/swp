@@ -194,15 +194,14 @@ model Employee {
 // ============================================================
 
 model Customer {
-  id String @id @default(cuid())
-
-  name String
-
+  id        String   @id @default(cuid())
+  name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  sales    Sale[]
-  payments CustomerPayment[]
+  sales                  Sale[]
+  payments               CustomerPayment[]
+  ledgerOpeningBalances  CustomerLedgerOpeningBalance[]
 
   @@index([name])
 }
@@ -328,6 +327,24 @@ model Sale {
   @@index([saleDate])
   @@index([status])
   @@index([createdById])
+}
+
+model CustomerLedgerOpeningBalance {
+  id                String   @id @default(cuid())
+  customerId        String
+  financialYearStart DateTime @db.Date
+  openingBalance    Decimal  @db.Decimal(14, 2)
+  isManualOverride  Boolean  @default(false)
+  overrideReason    String?
+  updatedById       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Restrict)
+
+  @@unique([customerId, financialYearStart])
+  @@index([financialYearStart])
+  @@map("customer_ledger_opening_balances")
 }
 
 // ============================================================
