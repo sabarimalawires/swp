@@ -1,35 +1,15 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/src/lib/auth";
+import { requireAdmin } from "@/src/lib/authorization";
 import { prisma } from "@/src/lib/prisma";
 import { createAuditLog } from "@/src/lib/audit";
 
 export async function GET(request: Request) {
   try {
-    const session = await auth.api.getSession({
-      headers: request.headers,
-    });
+    const employee = await requireAdmin(request);
 
-    if (!session?.user) {
+    if (!employee) {
       return NextResponse.json(
-        { error: "Unauthorized." },
-        { status: 401 }
-      );
-    }
-
-    const employee = await prisma.employee.findUnique({
-      where: {
-        authUserId: session.user.id,
-      },
-      select: {
-        id: true,
-        role: true,
-        status: true,
-      },
-    });
-
-    if (!employee || employee.status !== "ACTIVE") {
-      return NextResponse.json(
-        { error: "Active employee access required." },
+        { error: "Admin access required." },
         { status: 403 }
       );
     }
@@ -42,14 +22,12 @@ export async function GET(request: Request) {
         amount: true,
         saleDate: true,
         status: true,
-
         customer: {
           select: {
             id: true,
             name: true,
           },
         },
-
         product: {
           select: {
             id: true,
@@ -57,23 +35,19 @@ export async function GET(request: Request) {
             code: true,
           },
         },
-
         createdBy: {
           select: {
             name: true,
             username: true,
           },
         },
-
         voidedBy: {
           select: {
             name: true,
             username: true,
           },
         },
-
         voidedAt: true,
-
         payments: {
           select: {
             id: true,
@@ -86,11 +60,9 @@ export async function GET(request: Request) {
           },
         },
       },
-
       orderBy: {
         saleDate: "desc",
       },
-
       take: 100,
     });
 
@@ -125,31 +97,11 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const session = await auth.api.getSession({
-      headers: request.headers,
-    });
+    const employee = await requireAdmin(request);
 
-    if (!session?.user) {
+    if (!employee) {
       return NextResponse.json(
-        { error: "Unauthorized." },
-        { status: 401 }
-      );
-    }
-
-    const employee = await prisma.employee.findUnique({
-      where: {
-        authUserId: session.user.id,
-      },
-      select: {
-        id: true,
-        role: true,
-        status: true,
-      },
-    });
-
-    if (!employee || employee.status !== "ACTIVE") {
-      return NextResponse.json(
-        { error: "Active employee access required." },
+        { error: "Admin access required." },
         { status: 403 }
       );
     }
@@ -212,27 +164,19 @@ export async function POST(request: Request) {
       );
     }
 
-    if (
-      !Number.isFinite(weight) ||
-      weight <= 0
-    ) {
+    if (!Number.isFinite(weight) || weight <= 0) {
       return NextResponse.json(
         {
-          error:
-            "Weight must be greater than 0.",
+          error: "Weight must be greater than 0.",
         },
         { status: 400 }
       );
     }
 
-    if (
-      !Number.isFinite(amount) ||
-      amount <= 0
-    ) {
+    if (!Number.isFinite(amount) || amount <= 0) {
       return NextResponse.json(
         {
-          error:
-            "Amount must be greater than ₹0.",
+          error: "Amount must be greater than ₹0.",
         },
         { status: 400 }
       );
@@ -244,8 +188,7 @@ export async function POST(request: Request) {
     ) {
       return NextResponse.json(
         {
-          error:
-            "Initial payment cannot be negative.",
+          error: "Initial payment cannot be negative.",
         },
         { status: 400 }
       );
@@ -268,9 +211,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const saleDate = new Date(
-      `${saleDateValue}T00:00:00`
-    );
+  const saleDate = new Date(
+  `${saleDateValue}T00:00:00`
+);
 
     if (Number.isNaN(saleDate.getTime())) {
       return NextResponse.json(
@@ -284,9 +227,7 @@ export async function POST(request: Request) {
         async (tx) => {
           const product =
             await tx.product.findUnique({
-              where: {
-                id: productId,
-              },
+              where: { id: productId },
               select: {
                 id: true,
                 name: true,
@@ -305,14 +246,11 @@ export async function POST(request: Request) {
           }
 
           /*
-           * Calculate current stock from the immutable
-           * inventory ledger.
+           * Calculate current stock from the inventory ledger.
            */
           const transactions =
             await tx.inventoryTransaction.findMany({
-              where: {
-                productId,
-              },
+              where: { productId },
               select: {
                 type: true,
                 quantity: true,
@@ -324,8 +262,7 @@ export async function POST(request: Request) {
           const hasInitialStockTransaction =
             transactions.some(
               (transaction) =>
-                transaction.type ===
-                "INITIAL_STOCK"
+                transaction.type === "INITIAL_STOCK"
             );
 
           if (!hasInitialStockTransaction) {
@@ -361,15 +298,10 @@ export async function POST(request: Request) {
 
           /*
            * Find an existing customer by name.
-           *
-           * Customer names are intentionally the only
-           * customer information stored for now.
            */
           let customer =
             await tx.customer.findFirst({
-              where: {
-                name: customerName,
-              },
+              where: { name: customerName },
               select: {
                 id: true,
                 name: true,
@@ -377,14 +309,12 @@ export async function POST(request: Request) {
             });
 
           /*
-           * Create the customer if this is a new customer.
+           * Create the customer if necessary.
            */
           if (!customer) {
             customer =
               await tx.customer.create({
-                data: {
-                  name: customerName,
-                },
+                data: { name: customerName },
                 select: {
                   id: true,
                   name: true,
@@ -420,7 +350,6 @@ export async function POST(request: Request) {
               status: "ACTIVE",
               createdById: employee.id,
             },
-
             select: {
               id: true,
               quantity: true,
@@ -428,7 +357,6 @@ export async function POST(request: Request) {
               amount: true,
               saleDate: true,
               status: true,
-
               customer: {
                 select: {
                   id: true,
@@ -439,8 +367,7 @@ export async function POST(request: Request) {
           });
 
           /*
-           * Create the initial customer payment when
-           * the customer pays something immediately.
+           * Record any initial customer payment.
            */
           if (initialPayment > 0) {
             await tx.customerPayment.create({
@@ -456,7 +383,7 @@ export async function POST(request: Request) {
           }
 
           /*
-           * Record the inventory movement.
+           * Record inventory movement.
            */
           await tx.inventoryTransaction.create({
             data: {
@@ -471,7 +398,7 @@ export async function POST(request: Request) {
           });
 
           /*
-           * Audit the sale creation.
+           * Audit sale creation.
            */
           await createAuditLog(
             {
@@ -488,8 +415,7 @@ export async function POST(request: Request) {
                 weight,
                 amount,
                 initialPayment,
-                balance:
-                  amount - initialPayment,
+                balance: amount - initialPayment,
                 saleDate,
                 status: "ACTIVE",
               },
@@ -510,9 +436,7 @@ export async function POST(request: Request) {
                 orderBy: {
                   createdAt: "desc",
                 },
-                select: {
-                  id: true,
-                },
+                select: { id: true },
               });
 
             if (payment) {
@@ -541,8 +465,7 @@ export async function POST(request: Request) {
             amount: Number(sale.amount),
             initialPayment,
             balance:
-              Number(sale.amount) -
-              initialPayment,
+              Number(sale.amount) - initialPayment,
           };
         },
         {
@@ -552,9 +475,7 @@ export async function POST(request: Request) {
     };
 
     /*
-     * Serializable transactions can occasionally conflict
-     * when two sales happen at exactly the same time.
-     * Retry those conflicts a few times.
+     * Retry serializable transaction conflicts.
      */
     let sale;
 
@@ -604,13 +525,10 @@ export async function POST(request: Request) {
         );
       }
 
-      if (
-        error.message === "INSUFFICIENT_STOCK"
-      ) {
+      if (error.message === "INSUFFICIENT_STOCK") {
         return NextResponse.json(
           {
-            error:
-              "Insufficient stock for this sale.",
+            error: "Insufficient stock for this sale.",
           },
           { status: 409 }
         );
