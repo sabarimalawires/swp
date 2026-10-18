@@ -1,7 +1,49 @@
+
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/src/lib/authorization";
 import { prisma } from "@/src/lib/prisma";
 import { createAuditLog } from "@/src/lib/audit";
+
+type SaleLineInput = {
+  productId: string;
+  quantity: number;
+  weight: number;
+  rate: number;
+};
+
+function money(value: number) {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
+function getCurrentStock(
+  initialStock: number,
+  transactions: { type: string; quantity: number }[],
+) {
+  let stock = 0;
+
+  if (!transactions.some((t) => t.type === "INITIAL_STOCK")) {
+    stock += initialStock;
+  }
+
+  for (const transaction of transactions) {
+    switch (transaction.type) {
+      case "INITIAL_STOCK":
+      case "PRODUCTION":
+      case "STOCK_ADJUSTMENT_ADD":
+      case "SALE_VOID":
+        stock += transaction.quantity;
+        break;
+
+      case "SALE":
+      case "STOCK_ADJUSTMENT_REMOVE":
+      case "PRODUCTION_REVERSAL":
+        stock -= transaction.quantity;
+        break;
+    }
+  }
+
+  return Math.max(0, stock);
+}
 
 export async function GET(request: Request) {
   try {
@@ -10,44 +52,33 @@ export async function GET(request: Request) {
     if (!employee) {
       return NextResponse.json(
         { error: "Admin access required." },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
     const sales = await prisma.sale.findMany({
-      select: {
-        id: true,
-        quantity: true,
-        weight: true,
-        amount: true,
-        saleDate: true,
-        status: true,
-        customer: {
+      include: {
+        customer: true,
+        product: true,
+        items: {
+          orderBy: { productName: "asc" },
           select: {
             id: true,
-            name: true,
-          },
-        },
-        product: {
-          select: {
-            id: true,
-            name: true,
-            code: true,
+            productId: true,
+            productName: true,
+            quantity: true,
+            weight: true,
+            rate: true,
+            amount: true,
+            deductedQuantity: true,
           },
         },
         createdBy: {
-          select: {
-            name: true,
-            username: true,
-          },
+          select: { name: true, username: true },
         },
         voidedBy: {
-          select: {
-            name: true,
-            username: true,
-          },
+          select: { name: true, username: true },
         },
-        voidedAt: true,
         payments: {
           select: {
             id: true,
@@ -55,42 +86,50 @@ export async function GET(request: Request) {
             paymentDate: true,
             note: true,
           },
-          orderBy: {
-            paymentDate: "asc",
-          },
+          orderBy: { paymentDate: "asc" },
         },
       },
-      orderBy: {
-        saleDate: "desc",
-      },
+      orderBy: { saleDate: "desc" },
       take: 100,
     });
 
-    const formattedSales = sales.map((sale) => {
-      const totalPaid = sale.payments.reduce(
-        (total, payment) =>
-          total + Number(payment.amount),
-        0
-      );
+    return NextResponse.json(
+      sales.map((sale) => {
+        const totalPaid = sale.payments.reduce(
+          (total, payment) => total + Number(payment.amount),
+          0,
+        );
 
-      const balance = Number(sale.amount) - totalPaid;
-
-      return {
-        ...sale,
-        weight: Number(sale.weight),
-        amount: Number(sale.amount),
-        totalPaid,
-        balance: Math.max(0, balance),
-      };
-    });
-
-    return NextResponse.json(formattedSales);
+        return {
+          ...sale,
+          quantity: Number(sale.quantity),
+          weight: Number(sale.weight),
+          amount: Number(sale.amount),
+          items: (sale.items as Array<{
+  id: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  weight: unknown;
+  rate: unknown;
+  amount: unknown;
+  deductedQuantity: number;
+}>).map((item) => ({
+            ...item,
+            weight: Number(item.weight),
+            rate: Number(item.rate),
+            amount: Number(item.amount),
+          })),
+          totalPaid,
+          balance: Math.max(0, Number(sale.amount) - totalPaid),
+        };
+      }),
+    );
   } catch (error) {
     console.error("Sales lookup failed:", error);
-
     return NextResponse.json(
       { error: "Failed to load sales." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -102,304 +141,352 @@ export async function POST(request: Request) {
     if (!employee) {
       return NextResponse.json(
         { error: "Admin access required." },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
     const body = await request.json();
 
-    const customerName = String(
-      body.customerName ?? ""
-    ).trim();
+    const customerName = String(body.customerName ?? "").trim();
+    const customerId = String(body.customerId ?? "").trim();
+    const saleDateValue = String(body.saleDate ?? "").trim();
+    const initialPayment = Number(body.initialPayment ?? 0);
+    const confirmInsufficientStock =
+      body.confirmInsufficientStock === true;
 
-    const productId = String(
-      body.productId ?? ""
-    ).trim();
-
-    const quantity = Number(body.quantity);
-    const weight = Number(body.weight);
-    const amount = Number(body.amount);
-    const initialPayment = Number(
-      body.initialPayment ?? 0
-    );
-
-    const saleDateValue = String(
-      body.saleDate ?? ""
-    ).trim();
-
-    if (!customerName) {
+    if (!customerName && !customerId) {
       return NextResponse.json(
-        { error: "Customer name is required." },
-        { status: 400 }
+        { error: "Select a customer." },
+        { status: 400 },
       );
     }
 
     if (customerName.length > 200) {
       return NextResponse.json(
-        {
-          error:
-            "Customer name must be 200 characters or less.",
-        },
-        { status: 400 }
-      );
-    }
-
-    if (!productId) {
-      return NextResponse.json(
-        { error: "Product is required." },
-        { status: 400 }
-      );
-    }
-
-    if (
-      !Number.isInteger(quantity) ||
-      quantity <= 0
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Quantity must be a whole number greater than 0.",
-        },
-        { status: 400 }
-      );
-    }
-
-    if (!Number.isFinite(weight) || weight <= 0) {
-      return NextResponse.json(
-        {
-          error: "Weight must be greater than 0.",
-        },
-        { status: 400 }
-      );
-    }
-
-    if (!Number.isFinite(amount) || amount <= 0) {
-      return NextResponse.json(
-        {
-          error: "Amount must be greater than ₹0.",
-        },
-        { status: 400 }
-      );
-    }
-
-    if (
-      !Number.isFinite(initialPayment) ||
-      initialPayment < 0
-    ) {
-      return NextResponse.json(
-        {
-          error: "Initial payment cannot be negative.",
-        },
-        { status: 400 }
-      );
-    }
-
-    if (initialPayment > amount) {
-      return NextResponse.json(
-        {
-          error:
-            "Initial payment cannot be greater than the sale amount.",
-        },
-        { status: 400 }
+        { error: "Customer name must be 200 characters or less." },
+        { status: 400 },
       );
     }
 
     if (!saleDateValue) {
       return NextResponse.json(
         { error: "Sale date is required." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-  const saleDate = new Date(
-  `${saleDateValue}T00:00:00`
-);
+   
+if (!/^\d{4}-\d{2}-\d{2}$/.test(saleDateValue)) {
+  return NextResponse.json(
+    { error: "Invalid sale date." },
+    { status: 400 },
+  );
+}
 
-    if (Number.isNaN(saleDate.getTime())) {
+const saleDate = new Date(`${saleDateValue}T00:00:00.000Z`);
+
+if (
+  Number.isNaN(saleDate.getTime()) ||
+  saleDate.toISOString().slice(0, 10) !== saleDateValue
+) {
+  return NextResponse.json(
+    { error: "Invalid sale date." },
+    { status: 400 },
+  );
+}
+
+
+    if (
+      Number.isNaN(saleDate.getTime()) ||
+      saleDate.toISOString().slice(0, 10) !== saleDateValue
+    ) {
       return NextResponse.json(
         { error: "Invalid sale date." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const runTransaction = async () => {
-      return prisma.$transaction(
+    if (!Number.isFinite(initialPayment) || initialPayment < 0) {
+      return NextResponse.json(
+        { error: "Initial payment cannot be negative." },
+        { status: 400 },
+      );
+    }
+
+    const rawItems: unknown[] = Array.isArray(body.items)
+      ? body.items
+      : [
+          {
+            productId: body.productId,
+            quantity: body.quantity,
+            weight: body.weight,
+            rate:
+              body.rate !== undefined
+                ? body.rate
+                : Number(body.weight) > 0
+                  ? Number(body.amount) / Number(body.weight)
+                  : 0,
+          },
+        ];
+
+    if (rawItems.length === 0) {
+      return NextResponse.json(
+        { error: "Add at least one product." },
+        { status: 400 },
+      );
+    }
+
+    const items: SaleLineInput[] = [];
+
+    for (const raw of rawItems) {
+      if (!raw || typeof raw !== "object") {
+        return NextResponse.json(
+          { error: "Invalid product line." },
+          { status: 400 },
+        );
+      }
+
+      const line = raw as Record<string, unknown>;
+      const productId = String(line.productId ?? "").trim();
+      const quantity = Number(line.quantity);
+      const weight = Number(line.weight);
+      const rate = Number(line.rate);
+
+      if (
+        !productId ||
+        !Number.isInteger(quantity) ||
+        quantity <= 0 ||
+        !Number.isFinite(weight) ||
+        weight <= 0 ||
+        Math.abs(weight * 100 - Math.round(weight * 100)) > 1e-7 ||
+        !Number.isFinite(rate) ||
+        rate <= 0
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "Each product needs a valid product, whole quantity, positive weight (up to 2 decimals), and positive rate.",
+          },
+          { status: 400 },
+        );
+      }
+
+      items.push({ productId, quantity, weight, rate });
+    }
+
+    if (new Set(items.map((item) => item.productId)).size !== items.length) {
+      return NextResponse.json(
+        { error: "A product can only be selected once per sale." },
+        { status: 400 },
+      );
+    }
+
+    const lineAmounts = items.map((item) =>
+      money(item.weight * item.rate),
+    );
+    const totalAmount = money(
+      lineAmounts.reduce((sum, amount) => sum + amount, 0),
+    );
+
+    if (initialPayment > totalAmount) {
+      return NextResponse.json(
+        { error: "Initial payment cannot exceed the sale total." },
+        { status: 400 },
+      );
+    }
+
+    const runTransaction = () =>
+      prisma.$transaction(
         async (tx) => {
-          const product =
-            await tx.product.findUnique({
-              where: { id: productId },
-              select: {
-                id: true,
-                name: true,
-                code: true,
-                isActive: true,
-                initialStock: true,
-              },
-            });
-
-          if (!product) {
-            throw new Error("PRODUCT_NOT_FOUND");
-          }
-
-          if (!product.isActive) {
-            throw new Error("PRODUCT_INACTIVE");
-          }
-
-          /*
-           * Calculate current stock from the inventory ledger.
-           */
-          const transactions =
-            await tx.inventoryTransaction.findMany({
-              where: { productId },
-              select: {
-                type: true,
-                quantity: true,
-              },
-            });
-
-          let stock = 0;
-
-          const hasInitialStockTransaction =
-            transactions.some(
-              (transaction) =>
-                transaction.type === "INITIAL_STOCK"
-            );
-
-          if (!hasInitialStockTransaction) {
-            stock += product.initialStock;
-          }
-
-          for (const transaction of transactions) {
-            switch (transaction.type) {
-              case "INITIAL_STOCK":
-              case "PRODUCTION":
-              case "STOCK_ADJUSTMENT_ADD":
-                stock += transaction.quantity;
-                break;
-
-              case "SALE":
-              case "STOCK_ADJUSTMENT_REMOVE":
-              case "PRODUCTION_REVERSAL":
-                stock -= transaction.quantity;
-                break;
-
-              case "SALE_VOID":
-                stock += transaction.quantity;
-                break;
-
-              default:
-                break;
-            }
-          }
-
-          if (quantity > stock) {
-            throw new Error("INSUFFICIENT_STOCK");
-          }
-
-          /*
-           * Find an existing customer by name.
-           */
-          let customer =
-            await tx.customer.findFirst({
-              where: { name: customerName },
-              select: {
-                id: true,
-                name: true,
-              },
-            });
-
-          /*
-           * Create the customer if necessary.
-           */
-          if (!customer) {
-            customer =
-              await tx.customer.create({
-                data: { name: customerName },
-                select: {
-                  id: true,
-                  name: true,
-                },
+          const customer = customerId
+            ? await tx.customer.findUnique({
+                where: { id: customerId },
+                select: { id: true, name: true },
+              })
+            : await tx.customer.findFirst({
+                where: { name: customerName },
+                select: { id: true, name: true },
               });
+
+          if (customerId && !customer) {
+            throw new Error("CUSTOMER_NOT_FOUND");
+          }
+
+          let resolvedCustomer = customer;
+
+          if (!resolvedCustomer) {
+            resolvedCustomer = await tx.customer.create({
+              data: { name: customerName },
+              select: { id: true, name: true },
+            });
 
             await createAuditLog(
               {
                 userId: employee.id,
                 action: "CREATE",
                 entityType: "CUSTOMER",
-                entityId: customer.id,
+                entityId: resolvedCustomer.id,
                 oldValue: null,
-                newValue: {
-                  name: customer.name,
-                },
+                newValue: { name: resolvedCustomer.name },
               },
-              tx
+              tx,
             );
           }
 
-          /*
-           * Create the sale.
-           */
+          const shortages: {
+            productId: string;
+            productName: string;
+            requested: number;
+            available: number;
+          }[] = [];
+
+          const preparedItems: {
+            productId: string;
+            productName: string;
+            quantity: number;
+            weight: number;
+            rate: number;
+            amount: number;
+            deductedQuantity: number;
+          }[] = [];
+
+          for (let index = 0; index < items.length; index++) {
+            const item = items[index];
+
+            const product = await tx.product.findUnique({
+              where: { id: item.productId },
+              select: {
+                id: true,
+                name: true,
+                isActive: true,
+                initialStock: true,
+              },
+            });
+
+            if (!product) throw new Error("PRODUCT_NOT_FOUND");
+            if (!product.isActive) throw new Error("PRODUCT_INACTIVE");
+
+            const transactions = await tx.inventoryTransaction.findMany({
+              where: { productId: product.id },
+              select: { type: true, quantity: true },
+            });
+
+            const available = getCurrentStock(
+              product.initialStock,
+              transactions.map((t) => ({
+                type: t.type,
+                quantity: Number(t.quantity),
+              })),
+            );
+
+            if (item.quantity > available) {
+              shortages.push({
+                productId: product.id,
+                productName: product.name,
+                requested: item.quantity,
+                available,
+              });
+            }
+
+            preparedItems.push({
+              productId: product.id,
+              productName: product.name,
+              quantity: item.quantity,
+              weight: item.weight,
+              rate: item.rate,
+              amount: lineAmounts[index],
+              deductedQuantity: Math.min(item.quantity, available),
+            });
+          }
+
+          if (shortages.length > 0 && !confirmInsufficientStock) {
+            throw new Error(
+              `INSUFFICIENT_STOCK:${JSON.stringify(shortages)}`,
+            );
+          }
+
+          const totalQuantity = preparedItems.reduce(
+            (sum, item) => sum + item.quantity,
+            0,
+          );
+          const totalWeight = preparedItems.reduce(
+            (sum, item) => sum + item.weight,
+            0,
+          );
+
           const sale = await tx.sale.create({
             data: {
-              customerId: customer.id,
-              productId,
-              quantity,
-              weight,
-              amount,
+              customerId: resolvedCustomer.id,
+              productId: preparedItems[0].productId,
+              quantity: totalQuantity,
+              weight: totalWeight,
+              amount: totalAmount,
               saleDate,
               status: "ACTIVE",
               createdById: employee.id,
-            },
-            select: {
-              id: true,
-              quantity: true,
-              weight: true,
-              amount: true,
-              saleDate: true,
-              status: true,
-              customer: {
-                select: {
-                  id: true,
-                  name: true,
-                },
+              items: {
+                create: preparedItems.map((item) => ({
+                  productId: item.productId,
+                  productName: item.productName,
+                  quantity: item.quantity,
+                  weight: item.weight,
+                  rate: item.rate,
+                  amount: item.amount,
+                  deductedQuantity: item.deductedQuantity,
+                })),
               },
+            },
+            include: {
+              items: true,
+              customer: { select: { id: true, name: true } },
             },
           });
 
-          /*
-           * Record any initial customer payment.
-           */
+          for (const item of preparedItems) {
+            if (item.deductedQuantity > 0) {
+              await tx.inventoryTransaction.create({
+                data: {
+                  productId: item.productId,
+                  type: "SALE",
+                  quantity: item.deductedQuantity,
+                  referenceType: "SALE",
+                  referenceId: sale.id,
+                  createdById: employee.id,
+                  saleId: sale.id,
+                },
+              });
+            }
+          }
+
           if (initialPayment > 0) {
-            await tx.customerPayment.create({
+            const payment = await tx.customerPayment.create({
               data: {
-                customerId: customer.id,
-                saleId: sale.id,
+                customerId: resolvedCustomer.id,
                 amount: initialPayment,
                 paymentDate: saleDate,
                 createdById: employee.id,
                 note: "Initial payment at sale",
               },
             });
+
+            await createAuditLog(
+              {
+                userId: employee.id,
+                action: "CREATE",
+                entityType: "CUSTOMER_PAYMENT",
+                entityId: payment.id,
+                oldValue: null,
+                newValue: {
+                  customerId: resolvedCustomer.id,
+                  amount: initialPayment,
+                  paymentDate: saleDate,
+                  note: payment.note,
+                },
+              },
+              tx,
+            );
           }
 
-          /*
-           * Record inventory movement.
-           */
-          await tx.inventoryTransaction.create({
-            data: {
-              productId,
-              type: "SALE",
-              quantity,
-              referenceType: "SALE",
-              referenceId: sale.id,
-              createdById: employee.id,
-              saleId: sale.id,
-            },
-          });
-
-          /*
-           * Audit sale creation.
-           */
           await createAuditLog(
             {
               userId: employee.id,
@@ -408,75 +495,44 @@ export async function POST(request: Request) {
               entityId: sale.id,
               oldValue: null,
               newValue: {
-                customerId: customer.id,
-                customerName: customer.name,
-                productId,
-                quantity,
-                weight,
-                amount,
+                customerId: resolvedCustomer.id,
+                customerName: resolvedCustomer.name,
+                items: preparedItems,
+                totalAmount,
                 initialPayment,
-                balance: amount - initialPayment,
                 saleDate,
                 status: "ACTIVE",
               },
             },
-            tx
+            tx,
           );
-
-          /*
-           * Audit the initial payment.
-           */
-          if (initialPayment > 0) {
-            const payment =
-              await tx.customerPayment.findFirst({
-                where: {
-                  saleId: sale.id,
-                  amount: initialPayment,
-                },
-                orderBy: {
-                  createdAt: "desc",
-                },
-                select: { id: true },
-              });
-
-            if (payment) {
-              await createAuditLog(
-                {
-                  userId: employee.id,
-                  action: "CREATE",
-                  entityType: "CUSTOMER_PAYMENT",
-                  entityId: payment.id,
-                  oldValue: null,
-                  newValue: {
-                    customerId: customer.id,
-                    saleId: sale.id,
-                    amount: initialPayment,
-                    paymentDate: saleDate,
-                  },
-                },
-                tx
-              );
-            }
-          }
 
           return {
             ...sale,
             weight: Number(sale.weight),
             amount: Number(sale.amount),
+            items: (sale.items as Array<{
+  id: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  weight: unknown;
+  rate: unknown;
+  amount: unknown;
+  deductedQuantity: number;
+}>).map((item) => ({
+  ...item,
+  weight: Number(item.weight),
+  rate: Number(item.rate),
+  amount: Number(item.amount),
+})),
             initialPayment,
-            balance:
-              Number(sale.amount) - initialPayment,
+            balance: money(totalAmount - initialPayment),
           };
         },
-        {
-          isolationLevel: "Serializable",
-        }
+        { isolationLevel: "Serializable" },
       );
-    };
 
-    /*
-     * Retry serializable transaction conflicts.
-     */
     let sale;
 
     for (let attempt = 1; attempt <= 3; attempt++) {
@@ -484,53 +540,56 @@ export async function POST(request: Request) {
         sale = await runTransaction();
         break;
       } catch (error) {
-        const isSerializationConflict =
+        const isConflict =
           typeof error === "object" &&
           error !== null &&
           "code" in error &&
           error.code === "P2034";
 
-        if (
-          !isSerializationConflict ||
-          attempt === 3
-        ) {
-          throw error;
-        }
+        if (isConflict && attempt < 3) continue;
+        throw error;
       }
     }
 
     return NextResponse.json(
-      {
-        message: "Sale created successfully.",
-        sale,
-      },
-      { status: 201 }
+      { message: "Sale created successfully.", sale },
+      { status: 201 },
     );
   } catch (error) {
     if (error instanceof Error) {
+      if (error.message.startsWith("INSUFFICIENT_STOCK:")) {
+        const shortages = JSON.parse(
+          error.message.slice("INSUFFICIENT_STOCK:".length),
+        );
+
+        return NextResponse.json(
+          {
+            error: "Some products have insufficient stock.",
+            requiresConfirmation: true,
+            shortages,
+          },
+          { status: 409 },
+        );
+      }
+
+      if (error.message === "CUSTOMER_NOT_FOUND") {
+        return NextResponse.json(
+          { error: "Customer not found." },
+          { status: 404 },
+        );
+      }
+
       if (error.message === "PRODUCT_NOT_FOUND") {
         return NextResponse.json(
-          { error: "Product not found." },
-          { status: 404 }
+          { error: "One or more products were not found." },
+          { status: 404 },
         );
       }
 
       if (error.message === "PRODUCT_INACTIVE") {
         return NextResponse.json(
-          {
-            error:
-              "This product is inactive and cannot be sold.",
-          },
-          { status: 409 }
-        );
-      }
-
-      if (error.message === "INSUFFICIENT_STOCK") {
-        return NextResponse.json(
-          {
-            error: "Insufficient stock for this sale.",
-          },
-          { status: 409 }
+          { error: "Inactive products cannot be sold." },
+          { status: 409 },
         );
       }
     }
@@ -539,7 +598,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       { error: "Failed to create sale." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

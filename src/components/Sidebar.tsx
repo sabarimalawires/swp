@@ -14,6 +14,7 @@ const adminNavigation = [
   { name: "Customers", href: "/customers"},
   { name: "History", href: "/history"},
   { name: "Reports", href: "/reports" },
+  { name: "Ledger", href: "/ledger" },
   { name: "Products", href: "/products"},
 ];
 

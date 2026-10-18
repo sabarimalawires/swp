@@ -18,13 +18,18 @@ const validActions = [
   "PASSWORD_RESET",
 ] as const;
 
+
 const validEntityTypes = [
   "USER",
   "PRODUCT",
   "WORK_ENTRY",
   "SALE",
   "INVENTORY",
+  "CUSTOMER",
+  "CUSTOMER_PAYMENT",
+  "CUSTOMER_LEDGER_OPENING_BALANCE",
 ] as const;
+
 
 export async function GET(request: Request) {
   try {

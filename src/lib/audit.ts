@@ -22,7 +22,8 @@ type AuditEntityType =
   | "SALE"
   | "INVENTORY"
   | "CUSTOMER"
-  | "CUSTOMER_PAYMENT";
+  | "CUSTOMER_PAYMENT"
+  | "CUSTOMER_LEDGER_OPENING_BALANCE";
 
 type AuditClient =
   | Prisma.TransactionClient

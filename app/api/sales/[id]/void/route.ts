@@ -1,3 +1,4 @@
+
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/src/lib/authorization";
 import { prisma } from "@/src/lib/prisma";
@@ -5,11 +6,7 @@ import { createAuditLog } from "@/src/lib/audit";
 
 export async function POST(
   request: Request,
-  {
-    params,
-  }: {
-    params: Promise<{ id: string }>;
-  }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const admin = await requireAdmin(request);
@@ -17,155 +14,116 @@ export async function POST(
     if (!admin) {
       return NextResponse.json(
         { error: "Admin access required." },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
     const { id } = await params;
 
-    const result = await prisma.$transaction(
+    const sale = await prisma.$transaction(
       async (tx) => {
-        const sale = await tx.sale.findUnique({
-          where: {
-            id,
-          },
-          select: {
-            id: true,
-            customerId: true,
-            productId: true,
-            quantity: true,
-            weight: true,
-            amount: true,
-            saleDate: true,
-            status: true,
-
-            customer: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
+        const existing = await tx.sale.findUnique({
+          where: { id },
+          include: {
+            customer: { select: { id: true, name: true } },
+            items: true,
           },
         });
 
-        if (!sale) {
-          throw new Error("SALE_NOT_FOUND");
-        }
-
-        if (sale.status === "VOIDED") {
+        if (!existing) throw new Error("SALE_NOT_FOUND");
+        if (existing.status === "VOIDED") {
           throw new Error("SALE_ALREADY_VOIDED");
         }
+        if (existing.items.length === 0) {
+          throw new Error("SALE_ITEMS_MISSING");
+        }
 
-        /*
-         * Update the sale and create the inventory reversal
-         * in the SAME transaction.
-         */
-        const updatedSale = await tx.sale.update({
-          where: {
-            id: sale.id,
-          },
+        const voided = await tx.sale.update({
+          where: { id },
           data: {
             status: "VOIDED",
             voidedById: admin.id,
             voidedAt: new Date(),
           },
-          select: {
-            id: true,
-            status: true,
-            voidedAt: true,
-          },
         });
 
-        /*
-         * Restore the inventory.
-         */
-        await tx.inventoryTransaction.create({
-          data: {
-            productId: sale.productId,
-            type: "SALE_VOID",
-            quantity: sale.quantity,
-            referenceType: "SALE_VOID",
-            referenceId: sale.id,
-            createdById: admin.id,
-            saleId: sale.id,
-          },
-        });
+        for (const item of existing.items) {
+          if (item.deductedQuantity <= 0) continue;
 
-        /*
-         * Audit the sale void.
-         */
+          await tx.inventoryTransaction.create({
+            data: {
+              productId: item.productId,
+              type: "SALE_VOID",
+              quantity: item.deductedQuantity,
+              referenceType: "SALE_VOID",
+              referenceId: existing.id,
+              createdById: admin.id,
+              saleId: existing.id,
+            },
+          });
+        }
+
         await createAuditLog(
           {
             userId: admin.id,
             action: "VOID",
             entityType: "SALE",
-            entityId: sale.id,
-
+            entityId: existing.id,
             oldValue: {
-              customerId: sale.customerId,
-              customerName: sale.customer.name,
-              productId: sale.productId,
-              quantity: sale.quantity,
-              weight: Number(sale.weight),
-              amount: Number(sale.amount),
-              saleDate: sale.saleDate,
-              status: sale.status,
+              customerId: existing.customerId,
+              customerName: existing.customer.name,
+              amount: Number(existing.amount),
+              status: existing.status,
+              items: existing.items.map((item) => ({
+                productId: item.productId,
+                productName: item.productName,
+                quantity: item.quantity,
+                deductedQuantity: item.deductedQuantity,
+              })),
             },
-
             newValue: {
-              customerId: sale.customerId,
-              customerName: sale.customer.name,
-              productId: sale.productId,
-              quantity: sale.quantity,
-              weight: Number(sale.weight),
-              amount: Number(sale.amount),
-              saleDate: sale.saleDate,
               status: "VOIDED",
               voidedById: admin.id,
+              voidedAt: voided.voidedAt,
             },
           },
-          tx
+          tx,
         );
 
-        return updatedSale;
+        return voided;
       },
-      {
-        isolationLevel: "Serializable",
-      }
+      { isolationLevel: "Serializable" },
     );
 
     return NextResponse.json({
       message: "Sale voided successfully.",
-      sale: result,
+      sale,
     });
   } catch (error) {
     if (error instanceof Error) {
       if (error.message === "SALE_NOT_FOUND") {
-        return NextResponse.json(
-          {
-            error: "Sale not found.",
-          },
-          { status: 404 }
-        );
+        return NextResponse.json({ error: "Sale not found." }, { status: 404 });
       }
 
       if (error.message === "SALE_ALREADY_VOIDED") {
         return NextResponse.json(
-          {
-            error: "This sale has already been voided.",
-          },
-          { status: 409 }
+          { error: "Sale is already voided." },
+          { status: 409 },
+        );
+      }
+
+      if (error.message === "SALE_ITEMS_MISSING") {
+        return NextResponse.json(
+          { error: "Sale items are missing; the sale was not changed." },
+          { status: 409 },
         );
       }
     }
 
     console.error("Sale void failed:", error);
-
     return NextResponse.json(
-      {
-        error: "Failed to void sale.",
-      },
-      { status: 500 }
+      { error: "Failed to void sale." },
+      { status: 500 },
     );
   }
 }
