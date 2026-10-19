@@ -2,9 +2,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Sidebar from "@/src/components/Sidebar";
+
 
 type LedgerRow = {
-  id: string;
+  id: string; 
   date: string;
   type: "SALE" | "PAYMENT";
   item: string;
@@ -155,12 +157,16 @@ export default function LedgerPage() {
 
   const combined = selectedCustomer === "ALL";
 
-  return (
-    <main className="ledger-page">
+ return (
+  <div className="flex min-h-screen bg-[#fffaf5]">
+    <Sidebar />
+    <main className="ledger-page min-w-0 flex-1">
     <style jsx global>{`
   .ledger-page {
-    max-width: 1400px;
-    margin: 0 auto;
+    width: 100%;
+max-width: none;
+margin: 0;
+box-sizing: border-box;
     padding: 28px;
     color: #3b2117;
     background: #fffaf5;
@@ -678,6 +684,7 @@ export default function LedgerPage() {
           ))}
         </>
       )}
-    </main>
+        </main>
+  </div>
   );
 }
