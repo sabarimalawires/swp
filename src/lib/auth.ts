@@ -14,6 +14,7 @@ export const auth = betterAuth({
   "http://localhost:3000",
   "https://swp-flame.vercel.app",
   "https://swp-nine.vercel.app",
+  "https://swp-p0ixdj1xg-swp10.vercel.app",
 ],
 
   emailAndPassword: {
