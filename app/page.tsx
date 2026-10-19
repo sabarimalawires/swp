@@ -264,8 +264,19 @@ const router = useRouter();
 
                 <p className="mt-4 text-sm leading-6 text-[#8B604A]">
                   Track work, manage inventory, record sales and
-                  keep your business operations organized with SWP.
+                  keep your business operations organized
                 </p>
+                <p className="mt-4 text-sm leading-6 text-[#8B604A]">
+  Developed by {" "}
+  <a
+    href="https://www.linkedin.com/in/ganesh-bp0810/"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="font-medium text-[#d96f2b] hover:underline"
+  >
+    GANESH
+  </a>
+</p>
               </div>
             </div>
           </section>
