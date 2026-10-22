@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { authClient } from "@/src/lib/auth-client";
@@ -9,8 +9,8 @@ type Product = {
   id: string;
   name: string;
   code: string | null;
-  initialStock: number;
-  lowStockThreshold: number;
+  initialStockKg: number;
+  lowStockThresholdKg: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -213,11 +213,11 @@ export default function ProductsPage() {
     setName(product.name);
     setCode(product.code ?? "");
     setInitialStock(
-      String(product.initialStock)
+      String(product.initialStockKg)
     );
     setLowStockThreshold(
       String(
-        product.lowStockThreshold
+        product.lowStockThresholdKg
       )
     );
 
@@ -259,9 +259,9 @@ export default function ProductsPage() {
               : {}),
             name: name.trim(),
             code: code.trim(),
-            initialStock:
+            initialStockKg:
               Number(initialStock),
-            lowStockThreshold:
+            lowStockThresholdKg:
               Number(
                 lowStockThreshold
               ),
@@ -719,15 +719,15 @@ export default function ProductsPage() {
 
                             <td className="px-6 py-5 text-sm text-[#5b3928]">
                               {product.code ||
-                                "—"}
+                                "â€”"}
                             </td>
 
                             <td className="px-6 py-5 text-sm font-semibold text-[#3b2117]">
-                              {product.initialStock.toLocaleString()}
+                              {product.initialStockKg.toLocaleString()}
                             </td>
 
                             <td className="px-6 py-5 text-sm text-[#5b3928]">
-                              {product.lowStockThreshold.toLocaleString()}
+                              {product.lowStockThresholdKg.toLocaleString()}
                             </td>
 
                             <td className="px-6 py-5">
