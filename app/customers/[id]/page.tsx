@@ -28,6 +28,7 @@ type Payment = {
 type Customer = {
   id: string;
   name: string;
+  phone: string | null;
   createdAt: string;
 
   totalPurchases: number;
@@ -55,6 +56,20 @@ export default function CustomerPage() {
 
   const [userName, setUserName] =
     useState("");
+
+    
+const [showProfileForm, setShowProfileForm] =
+  useState(false);
+
+const [profileName, setProfileName] =
+  useState("");
+
+const [profilePhone, setProfilePhone] =
+  useState("");
+
+const [savingProfile, setSavingProfile] =
+  useState(false);
+
 
   const [loading, setLoading] =
     useState(true);
@@ -114,6 +129,81 @@ export default function CustomerPage() {
 
     setCustomer(foundCustomer);
   };
+
+  
+const handleSaveProfile = async (
+  event: React.FormEvent<HTMLFormElement>
+) => {
+  event.preventDefault();
+
+  if (!customer) return;
+
+  setError("");
+  setSuccess("");
+
+  const name = profileName.trim();
+  const phone = profilePhone.trim();
+
+  if (!name) {
+    setError("Customer name is required.");
+    return;
+  }
+
+  if (name.length > 200) {
+    setError(
+      "Customer name must be 200 characters or less."
+    );
+    return;
+  }
+
+  if (
+    phone &&
+    !/^[0-9+\-\s()]{7,20}$/.test(phone)
+  ) {
+    setError("Enter a valid mobile number.");
+    return;
+  }
+
+  setSavingProfile(true);
+
+  try {
+    const response = await fetch(
+      `/api/customers/${customer.id}/profile`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          phone: phone || null,
+        }),
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        result.error || "Failed to update customer."
+      );
+    }
+
+    await loadCustomer();
+
+    setShowProfileForm(false);
+    setSuccess("Customer details updated successfully.");
+  } catch (error) {
+    setError(
+      error instanceof Error
+        ? error.message
+        : "Failed to update customer details."
+    );
+  } finally {
+    setSavingProfile(false);
+  }
+};
+
 
   useEffect(() => {
     const initialize = async () => {
@@ -366,6 +456,47 @@ export default function CustomerPage() {
     }
   };
 
+  
+const handleDeletePayment = async (paymentId: string) => {
+  if (!customer) return;
+
+  const confirmed = window.confirm(
+    "Are you sure you want to delete this payment?"
+  );
+
+  if (!confirmed) return;
+
+  setSaving(true);
+  setError("");
+  setSuccess("");
+
+  try {
+    const response = await fetch(
+      `/api/customers/${customer.id}/payments?paymentId=${encodeURIComponent(paymentId)}`,
+      { method: "DELETE" }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to delete payment.");
+    }
+
+    cancelEditingPayment();
+    await loadCustomer();
+    setSuccess("Payment deleted successfully.");
+  } catch (error) {
+    setError(
+      error instanceof Error
+        ? error.message
+        : "Failed to delete payment."
+    );
+  } finally {
+    setSaving(false);
+  }
+};
+
+
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#fff8f2]">
@@ -427,6 +558,28 @@ export default function CustomerPage() {
                 {customer.name}
               </h1>
 
+              
+<div className="mt-3 flex flex-wrap items-center gap-3">
+  <p className="text-sm text-[#7b5a49]">
+    Mobile: {customer.phone || "Not provided"}
+  </p>
+
+  <button
+    type="button"
+    onClick={() => {
+      setProfileName(customer.name);
+      setProfilePhone(customer.phone ?? "");
+      setError("");
+      setSuccess("");
+      setShowProfileForm((value) => !value);
+    }}
+    className="rounded-xl border border-[#e5cdbd] px-4 py-2 text-sm font-semibold text-[#5b3928] hover:bg-[#fff1e6]"
+  >
+    {showProfileForm ? "Cancel Edit" : "Edit Customer"}
+  </button>
+</div>
+
+
               <p className="mt-2 text-[#7b5a49]">
                 Complete purchase and payment
                 history.
@@ -456,6 +609,71 @@ export default function CustomerPage() {
               {error}
             </div>
           )}
+
+          
+{showProfileForm && (
+  <section className="mt-6 rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
+    <h2 className="text-lg font-semibold text-[#3b2117]">
+      Edit Customer Details
+    </h2>
+
+    <form
+      onSubmit={handleSaveProfile}
+      className="mt-4 space-y-4"
+    >
+      <div>
+        <label
+          htmlFor="profile-name"
+          className="mb-2 block text-sm font-semibold text-[#5b3928]"
+        >
+          Customer Name *
+        </label>
+
+        <input
+          id="profile-name"
+          type="text"
+          value={profileName}
+          onChange={(event) =>
+            setProfileName(event.target.value)
+          }
+          maxLength={200}
+          required
+          className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a]"
+        />
+      </div>
+
+      <div>
+        <label
+          htmlFor="profile-phone"
+          className="mb-2 block text-sm font-semibold text-[#5b3928]"
+        >
+          Mobile Number
+        </label>
+
+        <input
+          id="profile-phone"
+          type="tel"
+          value={profilePhone}
+          onChange={(event) =>
+            setProfilePhone(event.target.value)
+          }
+          maxLength={20}
+          placeholder="Enter mobile number (optional)"
+          className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a]"
+        />
+      </div>
+
+      <button
+        type="submit"
+        disabled={savingProfile}
+        className="rounded-xl bg-[#d96f2b] px-5 py-3 text-sm font-semibold text-white hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {savingProfile ? "Saving..." : "Save Changes"}
+      </button>
+    </form>
+  </section>
+)}
+
 
           {/* Summary */}
           <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -786,6 +1004,15 @@ export default function CustomerPage() {
                                   ? "Saving..."
                                   : "Save Changes"}
                               </button>
+
+                              <button
+  type="button"
+  disabled={saving}
+  onClick={() => handleDeletePayment(payment.id)}
+  className="mt-2 w-full rounded-xl border border-red-200 bg-white px-5 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+>
+  Delete Payment
+</button>
                             </div>
                           ) : (
                             <div className="flex items-start justify-between gap-4">

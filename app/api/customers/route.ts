@@ -21,6 +21,7 @@ export async function GET(request: Request) {
       select: {
         id: true,
         name: true,
+        phone: true,
         createdAt: true,
         updatedAt: true,
 
@@ -88,6 +89,7 @@ export async function GET(request: Request) {
         return {
           id: customer.id,
           name: customer.name,
+          phone: customer.phone,
           createdAt: customer.createdAt,
           updatedAt: customer.updatedAt,
 
@@ -140,6 +142,70 @@ export async function GET(request: Request) {
         error:
           "Failed to load customers.",
       },
+      { status: 500 }
+    );
+  }
+}
+
+
+export async function POST(request: Request) {
+  try {
+    const admin = await requireAdmin(request);
+
+    if (!admin) {
+      return NextResponse.json(
+        { error: "Admin access required." },
+        { status: 403 }
+      );
+    }
+
+    const body = await request.json();
+
+    const name = String(body.name ?? "").trim();
+    const rawPhone = String(body.phone ?? "").trim();
+    const phone = rawPhone || null;
+
+    if (!name) {
+      return NextResponse.json(
+        { error: "Customer name is required." },
+        { status: 400 }
+      );
+    }
+
+    if (name.length > 200) {
+      return NextResponse.json(
+        { error: "Customer name must be 200 characters or less." },
+        { status: 400 }
+      );
+    }
+
+    if (phone && !/^[0-9+\-\s()]{7,20}$/.test(phone)) {
+      return NextResponse.json(
+        { error: "Enter a valid mobile number." },
+        { status: 400 }
+      );
+    }
+
+    const customer = await prisma.customer.create({
+      data: {
+        name,
+        phone,
+      },
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return NextResponse.json(customer, { status: 201 });
+  } catch (error) {
+    console.error("Customer creation failed:", error);
+
+    return NextResponse.json(
+      { error: "Failed to create customer." },
       { status: 500 }
     );
   }

@@ -286,13 +286,13 @@ export async function GET(request: Request) {
       }),
 
       prisma.inventoryTransaction.findMany({
-        where: inventoryWhere,
-        select: {
-          productId: true,
-          type: true,
-          quantity: true,
-        },
-      }),
+  where: inventoryWhere,
+  select: {
+    productId: true,
+    type: true,
+    weight: true,
+  },
+}),
 
       prisma.product.findMany({
         where: {
@@ -307,8 +307,8 @@ export async function GET(request: Request) {
           id: true,
           name: true,
           code: true,
-          initialStock: true,
-          lowStockThreshold: true,
+          initialStockKg: true,
+          lowStockThresholdKg: true,
         },
         orderBy: {
           name: "asc",
@@ -436,70 +436,74 @@ export async function GET(request: Request) {
      * Current inventory is calculated from the
      * complete inventory ledger.
      */
-    const stockByProduct = products.map(
-      (product) => {
-        const transactions =
-          inventoryTransactions.filter(
-            (transaction) =>
-              transaction.productId ===
-              product.id
-          );
+    
+const roundKg = (value: number) =>
+  Math.round((value + Number.EPSILON) * 1000) / 1000;
 
-        let stock = 0;
+const stockByProduct = products.map((product) => {
+  const transactions = inventoryTransactions.filter(
+    (transaction) => transaction.productId === product.id
+  );
 
-        const hasInitialStockTransaction =
-          transactions.some(
-            (transaction) =>
-              transaction.type ===
-              "INITIAL_STOCK"
-          );
+  // Only a nonzero kg opening-stock transaction replaces
+  // the product's initialStockKg fallback.
+  const hasKgInitialStockTransaction = transactions.some(
+    (transaction) =>
+      transaction.type === "INITIAL_STOCK" &&
+      Number(transaction.weight) !== 0
+  );
 
-        if (!hasInitialStockTransaction) {
-          stock += product.initialStock;
-        }
+  let stock = hasKgInitialStockTransaction
+    ? 0
+    : Number(product.initialStockKg);
 
-        for (const transaction of transactions) {
-          switch (transaction.type) {
-            case "INITIAL_STOCK":
-            case "PRODUCTION":
-            case "STOCK_ADJUSTMENT_ADD":
-              stock += transaction.quantity;
-              break;
+  for (const transaction of transactions) {
+    const weight = Number(transaction.weight);
 
-            case "SALE":
-            case "STOCK_ADJUSTMENT_REMOVE":
-            case "PRODUCTION_REVERSAL":
-              stock -= transaction.quantity;
-              break;
+    // Legacy transactions without recorded kg weights
+    // must not be interpreted as kilograms.
+    if (!Number.isFinite(weight) || weight === 0) {
+      continue;
+    }
 
-            case "SALE_VOID":
-              stock += transaction.quantity;
-              break;
+    switch (transaction.type) {
+      case "INITIAL_STOCK":
+      case "PRODUCTION":
+      case "STOCK_ADJUSTMENT_ADD":
+      case "SALE_VOID":
+        stock += weight;
+        break;
 
-            default:
-              break;
-          }
-        }
+      case "SALE":
+      case "STOCK_ADJUSTMENT_REMOVE":
+      case "PRODUCTION_REVERSAL":
+        stock -= weight;
+        break;
 
-        return {
-          id: product.id,
-          name: product.name,
-          code: product.code,
-          stock,
-          lowStockThreshold:
-            product.lowStockThreshold,
-          isLowStock:
-            stock <=
-            product.lowStockThreshold,
-        };
-      }
-    );
+      default:
+        break;
+    }
+  }
 
-    const lowStockProducts =
-      stockByProduct.filter(
-        (product) =>
-          product.isLowStock
-      );
+  stock = roundKg(stock);
+
+  const lowStockThreshold = Number(
+    product.lowStockThresholdKg
+  );
+
+  return {
+    id: product.id,
+    name: product.name,
+    code: product.code,
+    stock,
+    lowStockThreshold,
+    isLowStock: stock <= lowStockThreshold,
+  };
+});
+
+const lowStockProducts = stockByProduct.filter(
+  (product) => product.isLowStock
+);
 
     /*
      * Convert Prisma Decimal values to regular

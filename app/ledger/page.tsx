@@ -3,6 +3,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Sidebar from "@/src/components/Sidebar";
+import DownloadLedgerPdf from "./DownloadLedgerPdf";
+
 
 
 type LedgerRow = {
@@ -64,11 +66,18 @@ export default function LedgerPage() {
   const [data, setData] = useState<LedgerResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [openingBalanceInput, setOpeningBalanceInput] = useState("");
+  const [openingBalanceInput, setOpeningBalanceInput] = useState("0");
   const [overrideReason, setOverrideReason] = useState("");
   const [savingOpening, setSavingOpening] = useState(false);
   const [openingMessage, setOpeningMessage] = useState("");
 
+  useEffect(() => {
+  setOpeningBalanceInput("");
+  setOverrideReason("");
+  setOpeningMessage("");
+}, [selectedCustomer, year]);
+
+ 
   const loadLedger = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -80,9 +89,12 @@ export default function LedgerPage() {
 
       const result = await response.json();
 
+      console.log("REFRESHED LEDGER DATA:", result);
+
       if (!response.ok) {
         throw new Error(result.error ?? "Unable to load ledger.");
       }
+
       setData(result);
     } catch (err) {
       setError(
@@ -93,9 +105,12 @@ export default function LedgerPage() {
     }
   }, [year]);
 
+
   useEffect(() => {
     void loadLedger();
   }, [loadLedger]);
+
+  
 
   const visibleLedgers =
     data?.ledgers.filter(
@@ -138,13 +153,16 @@ export default function LedgerPage() {
       );
 
       const result = await response.json();
+      
 
       if (!response.ok) {
         throw new Error(result.error ?? "Failed to save opening balance.");
       }
 
-      setOpeningMessage("Opening balance saved successfully.");
-      await loadLedger();
+      setOpeningBalanceInput("");
+setOverrideReason("");
+setOpeningMessage("Opening balance saved successfully.");
+await loadLedger();
     } catch (err) {
       setOpeningMessage(
         err instanceof Error ? err.message : "Failed to save opening balance."
@@ -158,9 +176,13 @@ export default function LedgerPage() {
   const combined = selectedCustomer === "ALL";
 
  return (
-  <div className="flex min-h-screen bg-[#fffaf5]">
+  
+<div className="flex min-h-screen bg-[#fffaf5]">
+  <div className="no-print">
     <Sidebar />
-    <main className="ledger-page min-w-0 flex-1">
+  </div>
+  <main className="ledger-page min-w-0 flex-1">
+
     <style jsx global>{`
   .ledger-page {
     width: 100%;
@@ -375,53 +397,6 @@ box-sizing: border-box;
     }
   }
 
-  @media print {
-    @page {
-      size: A4 landscape;
-      margin: 8mm;
-    }
-
-    .no-print {
-      display: none !important;
-    }
-
-    .ledger-page {
-      max-width: none;
-      padding: 0;
-      margin: 0;
-      background: white !important;
-    }
-
-    .ledger-summary {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-
-    .ledger-card {
-      border: 0;
-      box-shadow: none;
-      padding: 0;
-      margin: 0;
-      break-after: page;
-    }
-
-    .ledger-card:last-child {
-      break-after: auto;
-    }
-
-    .ledger-table {
-      font-size: 9px;
-    }
-
-    .ledger-table th,
-    .ledger-table td {
-      padding: 4px;
-    }
-
-    * {
-      print-color-adjust: exact;
-      -webkit-print-color-adjust: exact;
-    }
-  }
 `}</style>
       <header>
         <h1 style={{ fontSize: 26, fontWeight: 700 }}>
@@ -467,13 +442,18 @@ box-sizing: border-box;
           </select>
         </div>
 
-        <button
-          type="button"
-          className="ledger-button"
-          onClick={() => window.print()}
-        >
-          Print / Save PDF
-        </button>
+        {data && !loading && !error && (
+  <DownloadLedgerPdf
+    data={data}
+    combined={combined}
+    financialYear={`${year}-${String(year + 1).slice(-2)}`}
+    customerName={
+      combined
+        ? undefined
+        : visibleLedgers[0]?.customer.name
+    }
+  />
+)}
 
         <button
           type="button"

@@ -16,13 +16,13 @@ function money(value: number) {
 }
 
 function getCurrentStock(
-  initialStock: number,
-  transactions: { type: string; quantity: number }[],
+  initialStockKg: number,
+  transactions: { type: string; weight: number }[],
 ) {
-  let stock = 0;
+  let stockKg = 0;
 
   if (!transactions.some((t) => t.type === "INITIAL_STOCK")) {
-    stock += initialStock;
+    stockKg += initialStockKg;
   }
 
   for (const transaction of transactions) {
@@ -31,17 +31,18 @@ function getCurrentStock(
       case "PRODUCTION":
       case "STOCK_ADJUSTMENT_ADD":
       case "SALE_VOID":
-        stock += transaction.quantity;
+        stockKg += transaction.weight;
         break;
+
       case "SALE":
       case "STOCK_ADJUSTMENT_REMOVE":
       case "PRODUCTION_REVERSAL":
-        stock -= transaction.quantity;
+        stockKg -= transaction.weight;
         break;
     }
   }
 
-  return Math.max(0, stock);
+  return stockKg;
 }
 
 function dateFromInput(value: unknown): Date | null {
@@ -180,14 +181,19 @@ export async function PATCH(
                 rate: true,
                 amount: true,
                 deductedQuantity: true,
+                deductedWeight: true,
               },
             },
           },
         });
 
         if (!sale) throw new Error("SALE_NOT_FOUND");
-        if (sale.status === "VOIDED") throw new Error("SALE_ALREADY_VOIDED");
-        if (sale.items.length === 0) throw new Error("SALE_ITEMS_MISSING");
+        if (sale.status === "VOIDED") {
+          throw new Error("SALE_ALREADY_VOIDED");
+        }
+        if (sale.items.length === 0) {
+          throw new Error("SALE_ITEMS_MISSING");
+        }
 
         const customer = await tx.customer.findUnique({
           where: { id: customerId },
@@ -200,7 +206,11 @@ export async function PATCH(
 
         const products = await tx.product.findMany({
           where: { id: { in: productIds }, isActive: true },
-          select: { id: true, name: true, initialStock: true },
+          select: {
+            id: true,
+            name: true,
+            initialStockKg: true,
+          },
         });
 
         if (products.length !== productIds.length) {
@@ -213,33 +223,41 @@ export async function PATCH(
         for (const product of products) {
           const transactions = await tx.inventoryTransaction.findMany({
             where: { productId: product.id },
-            select: { type: true, quantity: true },
+            select: { type: true, weight: true },
           });
 
           const currentStock = getCurrentStock(
-            Number(product.initialStock),
+            Number(product.initialStockKg),
             transactions.map((t) => ({
               type: t.type,
-              quantity: Number(t.quantity),
+              weight: Number(t.weight),
             })),
           );
 
+          // Add back the weight deducted by this sale so it can be
+          // recalculated against the edited sale.
           const oldDeduction = sale.items
             .filter((item) => item.productId === product.id)
-            .reduce((sum, item) => sum + item.deductedQuantity, 0);
+            .reduce(
+              (sum, item) => sum + Number(item.deductedWeight ?? 0),
+              0,
+            );
 
           stockByProduct.set(product.id, currentStock + oldDeduction);
         }
 
-        // Reverse only the inventory actually deducted by the old sale.
+        // Record the reversal of the previous sale's actual weight deduction.
         for (const oldItem of sale.items) {
-          if (oldItem.deductedQuantity <= 0) continue;
+          const oldDeductedWeight = Number(oldItem.deductedWeight ?? 0);
+
+          if (oldDeductedWeight <= 0) continue;
 
           await tx.inventoryTransaction.create({
             data: {
               productId: oldItem.productId,
               type: "SALE_VOID",
-              quantity: oldItem.deductedQuantity,
+              quantity: 0,
+              weight: oldDeductedWeight,
               referenceType: "SALE_VOID",
               referenceId: sale.id,
               createdById: admin.id,
@@ -259,11 +277,11 @@ export async function PATCH(
           const product = productById.get(item.productId)!;
           const available = stockByProduct.get(item.productId) ?? 0;
 
-          if (item.quantity > available) {
+          if (item.weight > available) {
             shortages.push({
               productId: item.productId,
               productName: product.name,
-              requested: item.quantity,
+              requested: item.weight,
               available,
             });
           }
@@ -272,23 +290,28 @@ export async function PATCH(
             ...item,
             productName: product.name,
             amount: money(item.weight * item.rate),
-            deductedQuantity: Math.min(item.quantity, available),
+            // Preserve the entered quantity for the sale record.
+            deductedQuantity: 0,
+            // Deduct the full sold weight, including confirmed overselling.
+            deductedWeight: item.weight,
           };
         });
 
-        // Throwing rolls back all changes in this transaction.
+        // Throwing rolls back the transaction, including the reversal records.
         if (shortages.length > 0 && !confirmInsufficientStock) {
           throw new Error(`INSUFFICIENT_STOCK:${JSON.stringify(shortages)}`);
         }
 
+        // Record the new sale's weight deduction.
         for (const item of preparedItems) {
-          if (item.deductedQuantity <= 0) continue;
+          if (item.deductedWeight <= 0) continue;
 
           await tx.inventoryTransaction.create({
             data: {
               productId: item.productId,
               type: "SALE",
-              quantity: item.deductedQuantity,
+              quantity: 0,
+              weight: item.deductedWeight,
               referenceType: "SALE",
               referenceId: sale.id,
               createdById: admin.id,
@@ -301,10 +324,12 @@ export async function PATCH(
           (sum, item) => sum + item.quantity,
           0,
         );
+
         const totalWeight = preparedItems.reduce(
           (sum, item) => sum + item.weight,
           0,
         );
+
         const totalAmount = money(
           preparedItems.reduce((sum, item) => sum + item.amount, 0),
         );
@@ -329,6 +354,7 @@ export async function PATCH(
                 rate: item.rate,
                 amount: item.amount,
                 deductedQuantity: item.deductedQuantity,
+                deductedWeight: item.deductedWeight,
               })),
             },
           },
@@ -355,6 +381,7 @@ export async function PATCH(
                 weight: Number(item.weight),
                 rate: Number(item.rate),
                 amount: Number(item.amount),
+                deductedWeight: Number(item.deductedWeight ?? 0),
               })),
             },
             newValue: {
@@ -381,7 +408,10 @@ export async function PATCH(
   } catch (error) {
     if (error instanceof Error) {
       if (error.message === "SALE_NOT_FOUND") {
-        return NextResponse.json({ error: "Sale not found." }, { status: 404 });
+        return NextResponse.json(
+          { error: "Sale not found." },
+          { status: 404 },
+        );
       }
 
       if (error.message === "SALE_ALREADY_VOIDED") {
@@ -429,8 +459,206 @@ export async function PATCH(
     }
 
     console.error("Sale update failed:", error);
+
     return NextResponse.json(
       { error: "Failed to update sale." },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const admin = await requireAdmin(request);
+
+    if (!admin) {
+      return NextResponse.json(
+        { error: "Admin access required." },
+        { status: 403 },
+      );
+    }
+
+    const { id } = await params;
+
+    const result = await prisma.$transaction(
+      async (tx) => {
+        const sale = await tx.sale.findUnique({
+          where: { id },
+          include: {
+            customer: { select: { id: true, name: true } },
+            items: true,
+            payments: {
+              select: { id: true, amount: true },
+            },
+          },
+        });
+
+        if (!sale) throw new Error("SALE_NOT_FOUND");
+
+        // Preserve the original sale details for the audit record.
+        const oldValue = {
+          customerId: sale.customerId,
+          customerName: sale.customer.name,
+          amount: Number(sale.amount),
+          saleDate: sale.saleDate,
+          status: sale.status,
+          items: sale.items.map((item) => ({
+            productId: item.productId,
+            productName: item.productName,
+            quantity: item.quantity,
+            weight: Number(item.weight),
+            rate: Number(item.rate),
+            amount: Number(item.amount),
+            deductedQuantity: item.deductedQuantity,
+            deductedWeight: Number(item.deductedWeight ?? 0),
+          })),
+          linkedPayments: sale.payments.map((payment) => ({
+            id: payment.id,
+            amount: Number(payment.amount),
+          })),
+        };
+
+        if (sale.status === "ACTIVE") {
+          // Restore the weight deducted by the current sale version.
+          const deductedByProduct = new Map<string, number>();
+
+          for (const item of sale.items) {
+            const deductedWeight = Number(item.deductedWeight ?? 0);
+
+            deductedByProduct.set(
+              item.productId,
+              (deductedByProduct.get(item.productId) ?? 0) +
+                deductedWeight,
+            );
+          }
+
+          for (const [productId, deductedWeight] of deductedByProduct) {
+            if (deductedWeight <= 0) continue;
+
+            await tx.inventoryTransaction.create({
+              data: {
+                productId,
+                type: "SALE_VOID",
+                quantity: 0,
+                weight: deductedWeight,
+                referenceType: "SALE_VOID",
+                referenceId: sale.id,
+                createdById: admin.id,
+                saleId: sale.id,
+              },
+            });
+          }
+        }
+
+        // Preserve inventory history while removing the sale relationship.
+        await tx.inventoryTransaction.updateMany({
+          where: { saleId: sale.id },
+          data: { saleId: null },
+        });
+
+        // Remove child items before deleting the sale.
+        await tx.saleItem.deleteMany({
+          where: { saleId: sale.id },
+        });
+
+        // Do not delete sales that still have linked payment records.
+        const linkedPayments = await tx.customerPayment.count({
+          where: { saleId: sale.id },
+        });
+
+        if (linkedPayments > 0) {
+          throw new Error("SALE_HAS_LINKED_PAYMENTS");
+        }
+
+        await tx.sale.delete({
+          where: { id: sale.id },
+        });
+
+        await createAuditLog(
+          {
+            userId: admin.id,
+            action: "DELETE",
+            entityType: "SALE",
+            entityId: sale.id,
+            oldValue,
+            newValue: {
+              deleted: true,
+              deletedById: admin.id,
+              deletedAt: new Date().toISOString(),
+            },
+          },
+          tx,
+        );
+
+        const customerSales = await tx.sale.findMany({
+          where: {
+            customerId: sale.customerId,
+            status: "ACTIVE",
+          },
+          select: { amount: true },
+        });
+
+        const customerPayments = await tx.customerPayment.findMany({
+          where: { customerId: sale.customerId },
+          select: { amount: true },
+        });
+
+        const totalPurchases = customerSales.reduce(
+          (sum, item) => sum + Number(item.amount),
+          0,
+        );
+
+        const totalPaid = customerPayments.reduce(
+          (sum, payment) => sum + Number(payment.amount),
+          0,
+        );
+
+        return {
+          deletedSaleId: sale.id,
+          customerId: sale.customerId,
+          totalPurchases,
+          totalPaid,
+          pendingBalance: Math.max(0, totalPurchases - totalPaid),
+        };
+      },
+      { isolationLevel: "Serializable" },
+    );
+
+    return NextResponse.json({
+      message: "Sale deleted successfully.",
+      ...result,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message === "SALE_NOT_FOUND") {
+      return NextResponse.json(
+        { error: "Sale not found." },
+        { status: 404 },
+      );
+    }
+
+    if (
+      error instanceof Error &&
+      error.message === "SALE_HAS_LINKED_PAYMENTS"
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "This sale has linked payments. Handle those payments before deleting the sale.",
+        },
+        { status: 409 },
+      );
+    }
+
+    console.error("Sale deletion failed:", error);
+
+    return NextResponse.json(
+      {
+        error:
+          "Failed to delete sale. Related records may prevent deletion.",
+      },
       { status: 500 },
     );
   }

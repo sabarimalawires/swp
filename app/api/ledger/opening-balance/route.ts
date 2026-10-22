@@ -34,7 +34,7 @@ export async function PUT(request: Request) {
     }
 
     const year = Number(financialYearStartValue.slice(0, 4));
-    const financialYearStart = new Date(year, 3, 1);
+    const financialYearStart = new Date(Date.UTC(year, 3, 1));
 
     if (
       typeof financialYearStartValue !== "string" ||

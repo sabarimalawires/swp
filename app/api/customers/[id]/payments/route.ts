@@ -551,3 +551,151 @@ export async function PATCH(
     );
   }
 }
+
+/*
+ * ============================================================
+ * DELETE CUSTOMER PAYMENT
+ * ============================================================
+ */
+export async function DELETE(
+  request: Request,
+  { params }: RouteContext
+) {
+  try {
+    const admin = await requireAdmin(request);
+
+    if (!admin) {
+      return NextResponse.json(
+        { error: "Admin access required." },
+        { status: 403 }
+      );
+    }
+
+    const { id: customerId } = await params;
+    const url = new URL(request.url);
+    const paymentId = (url.searchParams.get("paymentId") ?? "").trim();
+
+    if (!paymentId) {
+      return NextResponse.json(
+        { error: "Payment ID is required." },
+        { status: 400 }
+      );
+    }
+
+    const result = await prisma.$transaction(
+      async (tx) => {
+        const payment = await tx.customerPayment.findFirst({
+          where: {
+            id: paymentId,
+            customerId,
+          },
+          select: {
+            id: true,
+            customerId: true,
+            amount: true,
+            note: true,
+            paymentDate: true,
+          },
+        });
+
+        if (!payment) {
+          throw new Error("PAYMENT_NOT_FOUND");
+        }
+
+        const customer = await tx.customer.findUnique({
+          where: { id: customerId },
+          select: {
+            id: true,
+            name: true,
+            sales: {
+              where: { status: "ACTIVE" },
+              select: { amount: true },
+            },
+            payments: {
+              select: { id: true, amount: true },
+            },
+          },
+        });
+
+        if (!customer) {
+          throw new Error("CUSTOMER_NOT_FOUND");
+        }
+
+        const totalPurchases = customer.sales.reduce(
+          (total, sale) => total + Number(sale.amount),
+          0
+        );
+
+        const totalPaidBefore = customer.payments.reduce(
+          (total, currentPayment) =>
+            total + Number(currentPayment.amount),
+          0
+        );
+
+        await tx.customerPayment.delete({
+          where: { id: payment.id },
+        });
+
+        const totalPaid = totalPaidBefore - Number(payment.amount);
+        const pendingBalance = Math.max(0, totalPurchases - totalPaid);
+
+        await createAuditLog(
+          {
+            userId: admin.id,
+            action: "DELETE",
+            entityType: "CUSTOMER_PAYMENT",
+            entityId: payment.id,
+            oldValue: {
+              customerId,
+              customerName: customer.name,
+              amount: Number(payment.amount),
+              note: payment.note,
+              paymentDate: payment.paymentDate,
+            },
+            newValue: null,
+          },
+          tx
+        );
+
+        return {
+          paymentId: payment.id,
+          totalPurchases,
+          totalPaid,
+          pendingBalance,
+        };
+      },
+      {
+        isolationLevel: "Serializable",
+      }
+    );
+
+    return NextResponse.json({
+      message: "Payment deleted successfully.",
+      ...result,
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "PAYMENT_NOT_FOUND") {
+        return NextResponse.json(
+          { error: "Payment not found for this customer." },
+          { status: 404 }
+        );
+      }
+
+      if (error.message === "CUSTOMER_NOT_FOUND") {
+        return NextResponse.json(
+          { error: "Customer not found." },
+          { status: 404 }
+        );
+      }
+    }
+
+    console.error("Customer payment deletion failed:", error);
+
+    return NextResponse.json(
+      { error: "Failed to delete payment." },
+      { status: 500 }
+    );
+  }
+}
+

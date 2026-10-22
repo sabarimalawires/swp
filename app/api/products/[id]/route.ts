@@ -3,6 +3,39 @@ import { requireAdmin } from "@/src/lib/authorization";
 import { prisma } from "@/src/lib/prisma";
 import { createAuditLog } from "@/src/lib/audit";
 
+function parseKg(value: unknown): number | null {
+  if (
+    value === undefined ||
+    value === null ||
+    value === ""
+  ) {
+    return null;
+  }
+
+  const text = String(value).trim();
+
+  if (!/^\d+(\.\d{1,3})?$/.test(text)) {
+    return null;
+  }
+
+  const number = Number(text);
+
+  if (!Number.isFinite(number) || number < 0) {
+    return null;
+  }
+
+  return number;
+}
+
+const productSelect = {
+  id: true,
+  name: true,
+  code: true,
+  initialStockKg: true,
+  lowStockThresholdKg: true,
+  isActive: true,
+} as const;
+
 export async function PATCH(
   request: Request,
   {
@@ -22,7 +55,6 @@ export async function PATCH(
     }
 
     const { id } = await params;
-
     const body = await request.json();
 
     const action = String(body.action ?? "")
@@ -31,14 +63,7 @@ export async function PATCH(
 
     const product = await prisma.product.findUnique({
       where: { id },
-      select: {
-        id: true,
-        name: true,
-        code: true,
-        initialStock: true,
-        lowStockThreshold: true,
-        isActive: true,
-      },
+      select: productSelect,
     });
 
     if (!product) {
@@ -48,93 +73,83 @@ export async function PATCH(
       );
     }
 
-    // --------------------------------------------------
     // DEACTIVATE / REACTIVATE
-    // --------------------------------------------------
-
     if (
       action === "DEACTIVATE" ||
       action === "REACTIVATE"
     ) {
-      const nextActive =
-        action === "REACTIVATE";
+      const nextActive = action === "REACTIVATE";
 
       if (product.isActive === nextActive) {
         return NextResponse.json({
           message: nextActive
             ? "Product is already active."
             : "Product is already deactivated.",
-          product,
+          product: {
+            ...product,
+            initialStockKg: Number(product.initialStockKg),
+            lowStockThresholdKg: Number(
+              product.lowStockThresholdKg
+            ),
+          },
         });
       }
 
-      const result = await prisma.$transaction(
-        async (tx) => {
-          const updatedProduct =
-            await tx.product.update({
-              where: { id },
-              data: {
-                isActive: nextActive,
-              },
-              select: {
-                id: true,
-                name: true,
-                code: true,
-                initialStock: true,
-                lowStockThreshold: true,
-                isActive: true,
-              },
-            });
+      const result = await prisma.$transaction(async (tx) => {
+        const updatedProduct = await tx.product.update({
+          where: { id },
+          data: { isActive: nextActive },
+          select: productSelect,
+        });
 
-          await createAuditLog(
-            {
-              userId: admin.id,
-              action: nextActive
-                ? "REACTIVATE"
-                : "DEACTIVATE",
-              entityType: "PRODUCT",
-              entityId: product.id,
-              oldValue: {
-                name: product.name,
-                code: product.code,
-                initialStock:
-                  product.initialStock,
-                lowStockThreshold:
-                  product.lowStockThreshold,
-                isActive: product.isActive,
-              },
-              newValue: {
-                name:
-                  updatedProduct.name,
-                code:
-                  updatedProduct.code,
-                initialStock:
-                  updatedProduct.initialStock,
-                lowStockThreshold:
-                  updatedProduct.lowStockThreshold,
-                isActive:
-                  updatedProduct.isActive,
-              },
+        await createAuditLog(
+          {
+            userId: admin.id,
+            action: nextActive ? "REACTIVATE" : "DEACTIVATE",
+            entityType: "PRODUCT",
+            entityId: product.id,
+            oldValue: {
+              name: product.name,
+              code: product.code,
+              initialStockKg: Number(product.initialStockKg),
+              lowStockThresholdKg: Number(
+                product.lowStockThresholdKg
+              ),
+              isActive: product.isActive,
             },
-            tx
-          );
+            newValue: {
+              name: updatedProduct.name,
+              code: updatedProduct.code,
+              initialStockKg: Number(
+                updatedProduct.initialStockKg
+              ),
+              lowStockThresholdKg: Number(
+                updatedProduct.lowStockThresholdKg
+              ),
+              isActive: updatedProduct.isActive,
+            },
+          },
+          tx
+        );
 
-          return updatedProduct;
-        }
-      );
+        return updatedProduct;
+      });
 
       return NextResponse.json({
         message: nextActive
           ? "Product reactivated successfully."
           : "Product deactivated successfully.",
-        product: result,
+        product: {
+          ...result,
+          initialStockKg: Number(result.initialStockKg),
+          lowStockThresholdKg: Number(
+            result.lowStockThresholdKg
+          ),
+        },
       });
     }
 
-    // --------------------------------------------------
     // UPDATE
-    // --------------------------------------------------
-
     if (action !== "UPDATE") {
       return NextResponse.json(
         {
@@ -145,24 +160,16 @@ export async function PATCH(
       );
     }
 
-    const name = String(
-      body.name ?? ""
-    ).trim();
+    const name = String(body.name ?? "").trim();
+    const code = String(body.code ?? "").trim();
 
-    const code = String(
-      body.code ?? ""
-    ).trim();
-
-    const lowStockThreshold = Number(
-      body.lowStockThreshold
+    const lowStockThresholdKg = parseKg(
+      body.lowStockThresholdKg
     );
 
     if (!name) {
       return NextResponse.json(
-        {
-          error:
-            "Product name is required.",
-        },
+        { error: "Product name is required." },
         { status: 400 }
       );
     }
@@ -177,46 +184,20 @@ export async function PATCH(
       );
     }
 
-    if (
-      !Number.isInteger(
-        lowStockThreshold
-      ) ||
-      lowStockThreshold < 0
-    ) {
+    if (lowStockThresholdKg === null) {
       return NextResponse.json(
         {
           error:
-            "Low stock threshold must be a whole number of 0 or greater.",
+            "Low-stock threshold must be a non-negative number with at most 3 decimal places, in kg.",
         },
         { status: 400 }
       );
     }
 
-    if (
-      lowStockThreshold >
-      product.initialStock
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Low stock threshold cannot be greater than initial stock.",
-        },
-        { status: 400 }
-      );
-    }
-
-    const duplicateName =
-      await prisma.product.findFirst({
-        where: {
-          name,
-          NOT: {
-            id,
-          },
-        },
-        select: {
-          id: true,
-        },
-      });
+    const duplicateName = await prisma.product.findFirst({
+      where: { name, NOT: { id } },
+      select: { id: true },
+    });
 
     if (duplicateName) {
       return NextResponse.json(
@@ -229,18 +210,10 @@ export async function PATCH(
     }
 
     if (code) {
-      const duplicateCode =
-        await prisma.product.findFirst({
-          where: {
-            code,
-            NOT: {
-              id,
-            },
-          },
-          select: {
-            id: true,
-          },
-        });
+      const duplicateCode = await prisma.product.findFirst({
+        where: { code, NOT: { id } },
+        select: { id: true },
+      });
 
       if (duplicateCode) {
         return NextResponse.json(
@@ -253,71 +226,62 @@ export async function PATCH(
       }
     }
 
-    const result = await prisma.$transaction(
-      async (tx) => {
-        const updatedProduct =
-          await tx.product.update({
-            where: { id },
-            data: {
-              name,
-              code: code || null,
-              lowStockThreshold,
-            },
-            select: {
-              id: true,
-              name: true,
-              code: true,
-              initialStock: true,
-              lowStockThreshold: true,
-              isActive: true,
-            },
-          });
+    const result = await prisma.$transaction(async (tx) => {
+      const updatedProduct = await tx.product.update({
+        where: { id },
+        data: {
+          name,
+          code: code || null,
+          lowStockThresholdKg,
+        },
+        select: productSelect,
+      });
 
-        await createAuditLog(
-          {
-            userId: admin.id,
-            action: "UPDATE",
-            entityType: "PRODUCT",
-            entityId: product.id,
-            oldValue: {
-              name: product.name,
-              code: product.code,
-              initialStock:
-                product.initialStock,
-              lowStockThreshold:
-                product.lowStockThreshold,
-              isActive: product.isActive,
-            },
-            newValue: {
-              name:
-                updatedProduct.name,
-              code:
-                updatedProduct.code,
-              initialStock:
-                updatedProduct.initialStock,
-              lowStockThreshold:
-                updatedProduct.lowStockThreshold,
-              isActive:
-                updatedProduct.isActive,
-            },
+      await createAuditLog(
+        {
+          userId: admin.id,
+          action: "UPDATE",
+          entityType: "PRODUCT",
+          entityId: product.id,
+          oldValue: {
+            name: product.name,
+            code: product.code,
+            initialStockKg: Number(product.initialStockKg),
+            lowStockThresholdKg: Number(
+              product.lowStockThresholdKg
+            ),
+            isActive: product.isActive,
           },
-          tx
-        );
+          newValue: {
+            name: updatedProduct.name,
+            code: updatedProduct.code,
+            initialStockKg: Number(
+              updatedProduct.initialStockKg
+            ),
+            lowStockThresholdKg: Number(
+              updatedProduct.lowStockThresholdKg
+            ),
+            isActive: updatedProduct.isActive,
+          },
+        },
+        tx
+      );
 
-        return updatedProduct;
-      }
-    );
+      return updatedProduct;
+    });
 
     return NextResponse.json({
-      message:
-        "Product updated successfully.",
-      product: result,
+      message: "Product updated successfully.",
+      product: {
+        ...result,
+        initialStockKg: Number(result.initialStockKg),
+        lowStockThresholdKg: Number(
+          result.lowStockThresholdKg
+        ),
+      },
     });
   } catch (error) {
-    console.error(
-      "Product update failed:",
-      error
-    );
+    console.error("Product update failed:", error);
 
     if (
       typeof error === "object" &&
@@ -335,10 +299,7 @@ export async function PATCH(
     }
 
     return NextResponse.json(
-      {
-        error:
-          "Failed to update product.",
-      },
+      { error: "Failed to update product." },
       { status: 500 }
     );
   }

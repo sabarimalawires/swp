@@ -16,13 +16,14 @@ function money(value: number) {
 }
 
 function getCurrentStock(
-  initialStock: number,
-  transactions: { type: string; quantity: number }[],
+  initialStockKg: number,
+  transactions: { type: string; weight: number }[],
 ) {
-  let stock = 0;
+  let stockKg = 0;
 
+  // Use opening stock only if no explicit initial-stock transaction exists.
   if (!transactions.some((t) => t.type === "INITIAL_STOCK")) {
-    stock += initialStock;
+    stockKg += initialStockKg;
   }
 
   for (const transaction of transactions) {
@@ -31,18 +32,18 @@ function getCurrentStock(
       case "PRODUCTION":
       case "STOCK_ADJUSTMENT_ADD":
       case "SALE_VOID":
-        stock += transaction.quantity;
+        stockKg += transaction.weight;
         break;
 
       case "SALE":
       case "STOCK_ADJUSTMENT_REMOVE":
       case "PRODUCTION_REVERSAL":
-        stock -= transaction.quantity;
+        stockKg -= transaction.weight;
         break;
     }
   }
 
-  return Math.max(0, stock);
+  return stockKg;
 }
 
 export async function GET(request: Request) {
@@ -71,6 +72,7 @@ export async function GET(request: Request) {
             rate: true,
             amount: true,
             deductedQuantity: true,
+            deductedWeight: true,
           },
         },
         createdBy: {
@@ -105,20 +107,12 @@ export async function GET(request: Request) {
           quantity: Number(sale.quantity),
           weight: Number(sale.weight),
           amount: Number(sale.amount),
-          items: (sale.items as Array<{
-  id: string;
-  productId: string;
-  productName: string;
-  quantity: number;
-  weight: unknown;
-  rate: unknown;
-  amount: unknown;
-  deductedQuantity: number;
-}>).map((item) => ({
+          items: sale.items.map((item) => ({
             ...item,
             weight: Number(item.weight),
             rate: Number(item.rate),
             amount: Number(item.amount),
+            deductedWeight: Number(item.deductedWeight ?? 0),
           })),
           totalPaid,
           balance: Math.max(0, Number(sale.amount) - totalPaid),
@@ -149,6 +143,7 @@ export async function POST(request: Request) {
 
     const customerName = String(body.customerName ?? "").trim();
     const customerId = String(body.customerId ?? "").trim();
+    const customerPhone = String(body.customerPhone ?? "").trim();
     const saleDateValue = String(body.saleDate ?? "").trim();
     const initialPayment = Number(body.initialPayment ?? 0);
     const confirmInsufficientStock =
@@ -168,6 +163,16 @@ export async function POST(request: Request) {
       );
     }
 
+    if (
+      customerPhone &&
+      !/^[0-9+\-\s()]{7,20}$/.test(customerPhone)
+    ) {
+      return NextResponse.json(
+        { error: "Enter a valid mobile number." },
+        { status: 400 },
+      );
+    }
+
     if (!saleDateValue) {
       return NextResponse.json(
         { error: "Sale date is required." },
@@ -175,26 +180,14 @@ export async function POST(request: Request) {
       );
     }
 
-   
-if (!/^\d{4}-\d{2}-\d{2}$/.test(saleDateValue)) {
-  return NextResponse.json(
-    { error: "Invalid sale date." },
-    { status: 400 },
-  );
-}
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(saleDateValue)) {
+      return NextResponse.json(
+        { error: "Invalid sale date." },
+        { status: 400 },
+      );
+    }
 
-const saleDate = new Date(`${saleDateValue}T00:00:00.000Z`);
-
-if (
-  Number.isNaN(saleDate.getTime()) ||
-  saleDate.toISOString().slice(0, 10) !== saleDateValue
-) {
-  return NextResponse.json(
-    { error: "Invalid sale date." },
-    { status: 400 },
-  );
-}
-
+    const saleDate = new Date(`${saleDateValue}T00:00:00.000Z`);
 
     if (
       Number.isNaN(saleDate.getTime()) ||
@@ -274,7 +267,9 @@ if (
       items.push({ productId, quantity, weight, rate });
     }
 
-    if (new Set(items.map((item) => item.productId)).size !== items.length) {
+    if (
+      new Set(items.map((item) => item.productId)).size !== items.length
+    ) {
       return NextResponse.json(
         { error: "A product can only be selected once per sale." },
         { status: 400 },
@@ -284,6 +279,7 @@ if (
     const lineAmounts = items.map((item) =>
       money(item.weight * item.rate),
     );
+
     const totalAmount = money(
       lineAmounts.reduce((sum, amount) => sum + amount, 0),
     );
@@ -316,8 +312,15 @@ if (
 
           if (!resolvedCustomer) {
             resolvedCustomer = await tx.customer.create({
-              data: { name: customerName },
-              select: { id: true, name: true },
+              data: {
+                name: customerName,
+                phone: customerPhone || null,
+              },
+              select: {
+                id: true,
+                name: true,
+                phone: true,
+              },
             });
 
             await createAuditLog(
@@ -347,7 +350,7 @@ if (
             weight: number;
             rate: number;
             amount: number;
-            deductedQuantity: number;
+            deductedWeight: number;
           }[] = [];
 
           for (let index = 0; index < items.length; index++) {
@@ -359,7 +362,7 @@ if (
                 id: true,
                 name: true,
                 isActive: true,
-                initialStock: true,
+                initialStockKg: true,
               },
             });
 
@@ -368,22 +371,22 @@ if (
 
             const transactions = await tx.inventoryTransaction.findMany({
               where: { productId: product.id },
-              select: { type: true, quantity: true },
+              select: { type: true, weight: true },
             });
 
             const available = getCurrentStock(
-              product.initialStock,
+              Number(product.initialStockKg),
               transactions.map((t) => ({
                 type: t.type,
-                quantity: Number(t.quantity),
+                weight: Number(t.weight),
               })),
             );
 
-            if (item.quantity > available) {
+            if (item.weight > available) {
               shortages.push({
                 productId: product.id,
                 productName: product.name,
-                requested: item.quantity,
+                requested: item.weight,
                 available,
               });
             }
@@ -395,7 +398,7 @@ if (
               weight: item.weight,
               rate: item.rate,
               amount: lineAmounts[index],
-              deductedQuantity: Math.min(item.quantity, available),
+              deductedWeight: item.weight,
             });
           }
 
@@ -409,6 +412,7 @@ if (
             (sum, item) => sum + item.quantity,
             0,
           );
+
           const totalWeight = preparedItems.reduce(
             (sum, item) => sum + item.weight,
             0,
@@ -432,7 +436,7 @@ if (
                   weight: item.weight,
                   rate: item.rate,
                   amount: item.amount,
-                  deductedQuantity: item.deductedQuantity,
+                  deductedWeight: item.deductedWeight,
                 })),
               },
             },
@@ -443,12 +447,13 @@ if (
           });
 
           for (const item of preparedItems) {
-            if (item.deductedQuantity > 0) {
+            if (item.deductedWeight > 0) {
               await tx.inventoryTransaction.create({
                 data: {
                   productId: item.productId,
                   type: "SALE",
-                  quantity: item.deductedQuantity,
+                  quantity: 0,
+                  weight: item.deductedWeight,
                   referenceType: "SALE",
                   referenceId: sale.id,
                   createdById: employee.id,
@@ -511,21 +516,13 @@ if (
             ...sale,
             weight: Number(sale.weight),
             amount: Number(sale.amount),
-            items: (sale.items as Array<{
-  id: string;
-  productId: string;
-  productName: string;
-  quantity: number;
-  weight: unknown;
-  rate: unknown;
-  amount: unknown;
-  deductedQuantity: number;
-}>).map((item) => ({
-  ...item,
-  weight: Number(item.weight),
-  rate: Number(item.rate),
-  amount: Number(item.amount),
-})),
+            items: sale.items.map((item) => ({
+              ...item,
+              weight: Number(item.weight),
+              rate: Number(item.rate),
+              amount: Number(item.amount),
+              deductedWeight: Number(item.deductedWeight ?? 0),
+            })),
             initialPayment,
             balance: money(totalAmount - initialPayment),
           };

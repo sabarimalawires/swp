@@ -1,0 +1,219 @@
+[1mdiff --git a/app/sales/page.tsx b/app/sales/page.tsx[m
+[1mindex b820b94..51c84b2 100644[m
+[1m--- a/app/sales/page.tsx[m
+[1m+++ b/app/sales/page.tsx[m
+[36m@@ -1,29 +1,40 @@[m
+ "use client";[m
+[31m-[m
+[31m-import { useEffect, useState } from "react";[m
+[32m+[m[32mimport { useEffect, useMemo, useState } from "react";[m
+ import { authClient } from "@/src/lib/auth-client";[m
+[32m+[m[32mimport DownloadSaleEstimatePdf from "@/src/components/reports/DownloadSaleEstimatePdf";[m
+ import { useRouter } from "next/navigation";[m
+ import Sidebar from "@/src/components/Sidebar";[m
+[31m-[m
+ type Product = {[m
+   id: string;[m
+   name: string;[m
+   code: string | null;[m
+[31m-};[m
+[31m-[m
+[31m-type InventoryItem = Product & {[m
+   stock: number;[m
+   lowStockThreshold: number;[m
+   isLowStock: boolean;[m
+ };[m
+[31m-[m
+[31m-type Payment = {[m
+[32m+[m[32mtype Customer = {[m
+   id: string;[m
+[32m+[m[32m  name: string;[m
+[32m+[m[32m  totalPurchases?: number;[m
+[32m+[m[32m  totalPaid?: number;[m
+[32m+[m[32m  pendingBalance?: number;[m
+[32m+[m[32m};[m
+[32m+[m[32mtype SaleLine = {[m
+[32m+[m[32m  productId: string;[m
+[32m+[m[32m  quantity: string;[m
+[32m+[m[32m  weight: string;[m
+[32m+[m[32m  rate: string;[m
+[32m+[m[32m};[m
+[32m+[m[32mtype SaleItem = {[m
+[32m+[m[32m  id?: string;[m
+[32m+[m[32m  productId: string;[m
+[32m+[m[32m  productName: string;[m
+[32m+[m[32m  quantity: number;[m
+[32m+[m[32m  weight: number;[m
+[32m+[m[32m  rate: number;[m
+   amount: number;[m
+[31m-  paymentDate: string;[m
+[31m-  note?: string | null;[m
+[32m+[m[32m  deductedQuantity?: number;[m
+ };[m
+[31m-[m
+ type Sale = {[m
+   id: string;[m
+   quantity: number;[m
+[36m@@ -33,974 +44,925 @@[m [mtype Sale = {[m
+   balance: number;[m
+   saleDate: string;[m
+   status: "ACTIVE" | "VOIDED";[m
+[31m-[m
+[31m-  customer: {[m
+[32m+[m[32m  customer: { id: string; name: string };[m
+[32m+[m[32m  product: { id: string; name: string };[m
+[32m+[m[32m  items?: SaleItem[];[m
+[32m+[m[32m  createdBy: { name: string; username: string };[m
+[32m+[m[32m  payments?: {[m
+     id: string;[m
+[31m-    name: string;[m
+[31m-  };[m
+[31m-[m
+[31m-  product: Product;[m
+[31m-[m
+[31m-  createdBy: {[m
+[31m-    name: string;[m
+[31m-    username: string;[m
+[31m-  };[m
+[31m-[m
+[31m-  payments: Payment[];[m
+[32m+[m[32m    amount: number;[m
+[32m+[m[32m    paymentDate: string;[m
+[32m+[m[32m    note?: string | null;[m
+[32m+[m[32m  }[];[m
+ };[m
+[31m-[m
+[32m+[m[32mconst inputClass =[m
+[32m+[m[32m  "mt-1 h-11 w-full rounded-xl border border-[#e8d4c5] bg-white px-3 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-2 focus:ring-[#fce3d0]";[m
+[32m+[m[32mconst money = (value: number) =>[m
+[32m+[m[32m  Number(value || 0).toFixed(2);[m
+ export default function SalesPage() {[m
+   const router = useRouter();[m
+[31m-[m
+   const [loading, setLoading] = useState(true);[m
+   const [userName, setUserName] = useState("");[m
+[31m-  const [role, setRole] = useState<[m
+[31m-    "ADMIN" | "WORKER" | null[m
+[31m-  >(null);[m
+[31m-[m
+[31m-  const [products, setProducts] = useState<[m
+[31m-    InventoryItem[][m
+[31m-  >([]);[m
+[31m-[m
+[32m+[m[32m  const [products, setProducts] = useState<Product[]>([]);[m
+[32m+[m[32m  const [customers, setCustomers] = useState<Customer[]>([]);[m
+   const [sales, setSales] = useState<Sale[]>([]);[m
+[31m-[m
+[31m-  const [customerName, setCustomerName] =[m
+[31m-    useState("");[m
+[31m-[m
+[31m-  const [productId, setProductId] =[m
+[31m-    useState("");[m
+[31m-[m
+[31m-  const [quantity, setQuantity] =[m
+[31m-    useState("");[m
+[31m-[m
+[31m-  /*[m
+[31m-   * Weight is entered and stored in KILOGRAMS.[m
+[31m-   * Example:[m
+[31m-   * 0.015 kg[m
+[31m-   * 1.250 kg[m
+[31m-   * 10.500 kg[m
+[31m-   */[m
+[31m-  const [weight, setWeight] =[m
+[31m-    useState("");[m
+[31m-[m
+[31m-  const [amount, setAmount] =[m
+[31m-    useState("");[m
+[31m-[m
+[31m-  const [initialPayment, setInitialPayment] =[m
+[31m-    useState("");[m
+[31m-[m
+[31m-  const [saleDate, setSaleDate] =[m
+[31m-    useState("");[m
+[31m-[m
+[32m+[m[32m  const [customerSearch, setCustomerSearch] = useState("");[m
+[32m+[m[32m  const [showCustomerList, setShowCustomerList] = useState(false);[m
+[32m+[m[32m  const [customerId, setCustomerId] = useState("");[m
+[32m+[m[32m  const [newCustomer, setNewCustomer] = useState(false);[m
+[32m+[m[32m  const [newCustomerName, setNewCustomerName] = useState("");[m
+[32m+[m[32m  const [productSearch, setProductSearch] = useState("");[m
+[32m+[m[32m  const [showProductList, setShowProductList] = useState(false);[m
+[32m+[m[32m  const [items, setItems] = useState<SaleLine[]>([]);[m
+[32m+[m[32m  const [saleDate, setSaleDate] = useState("");[m
+   const [saving, setSaving] = useState(false);[m
+[32m+[m[32m  const [editingSaleId, setEditingSaleId] = useState<string | null>(null);[m
+   const [error, setError] = useState("");[m
+   const [success, setSuccess] = useState("");[m
+[31m-[m
+[32m+[m[32m  const [stockConfirmation, setStockConfirmation] = useState<{[m
+[32m+[m[32m    shortages: { productId: string; productName?: string; requested?: number; available?: number; [key: string]: unknown }[];[m
+[32m+[m[32m  } | null>(null);[m
+   const loadData = async () => {[m
+[31m-    try {[m
+[31m-      const [[m
+[31m-        inventoryResponse,[m
+[31m-        salesResponse,[m
+[31m-      ] = await Promise.all([[m
+[32m+[m[32m    const [inventoryResponse, salesResponse, customersResponse] =[m
+[32m+[m[32m      await Promise.all([[m
+         fetch("/api/inventory"),[m
+         fetch("/api/sales"),[m
+[32m+[m[32m        fetch("/api/customers"),[m
+       ]);[m
+[31m-[m
+[31m-      const inventoryResult =[m
+[31m-        await inventoryResponse.json();[m
+[31m-[m
+[31m-      const salesResult =[m
+[31m-        await salesResponse.json();[m
+[31m-[m
+[31m-      if (!inventoryResponse.ok) {[m
+[31m-        throw new Error([m
+[31m-          inventoryResult.error ||[m
+[31m-            "Failed to load inventory."[m
+[31m-        );[m
+[31m-      }[m
+[31m-[m
+[31m-      if (!salesResponse.ok) {[m
+[31m-        throw new Error([m
+[31m-          salesResult.error ||[m
+[31m-            "Failed to load sales."[m
+[31m-        );[m
+[31m-      }[m
+[31m-[m
+[31m-      setProducts(inventoryResult);[m
+[31m-      setSales(salesResult);[m
+[31m-    } catch (error) {[m
+[31m-      console.error(error);[m
+[31m-[m
+[31m-      setError([m
+[31m-        "Failed to load sales data."[m
+[31m-      );[m
+[32m+[m[32m    const [inventoryResult, salesResult, customersResult] =[m
+[32m+[m[32m      await Promise.all([[m
+[32m+[m[32m        inventoryResponse.json(),[m
+[32m+[m[32m        salesResponse.json(),[m
+[32m+[m[32m        customersResponse.json(),[m
+[32m+[m[32m      ]);[m
+[32m+[m[32m    if (!inventoryResponse.ok) {[m
+[32m+[m[32m      throw new Error(inventoryResult.error || "Failed to load inventory.");[m
+[32m+[m[32m    }[m
+[32m+[m[32m    if (!salesResponse.ok) {[m
+[32m+[m[32m      throw new Error(salesResult.error || "Failed to load sales.");[m
+     }[m
+[32m+[m[32m    if (!customersResponse.ok) {[m
+[32m+[m[32m      throw new Error(customersResult.error || "Failed to load customers.");[m
+[32m+[m[32m    }[m
+[32m+[m[32m    setProducts([m
+[32m+[m[32m      (Array.isArray(inventoryResult) ? inventoryResult : [])[m
+[32m+[m[32m        .sort((a: Product, b: Product) =>[m
+[32m+[m[32m          a.name.localeCompare(b.name)[m
+[32m+[m[32m        )[m
+[32m+[m[32m    );[m
+[32m+[m[32m    setSales(Array.isArray(salesResult) ? salesResult : []);[m
+[32m+[m[32m    setCustomers([m
+[32m+[m[32m      (Array.isArray(customersResult) ? customersResult : [])[m
+[32m+[m[32m        .sort((a: Customer, b: Customer) =>[m
+[32m+[m[32m          a.name.localeCompare(b.name)[m
+[32m+[m[32m      

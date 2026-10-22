@@ -13,7 +13,8 @@ type AuditAction =
   | "LOGIN"
   | "LOGOUT"
   | "PASSWORD_CHANGE"
-  | "PASSWORD_RESET";
+  | "PASSWORD_RESET"
+  | "DELETE";
 
 type AuditEntityType =
   | "USER"

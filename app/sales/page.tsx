@@ -15,6 +15,7 @@ type Product = {
 type Customer = {
   id: string;
   name: string;
+  phone: string | null;
   totalPurchases?: number;
   totalPaid?: number;
   pendingBalance?: number;
@@ -71,6 +72,7 @@ export default function SalesPage() {
   const [customerId, setCustomerId] = useState("");
   const [newCustomer, setNewCustomer] = useState(false);
   const [newCustomerName, setNewCustomerName] = useState("");
+  const [newCustomerPhone, setNewCustomerPhone] = useState("");
   const [productSearch, setProductSearch] = useState("");
   const [showProductList, setShowProductList] = useState(false);
   const [items, setItems] = useState<SaleLine[]>([]);
@@ -161,12 +163,17 @@ export default function SalesPage() {
     () => [...products].sort((a, b) => a.name.localeCompare(b.name)),
     [products]
   );
-  const filteredCustomers = useMemo(() => {
-    const query = customerSearch.trim().toLowerCase();
-    return customers.filter((customer) =>
-      customer.name.toLowerCase().includes(query)
-    );
-  }, [customers, customerSearch]);
+  
+const filteredCustomers = useMemo(() => {
+  const query = customerSearch.trim().toLowerCase();
+
+  return customers.filter(
+    (customer) =>
+      customer.name.toLowerCase().includes(query) ||
+      (customer.phone ?? "").toLowerCase().includes(query)
+  );
+}, [customers, customerSearch]);
+
   const filteredProducts = useMemo(() => {
     const query = productSearch.trim().toLowerCase();
     return sortedProducts.filter((product) => {
@@ -231,6 +238,7 @@ export default function SalesPage() {
     setCustomerSearch("");
     setNewCustomer(false);
     setNewCustomerName("");
+    setNewCustomerPhone("");
     setItems([]);
     setProductSearch("");
     setStockConfirmation(null);
@@ -249,7 +257,18 @@ export default function SalesPage() {
     if (newCustomer && !newCustomerName.trim()) {
       setError("Customer name is required.");
       return;
-    }
+    } 
+if (
+  newCustomer &&
+  newCustomerPhone.trim() &&
+  !/^[0-9+\-\s()]{7,20}$/.test(
+    newCustomerPhone.trim()
+  )
+) {
+  setError("Enter a valid mobile number.");
+  return;
+}
+
     if (!saleDate) {
       setError("Sale date is required.");
       return;
@@ -296,7 +315,9 @@ const response = await fetch(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       ...(newCustomer && !editingSaleId
-        ? { customerName: newCustomerName.trim() }
+        ? { customerName: newCustomerName.trim(),
+      customerPhone: newCustomerPhone.trim(),
+ }
         : { customerId }),
       saleDate,
       items: items.map((item) => ({
@@ -371,30 +392,42 @@ const handleEditSale = (sale: Sale) => {
   setShowProductList(false);
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
-  const handleVoidSale = async (saleId: string) => {
-    if (!window.confirm("Are you sure you want to void this sale?")) return;
-    setError("");
-    setSuccess("");
-    setSaving(true);
-    try {
-      const response = await fetch(`/api/sales/${saleId}/void`, {
-        method: "POST",
-      });
-      const result = await response.json();
-      console.log("Response status:", response.status);
-console.log("Response body:", result);
-console.log("Requires confirmation:", result.requiresConfirmation);
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to void sale.");
-      }
-      setSuccess("Sale voided successfully.");
-      await loadData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to void sale.");
-    } finally {
-      setSaving(false);
+  
+const handleDeleteSale = async (saleId: string) => {
+  if (
+    !window.confirm(
+      "Are you sure you want to permanently delete this sale from sales history? This action cannot be undone."
+    )
+  ) {
+    return;
+  }
+
+  setError("");
+  setSuccess("");
+  setSaving(true);
+
+  try {
+    const response = await fetch(`/api/sales/${saleId}`, {
+      method: "DELETE",
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || "Failed to delete sale.");
     }
-  };
+
+    setSuccess("Sale deleted successfully.");
+    await loadData();
+  } catch (err) {
+    setError(
+      err instanceof Error ? err.message : "Failed to delete sale."
+    );
+  } finally {
+    setSaving(false);
+  }
+};
+
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#fff8f2]">
@@ -489,6 +522,15 @@ console.log("Requires confirmation:", result.requiresConfirmation);
                 }`}
               >
                 {customer.name}
+
+                <div className="flex flex-col items-start">
+  <span>{customer.name}</span>
+  {customer.phone && (
+    <span className="text-xs text-gray-500">
+      {customer.phone}
+    </span>
+  )}
+</div>
               </button>
             ))
           )}
@@ -542,6 +584,24 @@ console.log("Requires confirmation:", result.requiresConfirmation);
   </>
 )}
                 </div>
+                
+<div>
+  <label className="mb-1 block text-sm font-medium text-[#5b3928]">
+    Mobile Number
+  </label>
+
+  <input
+    type="tel"
+    value={newCustomerPhone}
+    onChange={(event) =>
+      setNewCustomerPhone(event.target.value)
+    }
+    maxLength={20}
+    placeholder="Enter mobile number (optional)"
+    className="w-full rounded-xl border border-[#e5cdbd] px-4 py-3 text-[#3b2117] outline-none focus:border-[#d96f2b]"
+  />
+</div>
+
                 <div>
                   <label className="block text-sm font-semibold text-[#5b3928]">
                     Sale Date
@@ -871,17 +931,19 @@ console.log("Requires confirmation:", result.requiresConfirmation);
 
     <button
       type="button"
-      onClick={() => handleVoidSale(sale.id)}
+      onClick={() => handleDeleteSale(sale.id)}
       disabled={saving}
       className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-60"
     >
-      Void
+      Delete
     </button>
 
     <DownloadSaleEstimatePdf
       data={{
         customerName: sale.customer.name,
-        customerPhone: null,
+        customerPhone: newCustomer
+  ? newCustomerPhone.trim() || null
+  : selectedCustomer?.phone ?? null,
         saleDate: sale.saleDate,
         items: saleItems.map((item) => ({
           productName: item.productName,

@@ -32,6 +32,7 @@ export async function POST(
             workerId: true,
             productId: true,
             quantity: true,
+            weight: true,
             status: true,
             product: {
               select: {
@@ -68,27 +69,27 @@ export async function POST(
           throw new Error("WORKER_INACTIVE");
         }
 
-        const updatedEntry =
-          await tx.workEntry.update({
-            where: { id },
-            data: {
-              status: "APPROVED",
-              approvedAt: new Date(),
-              approvedById: admin.id,
-              rejectionReason: null,
-            },
-            select: {
-              id: true,
-              status: true,
-              approvedAt: true,
-            },
-          });
+        const updatedEntry = await tx.workEntry.update({
+          where: { id },
+          data: {
+            status: "APPROVED",
+            approvedAt: new Date(),
+            approvedById: admin.id,
+            rejectionReason: null,
+          },
+          select: {
+            id: true,
+            status: true,
+            approvedAt: true,
+          },
+        });
 
         await tx.inventoryTransaction.create({
           data: {
             productId: entry.productId,
             type: "PRODUCTION",
-            quantity: entry.quantity,
+            quantity: 0,
+            weight: entry.weight,
             referenceType: "WORK_ENTRY",
             referenceId: entry.id,
             createdById: admin.id,
@@ -107,7 +108,8 @@ export async function POST(
             },
             newValue: {
               status: "APPROVED",
-              quantity: entry.quantity,
+              weight: entry.weight,
+              unit: "kg",
               productId: entry.productId,
               approvedById: admin.id,
             },
@@ -133,8 +135,7 @@ export async function POST(
       }
 
       if (
-        error.message ===
-        "WORK_ENTRY_ALREADY_PROCESSED"
+        error.message === "WORK_ENTRY_ALREADY_PROCESSED"
       ) {
         return NextResponse.json(
           {
@@ -166,15 +167,11 @@ export async function POST(
       }
     }
 
-    console.error(
-      "Work approval failed:",
-      error
-    );
+    console.error("Work approval failed:", error);
 
     return NextResponse.json(
       {
-        error:
-          "Failed to approve work entry.",
+        error: "Failed to approve work entry.",
       },
       { status: 500 }
     );

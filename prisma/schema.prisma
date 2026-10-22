@@ -63,6 +63,7 @@ enum AuditAction {
   LOGOUT
   PASSWORD_CHANGE
   PASSWORD_RESET
+  DELETE
 }
 
 enum AuditEntityType {
@@ -197,14 +198,16 @@ model Employee {
 model Customer {
   id        String   @id @default(cuid())
   name      String
+  phone     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  sales                  Sale[]
-  payments               CustomerPayment[]
-  ledgerOpeningBalances  CustomerLedgerOpeningBalance[]
+  sales                 Sale[]
+  payments              CustomerPayment[]
+  ledgerOpeningBalances CustomerLedgerOpeningBalance[]
 
   @@index([name])
+  @@index([phone])
 }
 
 // ============================================================
@@ -212,23 +215,22 @@ model Customer {
 // ============================================================
 
 model Product {
-  id String @id @default(cuid())
-
+  id   String  @id @default(cuid())
   name String  @unique
   code String? @unique
 
-  initialStock      Int
-  lowStockThreshold Int
+  // Inventory is tracked in kilograms
+  initialStockKg      Decimal @default(0) @db.Decimal(14, 3)
+  lowStockThresholdKg Decimal @default(0) @db.Decimal(14, 3)
 
-  isActive Boolean @default(true)
-
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   workEntries           WorkEntry[]
   sales                 Sale[]
   inventoryTransactions InventoryTransaction[]
-  saleItems SaleItem[]
+  saleItems             SaleItem[]
 
   @@index([isActive])
 }
@@ -244,7 +246,10 @@ model WorkEntry {
   productId String
 
   quantity Int
-  status   WorkStatus @default(PENDING)
+  // Weight produced by the worker, in kilograms.
+  weight   Decimal @default(0) @db.Decimal(14, 3)
+
+  status WorkStatus @default(PENDING)
 
   submittedAt DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -276,6 +281,9 @@ model WorkEntryVersion {
   workEntryId String
   quantity    Int
 
+  // Weight recorded for this version, in kilograms.
+  weight Decimal @default(0) @db.Decimal(14, 3)
+
   changedById String
   changedAt   DateTime @default(now())
 
@@ -300,7 +308,7 @@ model Sale {
 
   quantity Int
 
-  // Weight of the product sold, stored in grams.
+  // Weight of the product sold, stored in Kilograms.
   weight Decimal @db.Decimal(12, 3)
 
   // Total sale amount in the business currency (INR).
@@ -337,16 +345,17 @@ model SaleItem {
   saleId    String
   productId String
 
-  // Snapshot of the product name at the time of sale.
-  productName String
-
-  quantity Int
-  weight   Decimal @db.Decimal(12, 3)
-  rate     Decimal @db.Decimal(14, 6)
-  amount   Decimal @db.Decimal(14, 2)
-
-  // Actual stock quantity deducted for this item.
+  // Preserve historical unit-based deductions.
   deductedQuantity Int @default(0)
+
+  // Actual stock deducted, measured in kilograms.
+  deductedWeight Decimal @default(0) @db.Decimal(14, 3)
+
+  productName String
+  quantity    Int
+  weight      Decimal @db.Decimal(12, 3)
+  rate        Decimal @db.Decimal(14, 6)
+  amount      Decimal @db.Decimal(14, 2)
 
   sale    Sale    @relation(fields: [saleId], references: [id], onDelete: Restrict)
   product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
@@ -356,15 +365,15 @@ model SaleItem {
 }
 
 model CustomerLedgerOpeningBalance {
-  id                String   @id @default(cuid())
-  customerId        String
+  id                 String   @id @default(cuid())
+  customerId         String
   financialYearStart DateTime @db.Date
-  openingBalance    Decimal  @db.Decimal(14, 2)
-  isManualOverride  Boolean  @default(false)
-  overrideReason    String?
-  updatedById       String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  openingBalance     Decimal  @db.Decimal(14, 2)
+  isManualOverride   Boolean  @default(false)
+  overrideReason     String?
+  updatedById        String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   customer Customer @relation(fields: [customerId], references: [id], onDelete: Restrict)
 
@@ -417,6 +426,9 @@ model InventoryTransaction {
 
   type     InventoryTransactionType
   quantity Int
+  // Positive weight amount in kilograms.
+  // The transaction type determines whether stock increases or decreases.
+  weight   Decimal                  @default(0) @db.Decimal(14, 3)
 
   referenceType ReferenceType
   referenceId   String

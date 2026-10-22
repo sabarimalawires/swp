@@ -190,7 +190,7 @@ export default function SaleEstimatePdf({
             {data.customerName}
           </Text>
           <Text>
-            <Text style={styles.label}>Sale Date: </Text>
+            <Text style={styles.label}>Date: </Text>
             {formatDate(data.saleDate)}
           </Text>
         </View>

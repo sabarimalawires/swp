@@ -44,6 +44,7 @@ export async function GET(request: Request) {
       select: {
         id: true,
         quantity: true,
+        weight: true,
         status: true,
         submittedAt: true,
         rejectionReason: true,
@@ -130,7 +131,7 @@ export async function POST(request: Request) {
       body.productId ?? ""
     ).trim();
 
-    const quantity = Number(body.quantity);
+    const weight = Number(body.weight);
 
     if (!productId) {
       return NextResponse.json(
@@ -140,13 +141,16 @@ export async function POST(request: Request) {
     }
 
     if (
-      !Number.isInteger(quantity) ||
-      quantity <= 0
+      !Number.isFinite(weight) ||
+      weight <= 0 ||
+      Math.abs(
+        weight * 1000 - Math.round(weight * 1000)
+      ) > 1e-8
     ) {
       return NextResponse.json(
         {
           error:
-            "Quantity must be a whole number greater than 0.",
+            "Weight must be greater than 0 kg and have no more than 3 decimal places.",
         },
         { status: 400 }
       );
@@ -186,12 +190,14 @@ export async function POST(request: Request) {
           data: {
             workerId: employee.id,
             productId,
-            quantity,
+            quantity: 0,
+            weight,
             status: "PENDING",
           },
           select: {
             id: true,
             quantity: true,
+            weight: true,
             status: true,
             submittedAt: true,
             product: {
@@ -214,7 +220,8 @@ export async function POST(request: Request) {
             newValue: {
               workerId: employee.id,
               productId: product.id,
-              quantity,
+              weight,
+              unit: "kg",
               status: "PENDING",
             },
           },

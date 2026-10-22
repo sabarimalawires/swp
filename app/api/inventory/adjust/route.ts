@@ -1,7 +1,34 @@
+
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/src/lib/authorization";
 import { prisma } from "@/src/lib/prisma";
 import { createAuditLog } from "@/src/lib/audit";
+
+function roundKg(value: number): number {
+  return Math.round((value + Number.EPSILON) * 1000) / 1000;
+}
+
+function parseKg(value: unknown): number | null {
+  if (
+    (typeof value !== "number" && typeof value !== "string") ||
+    String(value).trim() === ""
+  ) {
+    return null;
+  }
+
+  const text = String(value).trim();
+  const parsed = Number(text);
+
+  if (
+    !Number.isFinite(parsed) ||
+    parsed <= 0 ||
+    !/^\d+(\.\d{1,3})?$/.test(text)
+  ) {
+    return null;
+  }
+
+  return parsed;
+}
 
 export async function POST(request: Request) {
   try {
@@ -16,15 +43,9 @@ export async function POST(request: Request) {
 
     const body = await request.json();
 
-    const productId = String(
-      body.productId ?? ""
-    ).trim();
-
-    const type = String(
-      body.type ?? ""
-    ).trim();
-
-    const quantity = Number(body.quantity);
+    const productId = String(body.productId ?? "").trim();
+    const type = String(body.type ?? "").trim();
+    const weightKg = parseKg(body.weightKg ?? body.weight);
 
     if (!productId) {
       return NextResponse.json(
@@ -33,37 +54,26 @@ export async function POST(request: Request) {
       );
     }
 
-    if (
-      type !== "ADD" &&
-      type !== "REMOVE"
-    ) {
+    if (type !== "ADD" && type !== "REMOVE") {
       return NextResponse.json(
         { error: "Invalid adjustment type." },
         { status: 400 }
       );
     }
 
-    if (
-      !Number.isInteger(quantity) ||
-      quantity <= 0
-    ) {
+    if (weightKg === null) {
       return NextResponse.json(
-        {
-          error:
-            "Quantity must be a positive whole number.",
-        },
+        { error: "Adjustment weight must be greater than 0 kg, with up to 3 decimal places." },
         { status: 400 }
       );
     }
 
     const product = await prisma.product.findUnique({
-      where: {
-        id: productId,
-      },
+      where: { id: productId },
       select: {
         id: true,
         name: true,
-        initialStock: true,
+        initialStockKg: true,
         isActive: true,
       },
     });
@@ -75,140 +85,134 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = await prisma.$transaction(
-      async (tx) => {
-        const transactions =
-          await tx.inventoryTransaction.findMany({
-            where: {
-              productId,
-            },
-            select: {
-              type: true,
-              quantity: true,
-            },
-          });
+    const result = await prisma.$transaction(async (tx) => {
+      const transactions = await tx.inventoryTransaction.findMany({
+        where: { productId },
+        select: {
+          type: true,
+          weight: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: "asc" },
+      });
 
-        let currentStock = 0;
+      // Ignore legacy unit-only transactions: their quantity cannot
+      // safely be interpreted as kilograms.
+      const hasKgInitialStockTransaction = transactions.some(
+        (transaction) =>
+          transaction.type === "INITIAL_STOCK" &&
+          Number(transaction.weight) !== 0
+      );
 
-        const hasInitialStockTransaction =
-          transactions.some(
-            (transaction) =>
-              transaction.type === "INITIAL_STOCK"
-          );
+      let currentStock = hasKgInitialStockTransaction
+        ? 0
+        : Number(product.initialStockKg);
 
-        if (!hasInitialStockTransaction) {
-          currentStock += product.initialStock;
+      for (const transaction of transactions) {
+        const weight = Number(transaction.weight);
+
+        if (!Number.isFinite(weight) || weight === 0) {
+          continue;
         }
 
-        for (const transaction of transactions) {
-          switch (transaction.type) {
-            case "INITIAL_STOCK":
-            case "PRODUCTION":
-            case "STOCK_ADJUSTMENT_ADD":
-              currentStock += transaction.quantity;
-              break;
+        switch (transaction.type) {
+          case "INITIAL_STOCK":
+          case "PRODUCTION":
+          case "STOCK_ADJUSTMENT_ADD":
+          case "SALE_VOID":
+            currentStock += weight;
+            break;
 
-            case "SALE":
-            case "STOCK_ADJUSTMENT_REMOVE":
-            case "PRODUCTION_REVERSAL":
-              currentStock -= transaction.quantity;
-              break;
+          case "SALE":
+          case "STOCK_ADJUSTMENT_REMOVE":
+          case "PRODUCTION_REVERSAL":
+            currentStock -= weight;
+            break;
 
-            case "SALE_VOID":
-              currentStock += transaction.quantity;
-              break;
-
-            default:
-              break;
-          }
+          default:
+            break;
         }
-
-        if (
-          type === "REMOVE" &&
-          quantity > currentStock
-        ) {
-          throw new Error(
-            `INSUFFICIENT_STOCK:${currentStock}`
-          );
-        }
-
-        const transaction =
-          await tx.inventoryTransaction.create({
-            data: {
-              productId,
-              type:
-                type === "ADD"
-                  ? "STOCK_ADJUSTMENT_ADD"
-                  : "STOCK_ADJUSTMENT_REMOVE",
-              quantity,
-              referenceType: "STOCK_ADJUSTMENT",
-              referenceId: productId,
-              createdById: admin.id,
-            },
-          });
-
-        const newStock =
-          type === "ADD"
-            ? currentStock + quantity
-            : currentStock - quantity;
-
-        await createAuditLog(
-          {
-            userId: admin.id,
-            action: "UPDATE",
-            entityType: "INVENTORY",
-            entityId: product.id,
-            oldValue: {
-              productId: product.id,
-              productName: product.name,
-              stock: currentStock,
-            },
-            newValue: {
-              productId: product.id,
-              productName: product.name,
-              stock: newStock,
-              adjustmentType: type,
-              quantity,
-            },
-          },
-          tx
-        );
-
-        return {
-          transaction,
-          previousStock: currentStock,
-          newStock,
-        };
       }
-    );
+
+      currentStock = roundKg(currentStock);
+
+      if (type === "REMOVE" && weightKg > currentStock) {
+        throw new Error(`INSUFFICIENT_STOCK:${currentStock}`);
+      }
+
+      const transaction = await tx.inventoryTransaction.create({
+        data: {
+          productId,
+          type:
+            type === "ADD"
+              ? "STOCK_ADJUSTMENT_ADD"
+              : "STOCK_ADJUSTMENT_REMOVE",
+          quantity: 0,
+          weight: weightKg,
+          referenceType: "STOCK_ADJUSTMENT",
+          referenceId: productId,
+          createdById: admin.id,
+        },
+      });
+
+      const newStock = roundKg(
+        type === "ADD"
+          ? currentStock + weightKg
+          : currentStock - weightKg
+      );
+
+      await createAuditLog(
+        {
+          userId: admin.id,
+          action: "UPDATE",
+          entityType: "INVENTORY",
+          entityId: product.id,
+          oldValue: {
+            productId: product.id,
+            productName: product.name,
+            stockKg: currentStock,
+          },
+          newValue: {
+            productId: product.id,
+            productName: product.name,
+            stockKg: newStock,
+            adjustmentType: type,
+            weightKg,
+          },
+        },
+        tx
+      );
+
+      return {
+        transaction,
+        previousStockKg: currentStock,
+        newStockKg: newStock,
+      };
+    });
 
     return NextResponse.json(
       {
         message: "Stock adjusted successfully.",
-        previousStock: result.previousStock,
-        newStock: result.newStock,
+        previousStockKg: result.previousStockKg,
+        newStockKg: result.newStockKg,
         transaction: result.transaction,
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error(
-      "Inventory adjustment failed:",
-      error
-    );
+    console.error("Inventory adjustment failed:", error);
 
     if (
       error instanceof Error &&
-      error.message.startsWith(
-        "INSUFFICIENT_STOCK:"
-      )
+      error.message.startsWith("INSUFFICIENT_STOCK:")
     ) {
-      const availableStock =
-        error.message.split(":")[1];
+      const availableStock = error.message.slice(
+        "INSUFFICIENT_STOCK:".length
+      );
 
       return NextResponse.json(
         {
-          error: `Insufficient stock. Available stock: ${availableStock}.`,
+          error: `Insufficient stock. Available stock: ${availableStock} kg.`,
         },
         { status: 409 }
       );
