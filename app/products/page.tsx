@@ -719,7 +719,7 @@ export default function ProductsPage() {
 
                             <td className="px-6 py-5 text-sm text-[#5b3928]">
                               {product.code ||
-                                "â€”"}
+                                "-"}
                             </td>
 
                             <td className="px-6 py-5 text-sm font-semibold text-[#3b2117]">

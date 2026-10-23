@@ -493,7 +493,7 @@ const handleSaveCustomer = async (
                       </th>
 
                       <th className="px-4 py-3">
-                        Purchases
+                        Amount
                       </th>
 
                       <th className="px-4 py-3">

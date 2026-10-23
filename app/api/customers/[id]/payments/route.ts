@@ -29,7 +29,27 @@ export async function POST(
     const { id: customerId } = await params;
     const body = await request.json();
 
-    const amount = Number(body.amount);
+const amount = Number(body.amount);
+const paymentDateValue = String(body.paymentDate ?? "").trim();
+
+if (!/^\d{4}-\d{2}-\d{2}$/.test(paymentDateValue)) {
+  return NextResponse.json(
+    { error: "A valid payment date is required." },
+    { status: 400 }
+  );
+}
+
+const paymentDate = new Date(`${paymentDateValue}T00:00:00.000Z`);
+
+if (
+  Number.isNaN(paymentDate.getTime()) ||
+  paymentDate.toISOString().slice(0, 10) !== paymentDateValue
+) {
+  return NextResponse.json(
+    { error: "Invalid payment date." },
+    { status: 400 }
+  );
+}
 
     const note =
       body.note === undefined ||
@@ -117,11 +137,12 @@ export async function POST(
         const payment =
           await tx.customerPayment.create({
             data: {
-              customerId,
-              amount,
-              note,
-              createdById: admin.id,
-            },
+  customerId,
+  amount,
+  paymentDate,
+  note,
+  createdById: admin.id,
+},
             select: {
               id: true,
               amount: true,
@@ -256,6 +277,26 @@ export async function PATCH(
     ).trim();
 
     const amount = Number(body.amount);
+    const paymentDateValue = String(body.paymentDate ?? "").trim();
+
+if (!/^\d{4}-\d{2}-\d{2}$/.test(paymentDateValue)) {
+  return NextResponse.json(
+    { error: "A valid payment date is required." },
+    { status: 400 }
+  );
+}
+
+const paymentDate = new Date(`${paymentDateValue}T00:00:00.000Z`);
+
+if (
+  Number.isNaN(paymentDate.getTime()) ||
+  paymentDate.toISOString().slice(0, 10) !== paymentDateValue
+) {
+  return NextResponse.json(
+    { error: "Invalid payment date." },
+    { status: 400 }
+  );
+}
 
     const note =
       body.note === undefined ||
@@ -415,9 +456,10 @@ export async function PATCH(
             },
 
             data: {
-              amount,
-              note,
-            },
+  amount,
+  paymentDate,
+  note,
+},
 
             select: {
               id: true,
