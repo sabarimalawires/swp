@@ -1,4 +1,4 @@
-
+﻿
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
@@ -452,6 +452,7 @@ box-sizing: border-box;
         ? undefined
         : visibleLedgers[0]?.customer.name
     }
+      customerId={combined ? undefined : selectedCustomer}
   />
 )}
 
@@ -602,13 +603,13 @@ box-sizing: border-box;
                   </thead>
                   <tbody>
                     <tr className="opening-row">
-                      <td>—</td>
+                      <td>â€”</td>
                       <td>{dateText(ledger.financialYearStart)}</td>
                       <td>Opening Balance</td>
-                      <td>—</td>
-                      <td>—</td>
-                      <td>—</td>
-                      <td>—</td>
+                      <td>â€”</td>
+                      <td>â€”</td>
+                      <td>â€”</td>
+                      <td>â€”</td>
                       <td>{currency(ledger.openingBalance)}</td>
                     </tr>
 
@@ -622,24 +623,24 @@ box-sizing: border-box;
   row.paymentNote &&
   row.paymentNote.trim().toLowerCase() !==
     row.item.trim().toLowerCase()
-    ? ` — ${row.paymentNote}`
+    ? ` â€” ${row.paymentNote}`
     : ""}
 </td>
-                        <td>{row.quantity ?? "—"}</td>
+                        <td>{row.quantity ?? "â€”"}</td>
                         <td>
                           {row.weight === null
-                            ? "—"
+                            ? "â€”"
                             : row.weight.toFixed(3)}
                         </td>
                         <td>
                           {row.type === "SALE"
                             ? currency(row.amount)
-                            : "—"}
+                            : "â€”"}
                         </td>
                         <td>
                           {row.type === "PAYMENT"
                             ? currency(row.paymentReceived)
-                            : "—"}
+                            : "â€”"}
                         </td>
                         <td>{currency(row.balance)}</td>
                       </tr>
@@ -668,3 +669,4 @@ box-sizing: border-box;
   </div>
   );
 }
+
