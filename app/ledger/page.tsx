@@ -603,13 +603,13 @@ box-sizing: border-box;
                   </thead>
                   <tbody>
                     <tr className="opening-row">
-                      <td>â€”</td>
+                      <td>-</td>
                       <td>{dateText(ledger.financialYearStart)}</td>
                       <td>Opening Balance</td>
-                      <td>â€”</td>
-                      <td>â€”</td>
-                      <td>â€”</td>
-                      <td>â€”</td>
+                      <td>-</td>
+                      <td>-</td>
+                      <td>-</td>
+                      <td>-</td>
                       <td>{currency(ledger.openingBalance)}</td>
                     </tr>
 
@@ -623,24 +623,24 @@ box-sizing: border-box;
   row.paymentNote &&
   row.paymentNote.trim().toLowerCase() !==
     row.item.trim().toLowerCase()
-    ? ` â€” ${row.paymentNote}`
+    ? ` - ${row.paymentNote}`
     : ""}
 </td>
-                        <td>{row.quantity ?? "â€”"}</td>
+                        <td>{row.quantity ?? "-"}</td>
                         <td>
                           {row.weight === null
-                            ? "â€”"
+                            ? "-"
                             : row.weight.toFixed(3)}
                         </td>
                         <td>
                           {row.type === "SALE"
                             ? currency(row.amount)
-                            : "â€”"}
+                            : "-"}
                         </td>
                         <td>
                           {row.type === "PAYMENT"
                             ? currency(row.paymentReceived)
-                            : "â€”"}
+                            : "-"}
                         </td>
                         <td>{currency(row.balance)}</td>
                       </tr>

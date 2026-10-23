@@ -53,7 +53,11 @@ export default function Sidebar() {
       <div className="border-b border-[#f1dfd2] p-6">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#fff1e6] font-bold text-[#d96f2b]">
-            S
+            <img
+              src="/ledger-watermark-logo.png"
+              alt="SWP Logo"
+              className="h-10 w-10 object-contain"
+            />
           </div>
 
           <div>
