@@ -81,10 +81,10 @@ export async function GET(request: Request) {
             0
           );
 
-        const pendingBalance = Math.max(
-          0,
-          totalPurchases - totalPaid
-        );
+        const netBalance = totalPurchases - totalPaid;
+
+        const pendingBalance = Math.max(0, netBalance);
+        const customerCredit = Math.max(0, -netBalance);
 
         return {
           id: customer.id,
@@ -96,6 +96,8 @@ export async function GET(request: Request) {
           totalPurchases,
           totalPaid,
           pendingBalance,
+          customerCredit,
+          netBalance,
 
           salesCount:
             customer.sales.length,

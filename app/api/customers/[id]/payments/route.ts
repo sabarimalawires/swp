@@ -7,6 +7,19 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
+function calculateBalance(
+  totalPurchases: number,
+  totalPaid: number
+) {
+  const netBalance = totalPurchases - totalPaid;
+
+  return {
+    netBalance,
+    pendingBalance: Math.max(0, netBalance),
+    customerCredit: Math.max(0, -netBalance),
+  };
+}
+
 /*
  * ============================================================
  * ADD CUSTOMER PAYMENT
@@ -29,39 +42,42 @@ export async function POST(
     const { id: customerId } = await params;
     const body = await request.json();
 
-const amount = Number(body.amount);
-const paymentDateValue = String(body.paymentDate ?? "").trim();
+    const amount = Number(body.amount);
+    const paymentDateValue = String(
+      body.paymentDate ?? ""
+    ).trim();
 
-if (!/^\d{4}-\d{2}-\d{2}$/.test(paymentDateValue)) {
-  return NextResponse.json(
-    { error: "A valid payment date is required." },
-    { status: 400 }
-  );
-}
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(paymentDateValue)) {
+      return NextResponse.json(
+        { error: "A valid payment date is required." },
+        { status: 400 }
+      );
+    }
 
-const paymentDate = new Date(`${paymentDateValue}T00:00:00.000Z`);
+    const paymentDate = new Date(
+      `${paymentDateValue}T00:00:00.000Z`
+    );
 
-if (
-  Number.isNaN(paymentDate.getTime()) ||
-  paymentDate.toISOString().slice(0, 10) !== paymentDateValue
-) {
-  return NextResponse.json(
-    { error: "Invalid payment date." },
-    { status: 400 }
-  );
-}
+    if (
+      Number.isNaN(paymentDate.getTime()) ||
+      paymentDate.toISOString().slice(0, 10) !==
+        paymentDateValue
+    ) {
+      return NextResponse.json(
+        { error: "Invalid payment date." },
+        { status: 400 }
+      );
+    }
 
     const note =
-      body.note === undefined ||
-      body.note === null
+      body.note === undefined || body.note === null
         ? null
         : String(body.note).trim();
 
     if (!Number.isFinite(amount) || amount <= 0) {
       return NextResponse.json(
         {
-          error:
-            "Payment amount must be greater than ₹0.",
+          error: "Payment amount must be greater than ₹0.",
         },
         { status: 400 }
       );
@@ -79,93 +95,64 @@ if (
 
     const result = await prisma.$transaction(
       async (tx) => {
-        const customer =
-          await tx.customer.findUnique({
-            where: {
-              id: customerId,
+        const customer = await tx.customer.findUnique({
+          where: { id: customerId },
+          select: {
+            id: true,
+            name: true,
+            sales: {
+              where: { status: "ACTIVE" },
+              select: { amount: true },
             },
-            select: {
-              id: true,
-              name: true,
-
-              sales: {
-                where: {
-                  status: "ACTIVE",
-                },
-                select: {
-                  amount: true,
-                },
-              },
-
-              payments: {
-                select: {
-                  amount: true,
-                },
-              },
+            payments: {
+              select: { amount: true },
             },
-          });
+          },
+        });
 
         if (!customer) {
           throw new Error("CUSTOMER_NOT_FOUND");
         }
 
-        const totalPurchases =
-          customer.sales.reduce(
-            (total, sale) =>
-              total + Number(sale.amount),
-            0
-          );
-
-        const totalPaid =
-          customer.payments.reduce(
-            (total, payment) =>
-              total + Number(payment.amount),
-            0
-          );
-
-        const pendingBalance = Math.max(
-          0,
-          totalPurchases - totalPaid
+        const totalPurchases = customer.sales.reduce(
+          (total, sale) => total + Number(sale.amount),
+          0
         );
 
-        if (amount > pendingBalance) {
-          throw new Error(
-            "PAYMENT_EXCEEDS_BALANCE"
-          );
-        }
+        const totalPaid = customer.payments.reduce(
+          (total, payment) =>
+            total + Number(payment.amount),
+          0
+        );
 
-        const payment =
-          await tx.customerPayment.create({
-            data: {
-  customerId,
-  amount,
-  paymentDate,
-  note,
-  createdById: admin.id,
-},
-            select: {
-              id: true,
-              amount: true,
-              paymentDate: true,
-              note: true,
-
-              createdBy: {
-                select: {
-                  name: true,
-                  username: true,
-                },
+        const payment = await tx.customerPayment.create({
+          data: {
+            customerId,
+            amount,
+            paymentDate,
+            note,
+            createdById: admin.id,
+          },
+          select: {
+            id: true,
+            amount: true,
+            paymentDate: true,
+            note: true,
+            createdBy: {
+              select: {
+                name: true,
+                username: true,
               },
             },
-          });
+          },
+        });
 
-        const newTotalPaid =
-          totalPaid + amount;
+        const newTotalPaid = totalPaid + amount;
 
-        const remainingBalance =
-          Math.max(
-            0,
-            totalPurchases - newTotalPaid
-          );
+        const balance = calculateBalance(
+          totalPurchases,
+          newTotalPaid
+        );
 
         await createAuditLog(
           {
@@ -173,16 +160,13 @@ if (
             action: "CREATE",
             entityType: "CUSTOMER_PAYMENT",
             entityId: payment.id,
-
             oldValue: null,
-
             newValue: {
               customerId,
               customerName: customer.name,
               amount,
               note,
-              paymentDate:
-                payment.paymentDate,
+              paymentDate: payment.paymentDate,
             },
           },
           tx
@@ -192,7 +176,10 @@ if (
           payment,
           totalPurchases,
           totalPaid: newTotalPaid,
-          remainingBalance,
+          remainingBalance: balance.pendingBalance,
+          pendingBalance: balance.pendingBalance,
+          customerCredit: balance.customerCredit,
+          netBalance: balance.netBalance,
         };
       },
       {
@@ -208,31 +195,14 @@ if (
       { status: 201 }
     );
   } catch (error) {
-    if (error instanceof Error) {
-      if (
-        error.message ===
-        "CUSTOMER_NOT_FOUND"
-      ) {
-        return NextResponse.json(
-          {
-            error: "Customer not found.",
-          },
-          { status: 404 }
-        );
-      }
-
-      if (
-        error.message ===
-        "PAYMENT_EXCEEDS_BALANCE"
-      ) {
-        return NextResponse.json(
-          {
-            error:
-              "Payment cannot be greater than the customer's pending balance.",
-          },
-          { status: 409 }
-        );
-      }
+    if (
+      error instanceof Error &&
+      error.message === "CUSTOMER_NOT_FOUND"
+    ) {
+      return NextResponse.json(
+        { error: "Customer not found." },
+        { status: 404 }
+      );
     }
 
     console.error(
@@ -241,10 +211,7 @@ if (
     );
 
     return NextResponse.json(
-      {
-        error:
-          "Failed to record payment.",
-      },
+      { error: "Failed to record payment." },
       { status: 500 }
     );
   }
@@ -277,38 +244,40 @@ export async function PATCH(
     ).trim();
 
     const amount = Number(body.amount);
-    const paymentDateValue = String(body.paymentDate ?? "").trim();
+    const paymentDateValue = String(
+      body.paymentDate ?? ""
+    ).trim();
 
-if (!/^\d{4}-\d{2}-\d{2}$/.test(paymentDateValue)) {
-  return NextResponse.json(
-    { error: "A valid payment date is required." },
-    { status: 400 }
-  );
-}
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(paymentDateValue)) {
+      return NextResponse.json(
+        { error: "A valid payment date is required." },
+        { status: 400 }
+      );
+    }
 
-const paymentDate = new Date(`${paymentDateValue}T00:00:00.000Z`);
+    const paymentDate = new Date(
+      `${paymentDateValue}T00:00:00.000Z`
+    );
 
-if (
-  Number.isNaN(paymentDate.getTime()) ||
-  paymentDate.toISOString().slice(0, 10) !== paymentDateValue
-) {
-  return NextResponse.json(
-    { error: "Invalid payment date." },
-    { status: 400 }
-  );
-}
+    if (
+      Number.isNaN(paymentDate.getTime()) ||
+      paymentDate.toISOString().slice(0, 10) !==
+        paymentDateValue
+    ) {
+      return NextResponse.json(
+        { error: "Invalid payment date." },
+        { status: 400 }
+      );
+    }
 
     const note =
-      body.note === undefined ||
-      body.note === null
+      body.note === undefined || body.note === null
         ? null
         : String(body.note).trim();
 
     if (!paymentId) {
       return NextResponse.json(
-        {
-          error: "Payment ID is required.",
-        },
+        { error: "Payment ID is required." },
         { status: 400 }
       );
     }
@@ -316,8 +285,7 @@ if (
     if (!Number.isFinite(amount) || amount <= 0) {
       return NextResponse.json(
         {
-          error:
-            "Payment amount must be greater than ₹0.",
+          error: "Payment amount must be greater than ₹0.",
         },
         { status: 400 }
       );
@@ -335,10 +303,6 @@ if (
 
     const result = await prisma.$transaction(
       async (tx) => {
-        /*
-         * Find the payment and make sure it
-         * belongs to this customer.
-         */
         const payment =
           await tx.customerPayment.findFirst({
             where: {
@@ -355,118 +319,67 @@ if (
           });
 
         if (!payment) {
-          throw new Error(
-            "PAYMENT_NOT_FOUND"
-          );
+          throw new Error("PAYMENT_NOT_FOUND");
         }
 
-        /*
-         * Load the customer's current financial
-         * information.
-         */
-        const customer =
-          await tx.customer.findUnique({
-            where: {
-              id: customerId,
+        const customer = await tx.customer.findUnique({
+          where: { id: customerId },
+          select: {
+            id: true,
+            name: true,
+            sales: {
+              where: { status: "ACTIVE" },
+              select: { amount: true },
             },
-            select: {
-              id: true,
-              name: true,
-
-              sales: {
-                where: {
-                  status: "ACTIVE",
-                },
-                select: {
-                  amount: true,
-                },
-              },
-
-              payments: {
-                select: {
-                  id: true,
-                  amount: true,
-                },
+            payments: {
+              select: {
+                id: true,
+                amount: true,
               },
             },
-          });
+          },
+        });
 
         if (!customer) {
-          throw new Error(
-            "CUSTOMER_NOT_FOUND"
-          );
+          throw new Error("CUSTOMER_NOT_FOUND");
         }
 
-        /*
-         * Calculate total purchases.
-         */
-        const totalPurchases =
-          customer.sales.reduce(
-            (total, sale) =>
-              total + Number(sale.amount),
-            0
-          );
+        const totalPurchases = customer.sales.reduce(
+          (total, sale) => total + Number(sale.amount),
+          0
+        );
 
-        /*
-         * Calculate payments EXCLUDING the
-         * payment currently being edited.
-         */
         const totalPaidWithoutCurrent =
           customer.payments.reduce(
             (total, currentPayment) => {
-              if (
-                currentPayment.id ===
-                payment.id
-              ) {
+              if (currentPayment.id === payment.id) {
                 return total;
               }
 
               return (
-                total +
-                Number(currentPayment.amount)
+                total + Number(currentPayment.amount)
               );
             },
             0
           );
 
-        /*
-         * The edited payment cannot make the
-         * customer's total paid amount greater
-         * than their total purchases.
-         */
-        const maximumAllowed = Math.max(
-          0,
-          totalPurchases -
-            totalPaidWithoutCurrent
-        );
+        // Overpayments are allowed.
+        const newTotalPaid =
+          totalPaidWithoutCurrent + amount;
 
-        if (amount > maximumAllowed) {
-          throw new Error(
-            "PAYMENT_EXCEEDS_BALANCE"
-          );
-        }
-
-        /*
-         * Update the payment.
-         */
         const updatedPayment =
           await tx.customerPayment.update({
-            where: {
-              id: payment.id,
-            },
-
+            where: { id: payment.id },
             data: {
-  amount,
-  paymentDate,
-  note,
-},
-
+              amount,
+              paymentDate,
+              note,
+            },
             select: {
               id: true,
               amount: true,
               paymentDate: true,
               note: true,
-
               createdBy: {
                 select: {
                   name: true,
@@ -476,57 +389,42 @@ if (
             },
           });
 
-        /*
-         * Record the change in the audit log.
-         */
         await createAuditLog(
           {
             userId: admin.id,
             action: "UPDATE",
             entityType: "CUSTOMER_PAYMENT",
             entityId: payment.id,
-
             oldValue: {
               customerId,
               customerName: customer.name,
-              amount:
-                Number(payment.amount),
+              amount: Number(payment.amount),
               note: payment.note,
-              paymentDate:
-                payment.paymentDate,
+              paymentDate: payment.paymentDate,
             },
-
             newValue: {
               customerId,
               customerName: customer.name,
               amount,
               note,
-              paymentDate:
-                updatedPayment.paymentDate,
+              paymentDate: updatedPayment.paymentDate,
             },
           },
           tx
         );
 
-        /*
-         * Calculate the new customer balance.
-         */
-        const newTotalPaid =
-          totalPaidWithoutCurrent +
-          amount;
-
-        const pendingBalance =
-          Math.max(
-            0,
-            totalPurchases -
-              newTotalPaid
-          );
+        const balance = calculateBalance(
+          totalPurchases,
+          newTotalPaid
+        );
 
         return {
           payment: updatedPayment,
           totalPurchases,
           totalPaid: newTotalPaid,
-          pendingBalance,
+          pendingBalance: balance.pendingBalance,
+          customerCredit: balance.customerCredit,
+          netBalance: balance.netBalance,
         };
       },
       {
@@ -535,46 +433,22 @@ if (
     );
 
     return NextResponse.json({
-      message:
-        "Payment updated successfully.",
+      message: "Payment updated successfully.",
       ...result,
     });
   } catch (error) {
     if (error instanceof Error) {
-      if (
-        error.message ===
-        "PAYMENT_NOT_FOUND"
-      ) {
+      if (error.message === "PAYMENT_NOT_FOUND") {
         return NextResponse.json(
-          {
-            error: "Payment not found.",
-          },
+          { error: "Payment not found." },
           { status: 404 }
         );
       }
 
-      if (
-        error.message ===
-        "CUSTOMER_NOT_FOUND"
-      ) {
+      if (error.message === "CUSTOMER_NOT_FOUND") {
         return NextResponse.json(
-          {
-            error: "Customer not found.",
-          },
+          { error: "Customer not found." },
           { status: 404 }
-        );
-      }
-
-      if (
-        error.message ===
-        "PAYMENT_EXCEEDS_BALANCE"
-      ) {
-        return NextResponse.json(
-          {
-            error:
-              "The updated payment would make the customer's total paid amount greater than their purchases.",
-          },
-          { status: 409 }
         );
       }
     }
@@ -585,10 +459,7 @@ if (
     );
 
     return NextResponse.json(
-      {
-        error:
-          "Failed to update payment.",
-      },
+      { error: "Failed to update payment." },
       { status: 500 }
     );
   }
@@ -615,7 +486,10 @@ export async function DELETE(
 
     const { id: customerId } = await params;
     const url = new URL(request.url);
-    const paymentId = (url.searchParams.get("paymentId") ?? "").trim();
+
+    const paymentId = (
+      url.searchParams.get("paymentId") ?? ""
+    ).trim();
 
     if (!paymentId) {
       return NextResponse.json(
@@ -626,19 +500,20 @@ export async function DELETE(
 
     const result = await prisma.$transaction(
       async (tx) => {
-        const payment = await tx.customerPayment.findFirst({
-          where: {
-            id: paymentId,
-            customerId,
-          },
-          select: {
-            id: true,
-            customerId: true,
-            amount: true,
-            note: true,
-            paymentDate: true,
-          },
-        });
+        const payment =
+          await tx.customerPayment.findFirst({
+            where: {
+              id: paymentId,
+              customerId,
+            },
+            select: {
+              id: true,
+              customerId: true,
+              amount: true,
+              note: true,
+              paymentDate: true,
+            },
+          });
 
         if (!payment) {
           throw new Error("PAYMENT_NOT_FOUND");
@@ -654,7 +529,10 @@ export async function DELETE(
               select: { amount: true },
             },
             payments: {
-              select: { id: true, amount: true },
+              select: {
+                id: true,
+                amount: true,
+              },
             },
           },
         });
@@ -678,8 +556,13 @@ export async function DELETE(
           where: { id: payment.id },
         });
 
-        const totalPaid = totalPaidBefore - Number(payment.amount);
-        const pendingBalance = Math.max(0, totalPurchases - totalPaid);
+        const totalPaid =
+          totalPaidBefore - Number(payment.amount);
+
+        const balance = calculateBalance(
+          totalPurchases,
+          totalPaid
+        );
 
         await createAuditLog(
           {
@@ -703,7 +586,9 @@ export async function DELETE(
           paymentId: payment.id,
           totalPurchases,
           totalPaid,
-          pendingBalance,
+          pendingBalance: balance.pendingBalance,
+          customerCredit: balance.customerCredit,
+          netBalance: balance.netBalance,
         };
       },
       {
@@ -732,7 +617,10 @@ export async function DELETE(
       }
     }
 
-    console.error("Customer payment deletion failed:", error);
+    console.error(
+      "Customer payment deletion failed:",
+      error
+    );
 
     return NextResponse.json(
       { error: "Failed to delete payment." },
@@ -740,4 +628,3 @@ export async function DELETE(
     );
   }
 }
-

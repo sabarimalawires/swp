@@ -43,25 +43,17 @@ type Payment = {
 };
 
 type Customer = {
-
   id: string;
-
   name: string;
-
   phone: string | null;
-
   createdAt: string;
-
   totalPurchases: number;
-
   totalPaid: number;
-
   pendingBalance: number;
-
+  customerCredit: number;
+  netBalance: number;
   sales: Sale[];
-
   payments: Payment[];
-
 };
 
 const money = (value: number) =>
@@ -468,24 +460,6 @@ useEffect(() => {
 
     }
 
-    if (
-
-      amount >
-
-      customer.pendingBalance
-
-    ) {
-
-      setError(
-
-        "Payment cannot be greater than the pending balance."
-
-      );
-
-      return;
-
-    }
-
     setSaving(true);
 
     try {
@@ -541,17 +515,15 @@ useEffect(() => {
       }
 
       setSuccess(
-
-        result.remainingBalance === 0
-
-          ? "Payment recorded. Customer balance is now Nil."
-
-          : `Payment recorded. Remaining balance: ${money(
-
-              result.remainingBalance
-
+        result.customerCredit > 0
+          ? `Payment recorded successfully. Customer credit: ${money(
+              result.customerCredit
             )}`
-
+          : result.pendingBalance > 0
+            ? `Payment recorded successfully. Remaining balance: ${money(
+                result.pendingBalance
+              )}`
+            : "Payment recorded successfully. Customer balance is Nil."
       );
 
       setPaymentAmount("");
@@ -725,17 +697,15 @@ useEffect(() => {
       }
 
       setSuccess(
-
-        `Payment updated successfully. Remaining balance: ${
-
-          result.pendingBalance === 0
-
-            ? "Nil"
-
-            : money(result.pendingBalance)
-
-        }`
-
+        result.customerCredit > 0
+          ? `Payment updated successfully. Customer credit: ${money(
+              result.customerCredit
+            )}`
+          : result.pendingBalance > 0
+            ? `Payment updated successfully. Remaining balance: ${money(
+                result.pendingBalance
+              )}`
+            : "Payment updated successfully. Customer balance is Nil."
       );
 
       cancelEditingPayment();
@@ -1179,41 +1149,25 @@ const handleDeletePayment = async (paymentId: string) => {
             </div>
 
             <div className="rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
-
               <p className="text-sm text-[#8b6b5a]">
-
                 Pending Balance
-
               </p>
-
               <p
-
                 className={`mt-2 text-2xl font-bold ${
-
-                  customer.pendingBalance === 0
-
-                    ? "text-green-700"
-
-                    : "text-red-600"
-
+                  customer.customerCredit > 0
+                    ? "text-blue-700"
+                    : customer.pendingBalance > 0
+                      ? "text-red-600"
+                      : "text-green-700"
                 }`}
-
               >
-
-                {customer.pendingBalance === 0
-
-                  ? "Nil"
-
-                  : money(
-
-                      customer.pendingBalance
-
-                    )}
-
+                {customer.customerCredit > 0
+                  ? `+${money(customer.customerCredit)} (Credit)`
+                  : customer.pendingBalance > 0
+                    ? money(customer.pendingBalance)
+                    : "Nil"}
               </p>
-
             </div>
-
           </div>
 
           <div className="mt-8 grid gap-6 lg:grid-cols-2">
@@ -1348,42 +1302,18 @@ const handleDeletePayment = async (paymentId: string) => {
 
                 </div>
 
-                {customer.pendingBalance > 0 && (
-
-                  <button
-
-                    type="button"
-
-                    onClick={() => {
-
-                      setError("");
-
-                      setSuccess("");
-
-                      setShowPaymentForm(
-
-                        (value) => !value
-
-                      );
-
-                      cancelEditingPayment();
-
-                    }}
-
-                    className="rounded-xl bg-[#d96f2b] px-4 py-2 text-sm font-semibold text-white hover:bg-[#c85f22]"
-
-                  >
-
-                    {showPaymentForm
-
-                      ? "Cancel"
-
-                      : "Add Payment"}
-
-                  </button>
-
-                )}
-
+                <button
+                  type="button"
+                  onClick={() => {
+                    setError("");
+                    setSuccess("");
+                    setShowPaymentForm((value) => !value);
+                    cancelEditingPayment();
+                  }}
+                  className="shrink-0 rounded-xl bg-[#d96f2b] px-4 py-2 text-sm font-semibold text-white hover:bg-[#c85f22]"
+                >
+                  {showPaymentForm ? "Cancel" : "Add Payment"}
+                </button>
               </div>
 
               {/* Add Payment Form */}
@@ -1405,19 +1335,21 @@ const handleDeletePayment = async (paymentId: string) => {
                   </p>
 
                   <p className="mt-1 text-xs text-[#8b6b5a]">
-
-                    Current pending:{" "}
-
-                    <span className="font-bold text-red-600">
-
-                      {money(
-
-                        customer.pendingBalance
-
-                      )}
-
-                    </span>
-
+                    {customer.customerCredit > 0 ? (
+                      <>
+                        Current customer credit:{" "}
+                        <span className="font-bold text-blue-700">
+                          {money(customer.customerCredit)}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        Current pending:{" "}
+                        <span className="font-bold text-red-600">
+                          {money(customer.pendingBalance)}
+                        </span>
+                      </>
+                    )}
                   </p>
 
                   <div className="mt-4">
@@ -1435,40 +1367,18 @@ const handleDeletePayment = async (paymentId: string) => {
                     </label>
 
                     <input
-
-                      id="payment-amount"
-
-                      type="number"
-
-                      min="0.01"
-
-                      max={
-
-                        customer.pendingBalance
-
-                      }
-
-                      step="0.01"
-
-                      value={paymentAmount}
-
-                      onChange={(event) =>
-
-                        setPaymentAmount(
-
-                          event.target.value
-
-                        )
-
-                      }
-
-                      placeholder="e.g. 5000"
-
-                      required
-
-                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
-
-                    />
+  id="payment-amount"
+  type="number"
+  min="0.01"
+  step="0.01"
+  value={paymentAmount}
+  onChange={(event) =>
+    setPaymentAmount(event.target.value)
+  }
+  placeholder="e.g. 5000"
+  required
+  className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
+/>
 
                   </div>
 
