@@ -205,6 +205,9 @@ model Customer {
   sales                 Sale[]
   payments              CustomerPayment[]
   ledgerOpeningBalances CustomerLedgerOpeningBalance[]
+  whatsappDueRemindersOptIn   Boolean   @default(false)
+  whatsappDueRemindersOptInAt DateTime?
+  dueReminderLogs             CustomerDueReminderLog[]
 
   @@index([name])
   @@index([phone])
@@ -474,4 +477,26 @@ model AuditLog {
   @@index([userId])
   @@index([entityType, entityId])
   @@index([createdAt])
+}
+model CustomerDueReminderLog {
+  id                String   @id @default(cuid())
+  customerId        String
+  reminderDate      DateTime @db.Date
+  phone             String
+  pendingAmount     Decimal  @db.Decimal(14, 2)
+  status            String   @default("PENDING")
+  whatsappMessageId String?
+  error             String?
+  attemptCount      Int      @default(0)
+  attemptedAt       DateTime?
+  sentAt            DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+ customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, reminderDate])
+  @@index([reminderDate, status])
+  @@index([customerId, createdAt])
+  @@map("customer_due_reminder_logs")
 }
