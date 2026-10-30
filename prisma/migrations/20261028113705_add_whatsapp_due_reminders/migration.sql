@@ -1,4 +1,4 @@
-﻿ALTER TABLE "Customer"
+ALTER TABLE "Customer"
 ADD COLUMN "whatsappDueRemindersOptIn" BOOLEAN NOT NULL DEFAULT false,
 ADD COLUMN "whatsappDueRemindersOptInAt" TIMESTAMP(3);
 
