@@ -1,45 +1,31 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
 import { useParams, useRouter } from "next/navigation";
-
 import Sidebar from "@/src/components/Sidebar";
-
 import { authClient } from "@/src/lib/auth-client";
 
 type Sale = {
 
   id: string;
-
   amount: number;
-
   weight: number;
-
   quantity: number;
-
   saleDate: string;
-
 };
 
 type Payment = {
 
   id: string;
-
   amount: number;
-
   paymentDate: string;
-
   note: string | null;
-
   createdBy: {
 
     name: string;
-
     username: string;
 
   };
-
 };
 
 type Customer = {
@@ -54,6 +40,10 @@ type Customer = {
   netBalance: number;
   sales: Sale[];
   payments: Payment[];
+
+  // WhatsApp due reminder settings
+  whatsappDueRemindersOptIn: boolean;
+  whatsappDueRemindersOptInAt: string | null;
 };
 
 const money = (value: number) =>
@@ -134,9 +124,10 @@ const [profilePhone, setProfilePhone] =
 
   useState("");
 
-const [savingProfile, setSavingProfile] =
+const [savingProfile, setSavingProfile] = useState(false);
 
-  useState(false);
+const [savingWhatsApp, setSavingWhatsApp] = useState(false);
+const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
 
   const [loading, setLoading] =
 
@@ -188,9 +179,7 @@ const [savingProfile, setSavingProfile] =
 
   const loadCustomer = async () => {
 
-    const response =
-
-      await fetch("/api/customers");
+  const response = await fetch("/api/customers");
 
     const result =
 
@@ -301,7 +290,6 @@ const handleSaveProfile = async (
         body: JSON.stringify({
 
           name,
-
           phone: phone || null,
 
         }),
@@ -335,6 +323,94 @@ const handleSaveProfile = async (
     );
   } finally {
     setSavingProfile(false);
+  }
+};
+const handleSendWhatsAppNow = async () => {
+  if (!customer || sendingWhatsApp) return;
+
+  setSendingWhatsApp(true);
+  setError("");
+  setSuccess("");
+
+  try {
+    const response = await fetch(
+      `/api/customers/${customer.id}/whatsapp-reminders`,
+      { method: "POST" }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || "Failed to send WhatsApp reminder.");
+    }
+
+    setSuccess(
+      `WhatsApp reminder accepted by Meta. Pending: ${money(result.pendingBalance)}`
+    );
+  } catch (error) {
+    setError(
+      error instanceof Error
+        ? error.message
+        : "Failed to send WhatsApp reminder."
+    );
+  } finally {
+    setSendingWhatsApp(false);
+  }
+};
+const handleWhatsAppToggle = async () => {
+  if (!customer || savingWhatsApp) return;
+
+  const enabled = !customer.whatsappDueRemindersOptIn;
+
+  if (enabled && !customer.phone) {
+    setError("Add a mobile number before enabling WhatsApp reminders.");
+    return;
+  }
+
+  setSavingWhatsApp(true);
+  setError("");
+  setSuccess("");
+
+  try {
+    const response = await fetch(
+      `/api/customers/${customer.id}/whatsapp-reminders`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled }),
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || "Could not update WhatsApp setting.");
+    }
+
+    setCustomer((current) =>
+      current
+        ? {
+            ...current,
+            whatsappDueRemindersOptIn: result.whatsappDueRemindersOptIn,
+            whatsappDueRemindersOptInAt:
+              result.whatsappDueRemindersOptInAt,
+          }
+        : current
+    );
+
+    setSuccess(
+      enabled
+        ? "WhatsApp reminders enabled for this customer."
+        : "WhatsApp reminders disabled for this customer."
+    );
+  } catch (error) {
+    setError(
+      error instanceof Error
+        ? error.message
+        : "Could not update WhatsApp setting."
+    );
+  } finally {
+    setSavingWhatsApp(false);
   }
 };
 
@@ -938,6 +1014,20 @@ const handleDeletePayment = async (paymentId: string) => {
 
   </button>
 
+  <button
+  type="button"
+  onClick={handleSendWhatsAppNow}
+  disabled={
+    sendingWhatsApp ||
+    !customer.whatsappDueRemindersOptIn ||
+    !customer.phone ||
+    customer.pendingBalance <= 0
+  }
+  className="rounded-xl bg-green-700 px-4 py-2 text-sm font-semibold text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-50"
+>
+  {sendingWhatsApp ? "Sending..." : "Send WhatsApp Now"}
+</button>
+
 </div>
 
               <p className="mt-2 text-[#7b5a49]">
@@ -1083,6 +1173,44 @@ const handleDeletePayment = async (paymentId: string) => {
         />
 
       </div>
+
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#f1dfd2] bg-white p-4">
+  <div>
+    <p className="font-semibold text-[#3b2117]">
+      WhatsApp Due Reminders
+    </p>
+    <p className="mt-1 text-sm text-[#7b5a49]">
+      {customer.whatsappDueRemindersOptIn
+        ? "ON — reminders enabled"
+        : "OFF — reminders disabled"}
+    </p>
+  </div>
+
+  
+<button
+  type="button"
+  role="switch"
+  aria-checked={customer.whatsappDueRemindersOptIn}
+  disabled={savingWhatsApp}
+  onClick={handleWhatsAppToggle}
+  aria-label="Toggle WhatsApp due reminders"
+  className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full p-1 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+    customer.whatsappDueRemindersOptIn
+      ? "bg-green-600"
+      : "bg-gray-300"
+  }`}
+>
+  <span
+    className={`block h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+      customer.whatsappDueRemindersOptIn
+        ? "translate-x-5"
+        : "translate-x-0"
+    }`}
+  />
+</button>
+
+</div>
+
 
       <button
 

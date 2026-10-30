@@ -24,6 +24,8 @@ export async function GET(request: Request) {
         phone: true,
         createdAt: true,
         updatedAt: true,
+          whatsappDueRemindersOptIn: true,
+  whatsappDueRemindersOptInAt: true,
 
         sales: {
           where: {
@@ -92,6 +94,10 @@ export async function GET(request: Request) {
           phone: customer.phone,
           createdAt: customer.createdAt,
           updatedAt: customer.updatedAt,
+          whatsappDueRemindersOptIn:
+  customer.whatsappDueRemindersOptIn,
+whatsappDueRemindersOptInAt:
+  customer.whatsappDueRemindersOptInAt,
 
           totalPurchases,
           totalPaid,
