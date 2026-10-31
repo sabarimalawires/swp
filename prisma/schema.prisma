@@ -77,6 +77,13 @@ enum AuditEntityType {
   CUSTOMER_LEDGER_OPENING_BALANCE
 }
 
+enum SalesUnit {
+  KGS
+  SQ_FT
+  R_FT
+  R_MTR
+}
+
 // ============================================================
 // BETTER AUTH
 // ============================================================
@@ -202,10 +209,10 @@ model Customer {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  sales                 Sale[]
-  payments              CustomerPayment[]
-  ledgerOpeningBalances CustomerLedgerOpeningBalance[]
-  whatsappDueRemindersOptIn   Boolean   @default(false)
+  sales                       Sale[]
+  payments                    CustomerPayment[]
+  ledgerOpeningBalances       CustomerLedgerOpeningBalance[]
+  whatsappDueRemindersOptIn   Boolean                        @default(false)
   whatsappDueRemindersOptInAt DateTime?
   dueReminderLogs             CustomerDueReminderLog[]
 
@@ -360,6 +367,10 @@ model SaleItem {
   rate        Decimal @db.Decimal(14, 6)
   amount      Decimal @db.Decimal(14, 2)
 
+  // Sales unit and quantity sold in that unit.
+  salesUnit        SalesUnit @default(KGS)
+  salesMeasurement Decimal   @default(0) @db.Decimal(12, 3)
+
   sale    Sale    @relation(fields: [saleId], references: [id], onDelete: Restrict)
   product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
 
@@ -478,22 +489,23 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([createdAt])
 }
+
 model CustomerDueReminderLog {
-  id                String   @id @default(cuid())
+  id                String    @id @default(cuid())
   customerId        String
-  reminderDate      DateTime @db.Date
+  reminderDate      DateTime  @db.Date
   phone             String
-  pendingAmount     Decimal  @db.Decimal(14, 2)
-  status            String   @default("PENDING")
+  pendingAmount     Decimal   @db.Decimal(14, 2)
+  status            String    @default("PENDING")
   whatsappMessageId String?
   error             String?
-  attemptCount      Int      @default(0)
+  attemptCount      Int       @default(0)
   attemptedAt       DateTime?
   sentAt            DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
- customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
   @@unique([customerId, reminderDate])
   @@index([reminderDate, status])

@@ -10,7 +10,8 @@ import {
 export type EstimateItem = {
   productName: string;
   quantity: number;
-  weight: number;
+  salesMeasurement: number;
+  salesUnit: "KGS" | "SQ_FT" | "R_FT" | "R_MTR";
   rate: number;
   amount: number;
 };
@@ -32,36 +33,30 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica",
     color: "#222222",
   },
-
   heading: {
     textAlign: "center",
     fontSize: 22,
     fontWeight: "bold",
     marginBottom: 24,
   },
-
   details: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 9,
     fontWeight: "bold",
   },
-
   label: {
     fontWeight: "bold",
   },
-
   table: {
     marginTop: 20,
     borderTopWidth: 1,
     borderLeftWidth: 1,
     borderColor: "#555555",
   },
-
   row: {
     flexDirection: "row",
   },
-
   cell: {
     paddingVertical: 8,
     paddingHorizontal: 5,
@@ -71,50 +66,48 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     fontWeight: "bold",
   },
-
   headerCell: {
     fontWeight: "bold",
     backgroundColor: "#e8e8e8",
   },
-
   serial: {
     width: "9%",
   },
-
   description: {
     width: "27%",
   },
-
   quantity: {
     width: "14%",
   },
-
   weight: {
     width: "16%",
   },
-
   rate: {
     width: "15%",
   },
-
   amount: {
     width: "19%",
     textAlign: "right",
   },
-
   total: {
     marginTop: 16,
     textAlign: "right",
     fontSize: 13,
     fontWeight: "bold",
   },
-
   words: {
     marginTop: 18,
     lineHeight: 1.5,
     fontWeight: "bold",
   },
 });
+
+const unitLabels: Record<EstimateItem["salesUnit"], string> = {
+  KGS: "kg",
+  SQ_FT: "Sq.ft",
+  R_FT: "R.ft",
+  R_MTR: "R.m",
+};
 
 function numberToWords(value: number): string {
   const ones = [
@@ -205,54 +198,60 @@ export default function SaleEstimatePdf({
         ) : null}
 
         <View style={styles.table}>
-          
-<View style={styles.row}>
-  <View style={[styles.cell, styles.headerCell, styles.serial]}>
-    <Text>S.No</Text>
-  </View>
-  <View style={[styles.cell, styles.headerCell, styles.description]}>
-    <Text>Description</Text>
-  </View>
-  <View style={[styles.cell, styles.headerCell, styles.quantity]}>
-    <Text>Quantity</Text>
-  </View>
-  <View style={[styles.cell, styles.headerCell, styles.weight]}>
-    <Text>Weight</Text>
-  </View>
-  <View style={[styles.cell, styles.headerCell, styles.rate]}>
-    <Text>Rate</Text>
-  </View>
-  <View style={[styles.cell, styles.headerCell, styles.amount]}>
-    <Text>Amount</Text>
-  </View>
-</View>
-
-
-          {data.items.map((item, index) => (
-            <View
-              key={`${item.productName}-${index}`}
-              style={styles.row}
-            >
-              <View style={[styles.cell, styles.serial]}>
-                <Text>{index + 1}</Text>
-              </View>
-              <View style={[styles.cell, styles.description]}>
-                <Text>{item.productName}</Text>
-              </View>
-              <View style={[styles.cell, styles.quantity]}>
-                <Text>{item.quantity} Nos</Text>
-              </View>
-              <View style={[styles.cell, styles.weight]}>
-                <Text>{Number(item.weight).toFixed(2)}kg</Text>
-              </View>
-              <View style={[styles.cell, styles.rate]}>
-                <Text>{Number(item.rate).toFixed(2)}</Text>
-              </View>
-              <View style={[styles.cell, styles.amount]}>
-                <Text>{Number(item.amount).toFixed(2)}</Text>
-              </View>
+          <View style={styles.row}>
+            <View style={[styles.cell, styles.headerCell, styles.serial]}>
+              <Text>S.No</Text>
             </View>
-          ))}
+            <View style={[styles.cell, styles.headerCell, styles.description]}>
+              <Text>Description</Text>
+            </View>
+            <View style={[styles.cell, styles.headerCell, styles.quantity]}>
+              <Text>Quantity</Text>
+            </View>
+            <View style={[styles.cell, styles.headerCell, styles.weight]}>
+              <Text>Sales Unit</Text>
+            </View>
+            <View style={[styles.cell, styles.headerCell, styles.rate]}>
+              <Text>Rate / Unit</Text>
+            </View>
+            <View style={[styles.cell, styles.headerCell, styles.amount]}>
+              <Text>Amount</Text>
+            </View>
+          </View>
+
+          {data.items.map((item, index) => {
+            const unit = unitLabels[item.salesUnit] ?? "kg";
+
+            return (
+              <View
+                key={`${item.productName}-${index}`}
+                style={styles.row}
+              >
+                <View style={[styles.cell, styles.serial]}>
+                  <Text>{index + 1}</Text>
+                </View>
+                <View style={[styles.cell, styles.description]}>
+                  <Text>{item.productName}</Text>
+                </View>
+                <View style={[styles.cell, styles.quantity]}>
+                  <Text>{item.quantity} Nos</Text>
+                </View>
+                <View style={[styles.cell, styles.weight]}>
+                  <Text>
+                    {Number(item.salesMeasurement).toFixed(2)} {unit}
+                  </Text>
+                </View>
+                <View style={[styles.cell, styles.rate]}>
+                  <Text>
+                    {Number(item.rate).toFixed(2)} / {unit}
+                  </Text>
+                </View>
+                <View style={[styles.cell, styles.amount]}>
+                  <Text>{Number(item.amount).toFixed(2)}</Text>
+                </View>
+              </View>
+            );
+          })}
         </View>
 
         <Text style={styles.total}>

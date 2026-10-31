@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/src/lib/authorization";
 import { prisma } from "@/src/lib/prisma";
+import { getCustomerLedgerBalance } from "@/src/lib/ledger-balance";
 
 function getFinancialYear(year: number) {
   return {
@@ -53,6 +54,7 @@ export async function GET(request: Request) {
         id: true,
         name: true,
         phone: true,
+        whatsappDueRemindersOptIn: true,
       },
       orderBy: { name: "asc" },
     });
@@ -66,101 +68,42 @@ export async function GET(request: Request) {
 
     const ledgers = await Promise.all(
       customers.map(async (customer) => {
-        const openingRecord =
-          await prisma.customerLedgerOpeningBalance.findUnique({
-            where: {
-              customerId_financialYearStart: {
-                customerId: customer.id,
-                financialYearStart: start,
-              },
-            },
-          });
+        const ledgerBalance = await getCustomerLedgerBalance(
+  customer.id,
+  year
+);
 
-        let openingBalance: number;
-
-        if (openingRecord) {
-          openingBalance = money(openingRecord.openingBalance);
-        } else {
-          // Carry forward the previous financial year's closing balance.
-          const previousStart = new Date(year - 1, 3, 1);
-
-          const previousOpeningRecord =
-            await prisma.customerLedgerOpeningBalance.findUnique({
-              where: {
-                customerId_financialYearStart: {
-                  customerId: customer.id,
-                  financialYearStart: previousStart,
-                },
-              },
-            });
-
-          const historicalSales = await prisma.sale.aggregate({
-            where: {
-              customerId: customer.id,
-              status: "ACTIVE",
-              saleDate: { lt: previousStart },
-            },
-            _sum: { amount: true },
-          });
-
-          const historicalPayments =
-            await prisma.customerPayment.aggregate({
-              where: {
-                customerId: customer.id,
-                paymentDate: { lt: previousStart },
-              },
-              _sum: { amount: true },
-            });
-
-          const previousYearSales = await prisma.sale.aggregate({
-            where: {
-              customerId: customer.id,
-              status: "ACTIVE",
-              saleDate: {
-                gte: previousStart,
-                lt: start,
-              },
-            },
-            _sum: { amount: true },
-          });
-
-          const previousYearPayments =
-            await prisma.customerPayment.aggregate({
-              where: {
-                customerId: customer.id,
-                paymentDate: {
-                  gte: previousStart,
-                  lt: start,
-                },
-              },
-              _sum: { amount: true },
-            });
-
-          const previousOpening = previousOpeningRecord
-            ? money(previousOpeningRecord.openingBalance)
-            : money(historicalSales._sum.amount) -
-              money(historicalPayments._sum.amount);
-
-          openingBalance =
-            previousOpening +
-            money(previousYearSales._sum.amount) -
-            money(previousYearPayments._sum.amount);
-        }
+const openingBalance = ledgerBalance.openingBalance;
 
         const [sales, payments] = await Promise.all([
           prisma.sale.findMany({
-            where: {
-              customerId: customer.id,
-              status: "ACTIVE",
-              saleDate: { gte: start, lt: end },
-            },
-            include: {
-              product: {
-                select: { name: true, code: true },
-              },
-            },
-            orderBy: { saleDate: "asc" },
-          }),
+  where: {
+    customerId: customer.id,
+    status: "ACTIVE",
+    saleDate: { gte: start, lt: end },
+  },
+  include: {
+    product: {
+      select: { name: true, code: true },
+    },
+    items: {
+      select: {
+        id: true,
+        productId: true,
+        productName: true,
+        quantity: true,
+        salesMeasurement: true,
+        salesUnit: true,
+        rate: true,
+        amount: true,
+        weight: true,
+        deductedWeight: true,
+      },
+      orderBy: { productName: "asc" },
+    },
+  },
+  orderBy: { saleDate: "asc" },
+}),
 
           prisma.customerPayment.findMany({
             where: {
@@ -173,16 +116,38 @@ export async function GET(request: Request) {
 
         const entries = [
           ...sales.map((sale) => ({
-            id: sale.id,
-            date: sale.saleDate,
-            type: "SALE" as const,
-            item: sale.product.name,
-            quantity: sale.quantity,
-            weight: money(sale.weight),
-            amount: money(sale.amount),
-            paymentReceived: 0,
-            paymentNote: null as string | null,
-          })),
+  id: sale.id,
+  date: sale.saleDate,
+  type: "SALE" as const,
+  item: sale.product.name,
+  quantity: sale.quantity,
+
+  // Inventory weight remains in kilograms.
+  weight: money(sale.weight),
+
+  // Individual product sales details.
+  items: sale.items.map((item) => ({
+    id: item.id,
+    productId: item.productId,
+    productName: item.productName,
+    quantity: item.quantity,
+    salesMeasurement: money(
+      item.salesMeasurement ?? item.weight
+    ),
+    salesUnit: item.salesUnit ?? "KGS",
+    rate: money(item.rate),
+    amount: money(item.amount),
+
+    // Actual inventory deduction in kilograms.
+    inventoryDeductionKg: money(
+      item.deductedWeight ?? item.weight
+    ),
+  })),
+
+  amount: money(sale.amount),
+  paymentReceived: 0,
+  paymentNote: null as string | null,
+})),
           ...payments.map((payment) => ({
             id: payment.id,
             date: payment.paymentDate,
@@ -235,7 +200,7 @@ export async function GET(request: Request) {
             (openingBalance + totalSales - totalPayments).toFixed(2)
           ),
           openingBalanceIsManualOverride:
-            openingRecord?.isManualOverride ?? false,
+  ledgerBalance.openingBalanceIsManualOverride,
           rows,
         };
       })

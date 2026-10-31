@@ -4,13 +4,8 @@ import { requireAdmin } from "@/src/lib/authorization";
 import { prisma } from "@/src/lib/prisma";
 import { createAuditLog } from "@/src/lib/audit";
 
-type SaleLineInput = {
-  productId: string;
-  quantity: number;
-  weight: number;
-  rate: number;
-};
 
+type SalesUnit = "KGS" | "SQ_FT" | "R_FT" | "R_MTR";
 function money(value: number) {
   return Math.round((value + Number.EPSILON) * 100) / 100;
 }
@@ -62,6 +57,23 @@ function dateFromInput(value: unknown): Date | null {
   return date;
 }
 
+type SaleLineInput = {
+  productId: string;
+  quantity: number;
+  salesMeasurement: number;
+  salesUnit: SalesUnit;
+  inventoryDeductionKg: number;
+  rate: number;
+};
+
+function isPositiveDecimal(value: unknown, maxDecimals: number) {
+  const text = String(value);
+  const pattern = new RegExp(`^\\d+(\\.\\d{1,${maxDecimals}})?$`);
+  const number = Number(value);
+
+  return Number.isFinite(number) && number > 0 && pattern.test(text);
+}
+
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -81,6 +93,7 @@ export async function PATCH(
 
     const customerId =
       typeof body.customerId === "string" ? body.customerId.trim() : "";
+
     const saleDate = dateFromInput(body.saleDate);
     const confirmInsufficientStock =
       body.confirmInsufficientStock === true;
@@ -106,6 +119,7 @@ export async function PATCH(
       );
     }
 
+    const validUnits: SalesUnit[] = ["KGS", "SQ_FT", "R_FT", "R_MTR"];
     const items: SaleLineInput[] = [];
     const seenProducts = new Set<string>();
 
@@ -123,8 +137,20 @@ export async function PATCH(
 
       const productId = raw.productId.trim();
       const quantity = Number(raw.quantity);
-      const weight = Number(raw.weight);
+      const salesUnit: SalesUnit = raw.salesUnit ?? "KGS";
+
+      // Backward compatibility: old requests used weight.
+      const salesMeasurement = Number(
+        raw.salesMeasurement ?? raw.weight,
+      );
+
       const rate = Number(raw.rate);
+
+      const inventoryDeductionKg = Number(
+  salesUnit === "KGS"
+    ? salesMeasurement
+    : raw.inventoryDeductionKg,
+);
 
       if (seenProducts.has(productId)) {
         return NextResponse.json(
@@ -140,30 +166,53 @@ export async function PATCH(
         );
       }
 
-      if (
-        !Number.isFinite(weight) ||
-        weight <= 0 ||
-        !/^\d+(\.\d{1,2})?$/.test(String(raw.weight))
-      ) {
+      if (!validUnits.includes(salesUnit)) {
         return NextResponse.json(
-          { error: "Weight must be positive with at most 2 decimal places." },
+          { error: "Select a valid sales unit." },
           { status: 400 },
         );
       }
 
-      if (
-        !Number.isFinite(rate) ||
-        rate <= 0 ||
-        !/^\d+(\.\d{1,2})?$/.test(String(raw.rate))
-      ) {
+      if (!isPositiveDecimal(salesMeasurement, 3)) {
         return NextResponse.json(
-          { error: "Rate must be positive with at most 2 decimal places." },
+          {
+            error:
+              "Sales measurement must be positive with at most 3 decimal places.",
+          },
+          { status: 400 },
+        );
+      }
+
+      if (!isPositiveDecimal(rate, 2)) {
+        return NextResponse.json(
+          {
+            error:
+              "Rate must be positive with at most 2 decimal places.",
+          },
+          { status: 400 },
+        );
+      }
+
+      if (!isPositiveDecimal(inventoryDeductionKg, 3)) {
+        return NextResponse.json(
+          {
+            error:
+              "Inventory deduction must be positive with at most 3 decimal places.",
+          },
           { status: 400 },
         );
       }
 
       seenProducts.add(productId);
-      items.push({ productId, quantity, weight, rate });
+
+      items.push({
+        productId,
+        quantity,
+        salesMeasurement,
+        salesUnit,
+        inventoryDeductionKg,
+        rate,
+      });
     }
 
     const result = await prisma.$transaction(
@@ -178,6 +227,8 @@ export async function PATCH(
                 productName: true,
                 quantity: true,
                 weight: true,
+                salesMeasurement: true,
+                salesUnit: true,
                 rate: true,
                 amount: true,
                 deductedQuantity: true,
@@ -188,9 +239,11 @@ export async function PATCH(
         });
 
         if (!sale) throw new Error("SALE_NOT_FOUND");
+
         if (sale.status === "VOIDED") {
           throw new Error("SALE_ALREADY_VOIDED");
         }
+
         if (sale.items.length === 0) {
           throw new Error("SALE_ITEMS_MISSING");
         }
@@ -234,21 +287,27 @@ export async function PATCH(
             })),
           );
 
-          // Add back the weight deducted by this sale so it can be
-          // recalculated against the edited sale.
+          // Restore this sale's previous inventory deduction for validation.
           const oldDeduction = sale.items
             .filter((item) => item.productId === product.id)
             .reduce(
-              (sum, item) => sum + Number(item.deductedWeight ?? 0),
+              (sum, item) =>
+                sum +
+                Number(item.deductedWeight ?? item.weight ?? 0),
               0,
             );
 
-          stockByProduct.set(product.id, currentStock + oldDeduction);
+          stockByProduct.set(
+            product.id,
+            currentStock + oldDeduction,
+          );
         }
 
-        // Record the reversal of the previous sale's actual weight deduction.
+        // Reverse the previous sale's inventory deductions.
         for (const oldItem of sale.items) {
-          const oldDeductedWeight = Number(oldItem.deductedWeight ?? 0);
+          const oldDeductedWeight = Number(
+            oldItem.deductedWeight ?? oldItem.weight ?? 0,
+          );
 
           if (oldDeductedWeight <= 0) continue;
 
@@ -277,11 +336,11 @@ export async function PATCH(
           const product = productById.get(item.productId)!;
           const available = stockByProduct.get(item.productId) ?? 0;
 
-          if (item.weight > available) {
+          if (item.inventoryDeductionKg > available) {
             shortages.push({
               productId: item.productId,
               productName: product.name,
-              requested: item.weight,
+              requested: item.inventoryDeductionKg,
               available,
             });
           }
@@ -289,23 +348,21 @@ export async function PATCH(
           return {
             ...item,
             productName: product.name,
-            amount: money(item.weight * item.rate),
-            // Preserve the entered quantity for the sale record.
+            weight: item.inventoryDeductionKg,
+            amount: money(item.salesMeasurement * item.rate),
             deductedQuantity: 0,
-            // Deduct the full sold weight, including confirmed overselling.
-            deductedWeight: item.weight,
+            deductedWeight: item.inventoryDeductionKg,
           };
         });
 
-        // Throwing rolls back the transaction, including the reversal records.
         if (shortages.length > 0 && !confirmInsufficientStock) {
-          throw new Error(`INSUFFICIENT_STOCK:${JSON.stringify(shortages)}`);
+          throw new Error(
+            `INSUFFICIENT_STOCK:${JSON.stringify(shortages)}`,
+          );
         }
 
-        // Record the new sale's weight deduction.
+        // Record new inventory deductions in kilograms.
         for (const item of preparedItems) {
-          if (item.deductedWeight <= 0) continue;
-
           await tx.inventoryTransaction.create({
             data: {
               productId: item.productId,
@@ -331,10 +388,15 @@ export async function PATCH(
         );
 
         const totalAmount = money(
-          preparedItems.reduce((sum, item) => sum + item.amount, 0),
+          preparedItems.reduce(
+            (sum, item) => sum + item.amount,
+            0,
+          ),
         );
 
-        await tx.saleItem.deleteMany({ where: { saleId: sale.id } });
+        await tx.saleItem.deleteMany({
+          where: { saleId: sale.id },
+        });
 
         const updatedSale = await tx.sale.update({
           where: { id: sale.id },
@@ -351,6 +413,8 @@ export async function PATCH(
                 productName: item.productName,
                 quantity: item.quantity,
                 weight: item.weight,
+                salesMeasurement: item.salesMeasurement,
+                salesUnit: item.salesUnit,
                 rate: item.rate,
                 amount: item.amount,
                 deductedQuantity: item.deductedQuantity,
@@ -379,9 +443,12 @@ export async function PATCH(
               items: sale.items.map((item) => ({
                 ...item,
                 weight: Number(item.weight),
+                salesMeasurement: Number(item.salesMeasurement),
                 rate: Number(item.rate),
                 amount: Number(item.amount),
-                deductedWeight: Number(item.deductedWeight ?? 0),
+                deductedWeight: Number(
+                  item.deductedWeight ?? item.weight ?? 0,
+                ),
               })),
             },
             newValue: {
@@ -467,6 +534,7 @@ export async function PATCH(
   }
 }
 
+
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -506,15 +574,17 @@ export async function DELETE(
           saleDate: sale.saleDate,
           status: sale.status,
           items: sale.items.map((item) => ({
-            productId: item.productId,
-            productName: item.productName,
-            quantity: item.quantity,
-            weight: Number(item.weight),
-            rate: Number(item.rate),
-            amount: Number(item.amount),
-            deductedQuantity: item.deductedQuantity,
-            deductedWeight: Number(item.deductedWeight ?? 0),
-          })),
+  productId: item.productId,
+  productName: item.productName,
+  quantity: item.quantity,
+  weight: Number(item.weight),
+  salesMeasurement: Number(item.salesMeasurement ?? item.weight),
+  salesUnit: item.salesUnit ?? "KGS",
+  rate: Number(item.rate),
+  amount: Number(item.amount),
+  deductedQuantity: item.deductedQuantity,
+  deductedWeight: Number(item.deductedWeight ?? item.weight),
+})),
           linkedPayments: sale.payments.map((payment) => ({
             id: payment.id,
             amount: Number(payment.amount),
@@ -585,10 +655,10 @@ export async function DELETE(
             entityId: sale.id,
             oldValue,
             newValue: {
-              deleted: true,
-              deletedById: admin.id,
-              deletedAt: new Date().toISOString(),
-            },
+  deleted: true,
+  deletedById: admin.id,
+  deletedAt: new Date().toISOString(),
+},
           },
           tx,
         );

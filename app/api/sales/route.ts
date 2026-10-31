@@ -4,10 +4,14 @@ import { requireAdmin } from "@/src/lib/authorization";
 import { prisma } from "@/src/lib/prisma";
 import { createAuditLog } from "@/src/lib/audit";
 
+type SalesUnit = "KGS" | "SQ_FT" | "R_FT" | "R_MTR";
+
 type SaleLineInput = {
   productId: string;
   quantity: number;
-  weight: number;
+  salesMeasurement: number;
+  salesUnit: SalesUnit;
+  inventoryDeductionKg: number;
   rate: number;
 };
 
@@ -21,7 +25,6 @@ function getCurrentStock(
 ) {
   let stockKg = 0;
 
-  // Use opening stock only if no explicit initial-stock transaction exists.
   if (!transactions.some((t) => t.type === "INITIAL_STOCK")) {
     stockKg += initialStockKg;
   }
@@ -44,6 +47,19 @@ function getCurrentStock(
   }
 
   return stockKg;
+}
+
+const VALID_UNITS: SalesUnit[] = ["KGS", "SQ_FT", "R_FT", "R_MTR"];
+
+function isValidDecimal(value: unknown, maxDecimals: number) {
+  const number = Number(value);
+  const pattern = new RegExp(`^\\d+(\\.\\d{1,${maxDecimals}})?$`);
+
+  return (
+    Number.isFinite(number) &&
+    number > 0 &&
+    pattern.test(String(value))
+  );
 }
 
 export async function GET(request: Request) {
@@ -69,6 +85,8 @@ export async function GET(request: Request) {
             productName: true,
             quantity: true,
             weight: true,
+            salesMeasurement: true,
+            salesUnit: true,
             rate: true,
             amount: true,
             deductedQuantity: true,
@@ -110,6 +128,7 @@ export async function GET(request: Request) {
           items: sale.items.map((item) => ({
             ...item,
             weight: Number(item.weight),
+            salesMeasurement: Number(item.salesMeasurement),
             rate: Number(item.rate),
             amount: Number(item.amount),
             deductedWeight: Number(item.deductedWeight ?? 0),
@@ -169,13 +188,6 @@ export async function POST(request: Request) {
     ) {
       return NextResponse.json(
         { error: "Enter a valid mobile number." },
-        { status: 400 },
-      );
-    }
-
-    if (!saleDateValue) {
-      return NextResponse.json(
-        { error: "Sale date is required." },
         { status: 400 },
       );
     }
@@ -242,29 +254,76 @@ export async function POST(request: Request) {
       const line = raw as Record<string, unknown>;
       const productId = String(line.productId ?? "").trim();
       const quantity = Number(line.quantity);
-      const weight = Number(line.weight);
+
+      // Backward compatibility: old requests are treated as KGS.
+      const salesUnit = (
+        line.salesUnit === undefined ? "KGS" : line.salesUnit
+      ) as SalesUnit;
+
+      const salesMeasurementValue =
+        line.salesMeasurement ?? line.weight;
+
+      const salesMeasurement = Number(salesMeasurementValue);
       const rate = Number(line.rate);
+
+      const inventoryDeductionKg =
+        salesUnit === "KGS"
+          ? salesMeasurement
+          : Number(line.inventoryDeductionKg);
+
+      if (!VALID_UNITS.includes(salesUnit)) {
+        return NextResponse.json(
+          { error: "Select a valid sales unit." },
+          { status: 400 },
+        );
+      }
 
       if (
         !productId ||
-        !Number.isInteger(quantity) ||
+        !Number.isSafeInteger(quantity) ||
         quantity <= 0 ||
-        !Number.isFinite(weight) ||
-        weight <= 0 ||
-        Math.abs(weight * 100 - Math.round(weight * 100)) > 1e-7 ||
-        !Number.isFinite(rate) ||
-        rate <= 0
+        !isValidDecimal(salesMeasurementValue, 3) ||
+        !isValidDecimal(line.rate, 2) ||
+        !Number.isFinite(inventoryDeductionKg) ||
+        inventoryDeductionKg <= 0 ||
+        !/^\d+(\.\d{1,3})?$/.test(
+          String(
+            salesUnit === "KGS"
+              ? salesMeasurement
+              : line.inventoryDeductionKg,
+          ),
+        )
       ) {
         return NextResponse.json(
           {
             error:
-              "Each product needs a valid product, whole quantity, positive weight (up to 2 decimals), and positive rate.",
+              "Each product needs a valid product, whole quantity, positive sales measurement, positive rate, and valid inventory deduction in Kgs.",
           },
           { status: 400 },
         );
       }
 
-      items.push({ productId, quantity, weight, rate });
+      if (
+        salesUnit !== "KGS" &&
+        !isValidDecimal(line.inventoryDeductionKg, 3)
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "Inventory Deduction (Kgs) is required for non-KGS sales.",
+          },
+          { status: 400 },
+        );
+      }
+
+      items.push({
+        productId,
+        quantity,
+        salesMeasurement,
+        salesUnit,
+        inventoryDeductionKg,
+        rate,
+      });
     }
 
     if (
@@ -277,7 +336,7 @@ export async function POST(request: Request) {
     }
 
     const lineAmounts = items.map((item) =>
-      money(item.weight * item.rate),
+      money(item.salesMeasurement * item.rate),
     );
 
     const totalAmount = money(
@@ -348,6 +407,8 @@ export async function POST(request: Request) {
             productName: string;
             quantity: number;
             weight: number;
+            salesMeasurement: number;
+            salesUnit: SalesUnit;
             rate: number;
             amount: number;
             deductedWeight: number;
@@ -382,11 +443,11 @@ export async function POST(request: Request) {
               })),
             );
 
-            if (item.weight > available) {
+            if (item.inventoryDeductionKg > available) {
               shortages.push({
                 productId: product.id,
                 productName: product.name,
-                requested: item.weight,
+                requested: item.inventoryDeductionKg,
                 available,
               });
             }
@@ -395,10 +456,14 @@ export async function POST(request: Request) {
               productId: product.id,
               productName: product.name,
               quantity: item.quantity,
-              weight: item.weight,
+
+              // Keep weight as the actual inventory deduction in KGs.
+              weight: item.inventoryDeductionKg,
+              salesMeasurement: item.salesMeasurement,
+              salesUnit: item.salesUnit,
               rate: item.rate,
               amount: lineAmounts[index],
-              deductedWeight: item.weight,
+              deductedWeight: item.inventoryDeductionKg,
             });
           }
 
@@ -413,6 +478,7 @@ export async function POST(request: Request) {
             0,
           );
 
+          // Sale.weight remains the total KGs deducted from inventory.
           const totalWeight = preparedItems.reduce(
             (sum, item) => sum + item.weight,
             0,
@@ -434,6 +500,8 @@ export async function POST(request: Request) {
                   productName: item.productName,
                   quantity: item.quantity,
                   weight: item.weight,
+                  salesMeasurement: item.salesMeasurement,
+                  salesUnit: item.salesUnit,
                   rate: item.rate,
                   amount: item.amount,
                   deductedWeight: item.deductedWeight,
@@ -519,6 +587,7 @@ export async function POST(request: Request) {
             items: sale.items.map((item) => ({
               ...item,
               weight: Number(item.weight),
+              salesMeasurement: Number(item.salesMeasurement),
               rate: Number(item.rate),
               amount: Number(item.amount),
               deductedWeight: Number(item.deductedWeight ?? 0),

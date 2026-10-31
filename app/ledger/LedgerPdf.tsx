@@ -9,6 +9,18 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 
+type LedgerSaleItem = {
+  id: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  salesMeasurement: number;
+  salesUnit: "KGS" | "SQ_FT" | "R_FT" | "R_MTR";
+  rate: number;
+  amount: number;
+  inventoryDeductionKg: number;
+};
+
 type LedgerRow = {
   id: string;
   date: string | Date;
@@ -21,6 +33,7 @@ type LedgerRow = {
   balance: number;
   serialNumber: number;
   paymentNote?: string | null;
+  items?: LedgerSaleItem[];
 };
 
 type Ledger = {
@@ -79,8 +92,21 @@ const colors = {
   white: "#FFFFFF",
   watermark: "#F0F0E9",
 };
-
+const salesUnitLabels: Record<LedgerSaleItem["salesUnit"], string> = {
+  KGS: "kg",
+  SQ_FT: "Sq.ft",
+  R_FT: "R.ft",
+  R_MTR: "R.m",
+};
 const styles = StyleSheet.create({
+      serial: { width: "5%" },
+  date: { width: "9%" },
+  particulars: { width: "20%" },
+  salesMeasurement: { width: "14%", textAlign: "right" },
+  rate: { width: "12%", textAlign: "right" },
+  amount: { width: "12%", textAlign: "right" },
+  payment: { width: "14%", textAlign: "right" },
+  balance: { width: "14%", textAlign: "right" },
   page: {
     paddingTop: 22,
     paddingBottom: 36,
@@ -274,15 +300,6 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
 
-  serial: { width: "6%" },
-  date: { width: "12%" },
-  particulars: { width: "24%" },
-  quantity: { width: "8%", textAlign: "right" },
-  weight: { width: "10%", textAlign: "right" },
-  amount: { width: "12%", textAlign: "right" },
-  payment: { width: "14%", textAlign: "right" },
-  balance: { width: "14%", textAlign: "right" },
-
   totalRow: {
     flexDirection: "row",
     backgroundColor: colors.oliveLight,
@@ -383,7 +400,6 @@ function BusinessHeader() {
     </View>
   );
 }
-
 function LedgerTable({ ledger }: { ledger: Ledger }) {
   return (
     <View style={styles.table}>
@@ -393,10 +409,14 @@ function LedgerTable({ ledger }: { ledger: Ledger }) {
         <Text style={[styles.headerCell, styles.particulars]}>
           Item / Particulars
         </Text>
-        <Text style={[styles.headerCell, styles.quantity]}>Qty</Text>
-        <Text style={[styles.headerCell, styles.weight]}>Weight</Text>
-        <Text style={[styles.headerCell, styles.amount]}>Sales</Text>
-        <Text style={[styles.headerCell, styles.payment]}>Payment</Text>
+        <Text style={[styles.headerCell, styles.salesMeasurement]}>
+          Sales Quantity
+        </Text>
+        <Text style={[styles.headerCell, styles.rate]}>Rate / Unit</Text>
+        <Text style={[styles.headerCell, styles.amount]}>Sales Amount</Text>
+        <Text style={[styles.headerCell, styles.payment]}>
+          Payment Received
+        </Text>
         <Text style={[styles.headerCell, styles.balance]}>Balance</Text>
       </View>
 
@@ -408,8 +428,8 @@ function LedgerTable({ ledger }: { ledger: Ledger }) {
         <Text style={[styles.cell, styles.particulars]}>
           Opening Balance
         </Text>
-        <Text style={[styles.cell, styles.quantity]}>-</Text>
-        <Text style={[styles.cell, styles.weight]}>-</Text>
+        <Text style={[styles.cell, styles.salesMeasurement]}>-</Text>
+        <Text style={[styles.cell, styles.rate]}>-</Text>
         <Text style={[styles.cell, styles.amount]}>-</Text>
         <Text style={[styles.cell, styles.payment]}>-</Text>
         <Text style={[styles.cell, styles.balance]}>
@@ -437,7 +457,11 @@ function LedgerTable({ ledger }: { ledger: Ledger }) {
           </Text>
 
           <Text style={[styles.cell, styles.particulars]}>
-            {row.item}
+            {row.type === "SALE" && row.items?.length
+              ? row.items
+                  .map((item) => `${item.productName} (${item.quantity})`)
+                  .join("\n")
+              : row.item}
             {row.type === "PAYMENT" &&
             row.paymentNote &&
             row.paymentNote.trim().toLowerCase() !==
@@ -446,12 +470,28 @@ function LedgerTable({ ledger }: { ledger: Ledger }) {
               : ""}
           </Text>
 
-          <Text style={[styles.cell, styles.quantity]}>
-            {row.quantity ?? "-"}
+          <Text style={[styles.cell, styles.salesMeasurement]}>
+            {row.type === "SALE" && row.items?.length
+              ? row.items
+                  .map(
+                    (item) =>
+                      `${Number(item.salesMeasurement).toFixed(3)} ${salesUnitLabels[item.salesUnit]}`
+                  )
+                  .join("\n")
+              : row.type === "SALE" && row.weight != null
+                ? `${row.weight.toFixed(3)} kg`
+                : "-"}
           </Text>
 
-          <Text style={[styles.cell, styles.weight]}>
-            {row.weight == null ? "-" : row.weight.toFixed(3)}
+          <Text style={[styles.cell, styles.rate]}>
+            {row.type === "SALE" && row.items?.length
+              ? row.items
+                  .map(
+                    (item) =>
+                      `${Number(item.rate).toFixed(2)} / ${salesUnitLabels[item.salesUnit]}`
+                  )
+                  .join("\n")
+              : "-"}
           </Text>
 
           <Text style={[styles.cell, styles.amount]}>
@@ -474,7 +514,7 @@ function LedgerTable({ ledger }: { ledger: Ledger }) {
         <Text
           style={[
             styles.cell,
-            { width: "50%", fontWeight: "bold" },
+            { width: "60%", fontWeight: "bold" },
           ]}
         >
           TOTAL / CLOSING BALANCE
@@ -501,7 +541,7 @@ function LedgerTable({ ledger }: { ledger: Ledger }) {
         <Text
           style={[
             styles.cell,
-            { width: "24%", textAlign: "right", fontWeight: "bold" },
+            { width: "14%", textAlign: "right", fontWeight: "bold" },
           ]}
         >
           {money(ledger.closingBalance)}

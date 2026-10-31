@@ -7,8 +7,20 @@ import DownloadLedgerPdf from "./DownloadLedgerPdf";
 
 
 
+type LedgerSaleItem = {
+  id: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  salesMeasurement: number;
+  salesUnit: "KGS" | "SQ_FT" | "R_FT" | "R_MTR";
+  rate: number;
+  amount: number;
+  inventoryDeductionKg: number;
+};
+
 type LedgerRow = {
-  id: string; 
+  id: string;
   date: string;
   type: "SALE" | "PAYMENT";
   item: string;
@@ -19,10 +31,15 @@ type LedgerRow = {
   paymentNote: string | null;
   serialNumber: number;
   balance: number;
+  items?: LedgerSaleItem[];
 };
 
 type CustomerLedger = {
-  customer: { id: string; name: string };
+  customer: {
+    id: string;
+    name: string;
+    phone: string | null;
+    whatsappDueRemindersOptIn: boolean};
   financialYear: string;
   financialYearStart: string;
   financialYearEnd: string;
@@ -52,6 +69,12 @@ const currency = (value: number) =>
     currency: "INR",
     maximumFractionDigits: 2,
   }).format(value);
+  const salesUnitLabels: Record<LedgerSaleItem["salesUnit"], string> = {
+  KGS: "kg",
+  SQ_FT: "Sq.ft",
+  R_FT: "R.ft",
+  R_MTR: "R.m",
+};
 
 const dateText = (value: string) =>
   new Date(value).toLocaleDateString("en-IN");
@@ -70,6 +93,8 @@ export default function LedgerPage() {
   const [overrideReason, setOverrideReason] = useState("");
   const [savingOpening, setSavingOpening] = useState(false);
   const [openingMessage, setOpeningMessage] = useState("");
+  const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
+const [whatsappMessage, setWhatsappMessage] = useState("");
 
   useEffect(() => {
   setOpeningBalanceInput("");
@@ -174,6 +199,60 @@ await loadLedger();
 
 
   const combined = selectedCustomer === "ALL";
+  const selectedLedger =
+  !combined && visibleLedgers.length === 1
+    ? visibleLedgers[0]
+    : null;
+
+const isValidWhatsAppPhone = (phone: string | null) => {
+  if (!phone) return false;
+
+  let digits = phone.replace(/\D/g, "");
+
+  if (/^[6-9]\d{9}$/.test(digits)) {
+    digits = `91${digits}`;
+  }
+
+  return /^[1-9]\d{7,14}$/.test(digits);
+};
+
+const canSendWhatsApp =
+  !!selectedLedger &&
+  selectedLedger.customer.whatsappDueRemindersOptIn &&
+  isValidWhatsAppPhone(selectedLedger.customer.phone) &&
+  selectedLedger.closingBalance > 0;
+
+const handleSendWhatsAppNow = async () => {
+  if (!selectedLedger || !canSendWhatsApp) return;
+
+  setSendingWhatsApp(true);
+  setWhatsappMessage("");
+
+  try {
+    const response = await fetch(
+      `/api/customers/${selectedLedger.customer.id}/whatsapp-reminders?year=${year}`,
+      { method: "POST" }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error ?? "Failed to send WhatsApp reminder.");
+    }
+
+    setWhatsappMessage(
+      result.testMode
+        ? `Test reminder accepted. Ledger closing balance: ${currency(result.closingBalance)}`
+        : `Reminder accepted. Ledger closing balance: ${currency(result.closingBalance)}`
+    );
+  } catch (err) {
+    setWhatsappMessage(
+      err instanceof Error ? err.message : "Failed to send WhatsApp reminder."
+    );
+  } finally {
+    setSendingWhatsApp(false);
+  }
+};
 
  return (
   
@@ -456,6 +535,19 @@ box-sizing: border-box;
   />
 )}
 
+<button
+  type="button"
+  onClick={() => void handleSendWhatsAppNow()}
+  disabled={!canSendWhatsApp || sendingWhatsApp || loading}
+  style={{
+    backgroundColor: "#25D366",
+    borderColor: "#25D366",
+    color: "#ffffff",
+  }}
+>
+  {sendingWhatsApp ? "Sending..." : "Send WhatsApp Now"}
+</button>
+
         <button
           type="button"
           className="ledger-button"
@@ -465,7 +557,20 @@ box-sizing: border-box;
         </button>
       </section>
 
-      <section className="opening-balance-panel no-print">
+      {whatsappMessage && (
+  <p
+    role="status"
+    style={{
+      marginTop: 8,
+      color: "#166534",
+      fontWeight: 600,
+    }}
+  >
+    {whatsappMessage}
+  </p>
+)}
+
+            <section className="opening-balance-panel no-print">
   <h2>Edit Opening Balance</h2>
   <p>
     Select an individual customer and enter the opening balance for the
@@ -589,71 +694,131 @@ box-sizing: border-box;
 
               <div className="ledger-table-wrap">
                 <table className="ledger-table">
-                  <thead>
-                    <tr>
-                      <th>S.No</th>
-                      <th>Date</th>
-                      <th>Item / Particulars</th>
-                      <th>Qty</th>
-                      <th>Weight</th>
-                      <th>Amount</th>
-                      <th>Payment Received</th>
-                      <th>Balance</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="opening-row">
-                      <td>-</td>
-                      <td>{dateText(ledger.financialYearStart)}</td>
-                      <td>Opening Balance</td>
-                      <td>-</td>
-                      <td>-</td>
-                      <td>-</td>
-                      <td>-</td>
-                      <td>{currency(ledger.openingBalance)}</td>
-                    </tr>
+  <thead>
+    <tr>
+      <th>S.No</th>
+      <th>Date</th>
+      <th>Item / Particulars</th>
+      <th>Sales Measurement</th>
+      <th>Inventory Deduction (kg)</th>
+      <th>Rate / Unit</th>
+      <th>Amount</th>
+      <th>Payment Received</th>
+      <th>Balance</th>
+    </tr>
+  </thead>
 
-                    {ledger.rows.map((row) => (
-                      <tr key={`${row.type}-${row.id}`}>
-                        <td>{row.serialNumber}</td>
-                        <td>{dateText(row.date)}</td>
-                        <td>
-  {row.item}
-  {row.type === "PAYMENT" &&
-  row.paymentNote &&
-  row.paymentNote.trim().toLowerCase() !==
-    row.item.trim().toLowerCase()
-    ? ` - ${row.paymentNote}`
-    : ""}
-</td>
-                        <td>{row.quantity ?? "-"}</td>
-                        <td>
-                          {row.weight === null
-                            ? "-"
-                            : row.weight.toFixed(3)}
-                        </td>
-                        <td>
-                          {row.type === "SALE"
-                            ? currency(row.amount)
-                            : "-"}
-                        </td>
-                        <td>
-                          {row.type === "PAYMENT"
-                            ? currency(row.paymentReceived)
-                            : "-"}
-                        </td>
-                        <td>{currency(row.balance)}</td>
-                      </tr>
-                    ))}
+  <tbody>
+    <tr className="opening-row">
+      <td>-</td>
+      <td>{dateText(ledger.financialYearStart)}</td>
+      <td>Opening Balance</td>
+      <td>-</td>
+      <td>-</td>
+      <td>-</td>
+      <td>-</td>
+      <td>-</td>
+      <td>{currency(ledger.openingBalance)}</td>
+    </tr>
 
-                    <tr className="closing-row">
-                      <td colSpan={5}>Closing Balance</td>
-                      <td>{currency(ledger.totalSales)}</td>
-                      <td>{currency(ledger.totalPayments)}</td>
-                      <td>{currency(ledger.closingBalance)}</td>
-                    </tr>
-                  </tbody>
-                </table>
+    {ledger.rows.map((row) => (
+      <tr key={`${row.type}-${row.id}`}>
+        <td>{row.serialNumber}</td>
+        <td>{dateText(row.date)}</td>
+
+        <td>
+          {row.type === "SALE" && row.items?.length ? (
+            <div>
+              {row.items.map((item) => (
+                <div key={item.id} style={{ marginBottom: 5 }}>
+                  {item.productName}
+                  {item.quantity > 1 && ` × ${item.quantity}`}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <>
+              {row.item}
+              {row.type === "PAYMENT" &&
+              row.paymentNote &&
+              row.paymentNote.trim().toLowerCase() !==
+                row.item.trim().toLowerCase()
+                ? ` - ${row.paymentNote}`
+                : ""}
+            </>
+          )}
+        </td>
+
+        <td>
+          {row.type === "SALE" && row.items?.length ? (
+            <div>
+              {row.items.map((item) => (
+                <div key={item.id} style={{ marginBottom: 5 }}>
+                  {item.salesMeasurement.toFixed(3)}{" "}
+                  {salesUnitLabels[item.salesUnit]}
+                </div>
+              ))}
+            </div>
+          ) : row.type === "SALE" ? (
+            `${(row.weight ?? 0).toFixed(3)} kg`
+          ) : (
+            "-"
+          )}
+        </td>
+
+        <td>
+          {row.type === "SALE" && row.items?.length ? (
+            <div>
+              {row.items.map((item) => (
+                <div key={item.id} style={{ marginBottom: 5 }}>
+                  {item.inventoryDeductionKg.toFixed(3)} kg
+                </div>
+              ))}
+            </div>
+          ) : row.type === "SALE" ? (
+            `${(row.weight ?? 0).toFixed(3)} kg`
+          ) : (
+            "-"
+          )}
+        </td>
+
+        <td>
+          {row.type === "SALE" && row.items?.length ? (
+            <div>
+              {row.items.map((item) => (
+                <div key={item.id} style={{ marginBottom: 5 }}>
+                  {currency(item.rate)} /{" "}
+                  {salesUnitLabels[item.salesUnit]}
+                </div>
+              ))}
+            </div>
+          ) : (
+            "-"
+          )}
+        </td>
+
+        <td>
+          {row.type === "SALE" ? currency(row.amount) : "-"}
+        </td>
+
+        <td>
+          {row.type === "PAYMENT"
+            ? currency(row.paymentReceived)
+            : "-"}
+        </td>
+
+        <td>{currency(row.balance)}</td>
+      </tr>
+    ))}
+
+    <tr className="closing-row">
+      <td colSpan={6}>Closing Balance</td>
+      <td>{currency(ledger.totalSales)}</td>
+      <td>{currency(ledger.totalPayments)}</td>
+      <td>{currency(ledger.closingBalance)}</td>
+    </tr>
+  </tbody>
+</table>
               </div>
 
               {ledger.openingBalanceIsManualOverride && (

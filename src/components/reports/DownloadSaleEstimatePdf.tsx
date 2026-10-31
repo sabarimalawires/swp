@@ -57,7 +57,8 @@ function areEstimatePropsEqual(
     return (
       item.productName === other.productName &&
       item.quantity === other.quantity &&
-      item.weight === other.weight &&
+      item.salesMeasurement === other.salesMeasurement &&
+      item.salesUnit === other.salesUnit &&
       item.rate === other.rate &&
       item.amount === other.amount
     );
