@@ -10,11 +10,15 @@ type DashboardData = {
   activeProducts: number;
 
   todaysSales: number;
-  unitsSoldToday: number;
+  salesQuantityToday: number;
   todaysProduction: number;
 
   lowStockCount: number;
-
+  ledgerSummary: {
+  openingBalance: number;
+  totalSales: number;
+  closingBalance: number;
+};
   lowStockProducts: {
     id: string;
     name: string;
@@ -24,10 +28,10 @@ type DashboardData = {
   }[];
 
   monthlyBusiness: {
-    production: number;
-    sales: number;
-    inventory: number;
-  };
+  salesCount: number;
+  salesQuantity: number;
+  production: number;
+};
 };
 
 export default function DashboardPage() {
@@ -153,11 +157,11 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#fff8f2]">
+    <div className="swp-dashboard flex min-h-screen bg-[#fff8f2]">
       <Sidebar />
 
-      <main className="flex-1 p-8">
-        <div className="mx-auto max-w-7xl">
+      <main className="swp-page-main flex-1 p-8">
+        <div className="swp-page-content mx-auto max-w-7xl">
 
           {/* HEADER */}
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
@@ -202,144 +206,131 @@ export default function DashboardPage() {
           {dashboard && (
             <>
 
-              {/* MAIN KPI CARDS */}
-              <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+              {/* TODAY'S BUSINESS OVERVIEW */}
+<section className="mt-8 rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
 
-                <MetricCard
-                  label="Pending Work"
-                  value={
-                    dashboard.pendingWork
-                  }
-                  description="Waiting for approval"
-                  accent="orange"
-                />
+  <div>
+    <h2 className="text-lg font-bold text-[#3b2117]">
+      Today's Business Overview
+    </h2>
 
-                <MetricCard
-                  label="Active Products"
-                  value={
-                    dashboard.activeProducts
-                  }
-                  description="Products currently active"
-                  accent="brown"
-                />
+    <p className="mt-1 text-sm text-[#7b5a49]">
+      Sales and production recorded today.
+    </p>
+  </div>
 
-                <MetricCard
-                  label="Today's Sales"
-                  value={
-                    dashboard.todaysSales
-                  }
-                  description="Active sales today"
-                  accent="green"
-                />
+  <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
 
-                <MetricCard
-                  label="Low Stock"
-                  value={
-                    dashboard.lowStockCount
-                  }
-                  description="Products needing attention"
-                  accent={
-                    dashboard.lowStockCount >
-                    0
-                      ? "red"
-                      : "green"
-                  }
-                />
+    <ActivityCard
+  title="No. of Sales"
+  value={dashboard.todaysSales}
+  description="Active sales today"
+/>
 
-              </div>
+<ActivityCard
+  title="Sales Qty (kg)"
+  value={dashboard.salesQuantityToday}
+  description="Total weight sold today"
+/>
 
-              {/* TODAY'S ACTIVITY */}
-              <section className="mt-6 rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
+<ActivityCard
+  title="Production Qty (kg)"
+  value={dashboard.todaysProduction}
+  description="Total weight produced today"
+/>
 
-                <div>
-                  <h2 className="text-lg font-bold text-[#3b2117]">
-                    Today's Activity
-                  </h2>
-
-                  <p className="mt-1 text-sm text-[#7b5a49]">
-                    Production and sales recorded today.
-                  </p>
-                </div>
-
-                <div className="mt-6 grid gap-5 md:grid-cols-2">
-
-                  <ActivityCard
-                    title="Units Sold Today"
-                    value={
-                      dashboard.unitsSoldToday
-                    }
-                    description="Total units from active sales"
-                  />
-
-                  <ActivityCard
-                    title="Today's Production"
-                    value={
-                      dashboard.todaysProduction
-                    }
-                    description="Units added from approved work"
-                  />
-
-                </div>
-              </section>
-
+  </div>
+</section>
               {/* MONTHLY BUSINESS OVERVIEW */}
-              <section className="mt-6 rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
+<section className="mt-6 rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
 
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 
-                  <div>
-                    <h2 className="text-lg font-bold text-[#3b2117]">
-                      Monthly Business Overview
-                    </h2>
+    <div>
+      <h2 className="text-lg font-bold text-[#3b2117]">
+        Monthly Business Overview
+      </h2>
 
-                    <p className="mt-1 text-sm text-[#7b5a49]">
-                      Production, sales and inventory for the current month.
-                    </p>
-                  </div>
+      <p className="mt-1 text-sm text-[#7b5a49]">
+        Sales and production recorded this month.
+      </p>
+    </div>
 
-                  <span className="w-fit rounded-full bg-[#fff1e6] px-3 py-1 text-xs font-semibold text-[#a66a4a]">
-                    Current Month
-                  </span>
+    <span className="w-fit rounded-full bg-[#fff1e6] px-3 py-1 text-xs font-semibold text-[#a66a4a]">
+      Current Month
+    </span>
 
-                </div>
+  </div>
 
-                <div className="mt-6 grid gap-5 md:grid-cols-3">
+  <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
 
-                  <MonthlyBusinessCard
-                    label="Production"
-                    value={
-                      dashboard
-                        .monthlyBusiness
-                        .production
-                    }
-                    description="Units produced"
-                    color="brown"
-                  />
+    <ActivityCard
+  title="No. of Sales"
+  value={dashboard.monthlyBusiness.salesCount}
+  description="Active sales this month"
+/>
 
-                  <MonthlyBusinessCard
-                    label="Sales"
-                    value={
-                      dashboard
-                        .monthlyBusiness
-                        .sales
-                    }
-                    description="Units sold"
-                    color="green"
-                  />
+<ActivityCard
+  title="Sales Qty (kg)"
+  value={dashboard.monthlyBusiness.salesQuantity}
+  description="Total weight sold this month"
+/>
 
-                  <MonthlyBusinessCard
-                    label="Inventory"
-                    value={
-                      dashboard
-                        .monthlyBusiness
-                        .inventory
-                    }
-                    description="Units currently available"
-                    color="orange"
-                  />
+<ActivityCard
+  title="Production Qty (kg)"
+  value={dashboard.monthlyBusiness.production}
+  description="Total weight produced this month"
+/>   
 
-                </div>
-              </section>
+  </div>
+</section>
+
+{/* OVERALL LEDGER SUMMARY */}
+<section className="mt-6 rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
+
+  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h2 className="text-lg font-bold text-[#3b2117]">
+        Overall Ledger Summary
+      </h2>
+
+      <p className="mt-1 text-sm text-[#7b5a49]">
+        Consolidated customer balances for the current financial year.
+      </p>
+    </div>
+
+    <span className="w-fit rounded-full bg-[#fff1e6] px-3 py-1 text-xs font-semibold text-[#a66a4a]">
+      Financial Year {new Date().getMonth() < 3
+        ? `${new Date().getFullYear() - 1}-${String(new Date().getFullYear()).slice(-2)}`
+        : `${new Date().getFullYear()}-${String(new Date().getFullYear() + 1).slice(-2)}`}
+    </span>
+  </div>
+
+  <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+
+    <LedgerCard
+      title="Total Opening Balance"
+      value={dashboard.ledgerSummary.openingBalance}
+      description="Combined customer opening balances"
+      color="brown"
+    />
+
+    <LedgerCard
+      title="Total Sales"
+      value={dashboard.ledgerSummary.totalSales}
+      description="Active sales during this financial year"
+      color="orange"
+    />
+
+    <LedgerCard
+      title="Total Closing Balance"
+      value={dashboard.ledgerSummary.closingBalance}
+      description="Outstanding customer balance"
+      color="green"
+    />
+
+  </div>
+</section>
 
               {/* LOW STOCK */}
               <section className="mt-6 rounded-2xl border border-[#f1dfd2] bg-white shadow-sm">
@@ -396,7 +387,7 @@ export default function DashboardPage() {
 
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
+                  <div className="swp-low-stock-table overflow-x-auto">
 
                     <table className="w-full min-w-[650px]">
 
@@ -483,7 +474,6 @@ export default function DashboardPage() {
                 )}
 
               </section>
-
             </>
           )}
         </div>
@@ -645,6 +635,58 @@ function MonthlyBusinessCard({
         {description}
       </p>
 
+    </div>
+  );
+}
+
+function LedgerCard({
+  title,
+  value,
+  description,
+  color,
+}: {
+  title: string;
+  value: number;
+  description: string;
+  color: "brown" | "orange" | "green";
+}) {
+  const colors = {
+    brown: {
+      background: "bg-[#f7eee8]",
+      text: "text-[#7a4b35]",
+    },
+    orange: {
+      background: "bg-[#fff1e6]",
+      text: "text-[#d96f2b]",
+    },
+    green: {
+      background: "bg-green-50",
+      text: "text-green-700",
+    },
+  };
+
+  const selectedColor = colors[color];
+
+  return (
+    <div className="rounded-xl border border-[#f1dfd2] bg-[#fffaf6] p-5">
+
+      <p className="text-sm font-semibold text-[#a66a4a]">
+        {title}
+      </p>
+
+      <p className="mt-3 text-3xl font-bold text-[#3b2117]">
+        {value.toLocaleString("en-IN", {
+          style: "currency",
+          currency: "INR",
+          maximumFractionDigits: 2,
+        })}
+      </p>
+
+      <p className="mt-3 text-sm text-[#7b5a49]">
+        {description}
+      </p>
+
+      <div className={`mt-4 h-1.5 w-16 rounded-full ${selectedColor.background}`} />
     </div>
   );
 }

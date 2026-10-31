@@ -369,11 +369,11 @@ export default function EmployeesPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#fff8f2]">
+    <div className="swp-employees flex min-h-screen min-w-0 bg-[#fff8f2]">
       <Sidebar />
 
-      <main className="flex-1 p-8">
-        <div className="mx-auto max-w-7xl">
+      <main className="swp-page-main min-w-0 flex-1 p-8">
+        <div className="swp-page-content mx-auto max-w-7xl">
 
           {/* HEADER */}
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
@@ -391,7 +391,7 @@ export default function EmployeesPage() {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-[#f1dfd2] bg-white px-6 py-4 shadow-sm">
+            <div className="swp-user-chip rounded-2xl border border-[#f1dfd2] bg-white px-6 py-4 shadow-sm">
               <p className="text-xs font-semibold uppercase tracking-wide text-[#a66a4a]">
                 Signed in as
               </p>
@@ -420,7 +420,7 @@ export default function EmployeesPage() {
           )}
 
           {/* EMPLOYEE MANAGEMENT */}
-          <section className="mt-8 rounded-2xl border border-[#f1dfd2] bg-white shadow-sm">
+          <section className="mt-5 min-w-0 rounded-2xl border border-[#f1dfd2] bg-white shadow-sm sm:mt-8">
 
             {/* SECTION HEADER */}
             <div className="flex flex-col gap-4 border-b border-[#f1dfd2] px-6 py-6 sm:flex-row sm:items-center sm:justify-between">
@@ -466,7 +466,7 @@ export default function EmployeesPage() {
                   onSubmit={
                     handleCreateEmployee
                   }
-                  className="grid gap-5 md:grid-cols-3"
+                  className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-5"
                 >
 
                   {/* NAME */}
@@ -542,7 +542,7 @@ export default function EmployeesPage() {
                     />
                   </div>
 
-                  <div className="flex justify-end gap-3 md:col-span-3">
+                  <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3 md:col-span-3">
                     <button
                       type="button"
                       onClick={handleCancel}
@@ -568,7 +568,7 @@ export default function EmployeesPage() {
             )}
 
             {/* EMPLOYEE TABLE */}
-            <div className="overflow-x-auto">
+            <div className="swp-employee-table-wrap overflow-x-auto">
 
               {employees.length === 0 ? (
                 <div className="p-12 text-center">
@@ -583,7 +583,7 @@ export default function EmployeesPage() {
 
                 </div>
               ) : (
-                <table className="w-full min-w-[850px]">
+                <table className="swp-employee-table w-full min-w-[850px]">
 
                   <thead>
                     <tr className="border-b border-[#f1dfd2] bg-[#fffaf6] text-left">

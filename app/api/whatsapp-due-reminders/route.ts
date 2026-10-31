@@ -1,6 +1,7 @@
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
+import { getCustomerLedgerBalance } from "@/src/lib/ledger-balance";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -116,6 +117,10 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+    const now = new Date();
+
+const financialYear =
+  now.getFullYear() - (now.getMonth() < 3 ? 1 : 0);
 
     const customers = await prisma.customer.findMany({
       where: {
@@ -125,13 +130,6 @@ export async function POST(request: Request) {
       select: {
         id: true,
         phone: true,
-        sales: {
-          where: { status: "ACTIVE" },
-          select: { amount: true },
-        },
-        payments: {
-          select: { amount: true },
-        },
       },
     });
 
@@ -148,23 +146,15 @@ export async function POST(request: Request) {
     for (const customer of customers) {
       if (!customer.phone) continue;
 
-      const totalPurchases = customer.sales.reduce(
-        (sum, sale) => sum + Number(sale.amount),
-        0
-      );
+      const ledgerBalance = await getCustomerLedgerBalance(
+  customer.id,
+  financialYear
+);
 
-      const totalPaid = customer.payments.reduce(
-        (sum, payment) => sum + Number(payment.amount),
-        0
-      );
+const closingBalance = ledgerBalance.closingBalance;
 
-      const pendingBalance = Math.max(
-        0,
-        totalPurchases - totalPaid
-      );
-
-      // Strictly greater than the configured threshold.
-      if (pendingBalance <= threshold) continue;
+// Strictly greater than the configured threshold.
+if (closingBalance <= threshold) continue;
 
       eligible++;
 
@@ -181,7 +171,7 @@ export async function POST(request: Request) {
       }
 
       try {
-        await sendDueReminder(phone, pendingBalance);
+        await sendDueReminder(phone, closingBalance);        
         sent++;
 
         results.push({

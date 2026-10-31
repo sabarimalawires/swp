@@ -149,6 +149,8 @@ export default function SalesPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
 
   const [sales, setSales] = useState<Sale[]>([]);
+  const [salesCustomerSearch, setSalesCustomerSearch] = useState("");
+const [salesDateFilter, setSalesDateFilter] = useState("");
 
   const [customerSearch, setCustomerSearch] = useState("");
 
@@ -341,6 +343,22 @@ export default function SalesPage() {
     [products]
 
   );
+
+  const filteredSales = useMemo(() => {
+  const customerQuery = salesCustomerSearch.trim().toLowerCase();
+
+  return sales.filter((sale) => {
+    const matchesCustomer =
+      !customerQuery ||
+      sale.customer.name.toLowerCase().includes(customerQuery);
+
+    const matchesDate =
+      !salesDateFilter ||
+      sale.saleDate.slice(0, 10) === salesDateFilter;
+
+    return matchesCustomer && matchesDate;
+  });
+}, [sales, salesCustomerSearch, salesDateFilter]);
 
 
 
@@ -966,13 +984,13 @@ const handleDeleteSale = async (saleId: string) => {
 
   return (
 
-    <div className="flex min-h-screen bg-[#fff8f2]">
+    <div className="swp-sales flex min-h-screen bg-[#fff8f2]">
 
       <Sidebar />
 
-      <main className="min-w-0 flex-1 p-4 sm:p-8">
+      <main className="swp-page-main min-w-0 flex-1 p-4 sm:p-8">
 
-        <div className="mx-auto max-w-7xl">
+        <div className="swp-page-content mx-auto max-w-7xl">
 
           <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
 
@@ -1028,9 +1046,9 @@ const handleDeleteSale = async (saleId: string) => {
 
           )}
 
-          <div className="mt-8 grid items-start gap-6 xl:grid-cols-[460px_minmax(0,1fr)]">
+          <div className="swp-sales-layout mt-8 grid items-start gap-6 xl:grid-cols-[460px_minmax(0,1fr)]">
 
-            <section className="rounded-2xl border border-[#f1dfd2] bg-white p-5 shadow-sm sm:p-6">
+            <section className="swp-sales-form rounded-2xl border border-[#f1dfd2] bg-white p-5 shadow-sm sm:p-6">
 
               <h2 className="text-lg font-semibold text-[#3b2117]">
 
@@ -1786,7 +1804,7 @@ const handleDeleteSale = async (saleId: string) => {
 
             </section>
 
-            <section className="min-w-0 rounded-2xl border border-[#f1dfd2] bg-white p-5 shadow-sm sm:p-6">
+            <section className="swp-sales-history min-w-0 rounded-2xl border border-[#f1dfd2] bg-white p-5 shadow-sm sm:p-6">
 
               <div className="flex items-center justify-between gap-3">
 
@@ -1814,17 +1832,80 @@ const handleDeleteSale = async (saleId: string) => {
 
               </div>
 
-              {sales.length === 0 ? (
+              {/* SALES HISTORY FILTERS */}
+<div className="mt-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_220px_auto]">
+
+  {/* Customer Search */}
+  <div>
+    <label className="mb-1 block text-xs font-semibold text-[#8b6b5a]">
+      Search Customer
+    </label>
+
+    <input
+      type="text"
+      value={salesCustomerSearch}
+      onChange={(event) =>
+        setSalesCustomerSearch(event.target.value)
+      }
+      placeholder="Enter customer name..."
+      className="h-11 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-2 focus:ring-[#fce3d0]"
+    />
+  </div>
+
+  {/* Sale Date */}
+  <div>
+    <label className="mb-1 block text-xs font-semibold text-[#8b6b5a]">
+      Filter by Sale Date
+    </label>
+
+    <input
+      type="date"
+      value={salesDateFilter}
+      onChange={(event) =>
+        setSalesDateFilter(event.target.value)
+      }
+      className="h-11 w-full rounded-xl border border-[#e8d4c5] bg-white px-3 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-2 focus:ring-[#fce3d0]"
+    />
+  </div>
+
+  {/* Clear Filters */}
+  <div className="flex items-end">
+    <button
+      type="button"
+      onClick={() => {
+        setSalesCustomerSearch("");
+        setSalesDateFilter("");
+      }}
+      disabled={!salesCustomerSearch && !salesDateFilter}
+      className="h-11 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm font-semibold text-[#c85f22] transition hover:bg-[#fff7ed] disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+    >
+      Clear Filters
+    </button>
+  </div>
+
+</div>
+
+<p className="mt-3 text-xs text-[#8b6b5a]">
+  Showing {filteredSales.length} of {sales.length} sales
+</p>
+
+              {filteredSales.length === 0 ? (
+
+                
 
                 <div className="mt-8 rounded-xl border border-dashed border-[#e5cdbd] bg-[#fffaf6] p-10 text-center">
 
-                  <p className="font-medium text-[#5b2f1f]">No sales yet.</p>
+                  <p className="font-medium text-[#5b2f1f]">
+  {sales.length === 0
+    ? "No sales yet."
+    : "No matching sales found."}
+</p>
 
-                  <p className="mt-2 text-sm text-[#8b6b5a]">
-
-                    Create your first sale using the form.
-
-                  </p>
+<p className="mt-2 text-sm text-[#8b6b5a]">
+  {sales.length === 0
+    ? "Create your first sale using the form."
+    : "Try another customer name or sale date, or clear your filters."}
+</p>
 
                 </div>
 
@@ -1832,7 +1913,7 @@ const handleDeleteSale = async (saleId: string) => {
 
                 <div className="mt-6 space-y-4">
 
-                  {sales.map((sale) => {
+                  {filteredSales.map((sale) => {
 
                     const saleItems =
 
@@ -1902,7 +1983,7 @@ const handleDeleteSale = async (saleId: string) => {
 
                           </div>
 
-                          <div className="flex items-start gap-2">
+                          <div className="flex w-full min-w-0 flex-nowrap items-center justify-between gap-2 sm:w-auto sm:justify-end sm:gap-3">
 
                             <span
 
@@ -1936,7 +2017,7 @@ const handleDeleteSale = async (saleId: string) => {
 
       disabled={saving}
 
-      className="rounded-lg bg-[#d96f2b] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#c85f22] disabled:opacity-60"
+      className="shrink-0 rounded-lg bg-[#d96f2b] px-3 py-2 text-[11px] font-semibold text-white transition hover:bg-[#c85f22] sm:rounded-xl sm:px-4 sm:py-2.5 sm:text-xs sm:shadow-sm"
 
     >
 
@@ -1954,7 +2035,7 @@ const handleDeleteSale = async (saleId: string) => {
 
       disabled={saving}
 
-      className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+    className="shrink-0 rounded-lg bg-red-600 px-3 py-2 text-[11px] font-semibold text-white transition hover:bg-red-700 sm:rounded-xl sm:px-4 sm:py-2.5 sm:text-xs sm:shadow-sm"
 
     >
 

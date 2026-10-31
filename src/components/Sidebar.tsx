@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -11,11 +12,11 @@ const adminNavigation = [
   { name: "Work Entries", href: "/work" },
   { name: "Inventory", href: "/inventory" },
   { name: "Sales", href: "/sales" },
-  { name: "Customers", href: "/customers"},
-  { name: "History", href: "/history"},
+  { name: "Customers", href: "/customers" },
+  { name: "History", href: "/history" },
   { name: "Reports", href: "/reports" },
   { name: "Ledger", href: "/ledger" },
-  { name: "Products", href: "/products"},
+  { name: "Products", href: "/products" },
 ];
 
 const workerNavigation = [
@@ -23,78 +24,255 @@ const workerNavigation = [
   { name: "Work Entries", href: "/work" },
 ];
 
+const mobileAdminNavigation = [
+  { name: "Dashboard", href: "/dashboard", icon: "⌂" },
+  { name: "Sales", href: "/sales", icon: "🛒" },
+  { name: "Customers", href: "/customers", icon: "♙" },
+  { name: "Ledger", href: "/ledger", icon: "▤" },
+];
+
+const mobileWorkerNavigation = [
+  { name: "Dashboard", href: "/dashboard", icon: "⌂" },
+  { name: "Work Entries", href: "/work", icon: "▣" },
+];
+
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
 
   const [role, setRole] = useState<"ADMIN" | "WORKER" | null>(null);
+  const [employeeName, setEmployeeName] = useState("");
+  const [showMore, setShowMore] = useState(false);
+
   useEffect(() => {
-  const loadEmployee = async () => {
-    const response = await fetch("/api/me/employee");
+    const loadEmployee = async () => {
+      try {
+        const response = await fetch("/api/me/employee", {
+          cache: "no-store",
+        });
 
-    if (!response.ok) {
-      return;
-    }
+        if (!response.ok) return;
 
-    const employee = await response.json();
-    setRole(employee.role);
-  };
+        const employee = await response.json();
 
-  loadEmployee();
-}, []);
+        setRole(employee.role);
+        setEmployeeName(
+          employee.name || employee.username || ""
+        );
+      } catch (error) {
+        console.error("Failed to load employee details:", error);
+      }
+    };
+
+    loadEmployee();
+  }, []);
+
+  useEffect(() => {
+    setShowMore(false);
+  }, [pathname]);
 
   const handleSignOut = async () => {
     await authClient.signOut();
     router.push("/");
   };
 
-  return (
-    <aside className="flex min-h-screen w-64 flex-col border-r border-[#f1dfd2] bg-white">
-      <div className="border-b border-[#f1dfd2] p-6">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#fff1e6] font-bold text-[#d96f2b]">
-            <img
-              src="/ledger-watermark-logo.png"
-              alt="SWP Logo"
-              className="h-10 w-10 object-contain"
-            />
-          </div>
+  const navigation =
+    role === "ADMIN" ? adminNavigation : workerNavigation;
 
-          <div>
-            <h1 className="font-bold text-[#3b2117]">SWP</h1>
-            <p className="text-xs text-[#a66a4a]">Business Management</p>
+  const mobileNavigation =
+    role === "ADMIN"
+      ? mobileAdminNavigation
+      : mobileWorkerNavigation;
+
+  const moreNavigation =
+    role === "ADMIN"
+      ? adminNavigation.filter(
+          (item) =>
+            !mobileAdminNavigation.some(
+              (mainItem) => mainItem.href === item.href
+            )
+        )
+      : [];
+
+  const profileInitial = employeeName
+    ? employeeName.trim().charAt(0).toUpperCase()
+    : "U";
+
+  return (
+    <>
+      {/* MOBILE HEADER - SHARED ACROSS ALL PAGES */}
+      <header className="swp-mobile-header fixed left-0 right-0 top-0 z-[60] flex h-[68px] items-center justify-between border-b border-[#f1dfd2] bg-[#fffaf5] px-4 md:hidden">
+        <div className="flex items-center gap-3">
+          <img
+            src="/ledger-watermark-logo.png"
+            alt="SWP Logo"
+            className="h-11 w-11 rounded-full object-contain"
+          />
+
+          <div className="leading-tight">
+            <h1 className="text-[17px] font-bold text-[#3b2117]">
+              SWP
+            </h1>
+            <p className="mt-1 text-[11px] text-[#a66a4a]">
+              Business Management
+            </p>
           </div>
         </div>
-      </div>
 
-      <nav className="flex-1 space-y-2 p-4">
-        {(role === "ADMIN" ? adminNavigation : workerNavigation).map((item) => {
-          const active = pathname === item.href;
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#d96f2b] text-sm font-bold text-white shadow-sm">
+          {profileInitial}
+        </div>
+      </header>
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`block rounded-xl px-4 py-3 text-sm font-medium transition ${
-                active
-                  ? "bg-[#d96f2b] text-white"
-                  : "text-[#5b2f1f] hover:bg-[#fff1e6]"
+      {/* DESKTOP SIDEBAR */}
+      <aside className="swp-sidebar hidden min-h-screen w-64 flex-col border-r border-[#f1dfd2] bg-white md:flex">
+        <div className="border-b border-[#f1dfd2] p-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#fff1e6]">
+              <img
+                src="/ledger-watermark-logo.png"
+                alt="SWP Logo"
+                className="h-10 w-10 object-contain"
+              />
+            </div>
+
+            <div>
+              <h1 className="font-bold text-[#3b2117]">SWP</h1>
+              <p className="text-xs text-[#a66a4a]">
+                Business Management
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <nav className="flex-1 space-y-2 p-4">
+          {navigation.map((item) => {
+            const active = pathname === item.href;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`block rounded-xl px-4 py-3 text-sm font-medium transition ${
+                  active
+                    ? "bg-[#d96f2b] text-white"
+                    : "text-[#5b2f1f] hover:bg-[#fff1e6]"
+                }`}
+              >
+                {item.name}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="border-t border-[#f1dfd2] p-4">
+          <button
+            onClick={handleSignOut}
+            className="w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-[#a64b2b] hover:bg-[#fff1e6]"
+          >
+            Sign out
+          </button>
+        </div>
+      </aside>
+
+      {/* MOBILE BOTTOM NAVIGATION */}
+      <div className="fixed bottom-0 left-0 z-50 w-full border-t border-[#f1dfd2] bg-white md:hidden">
+        {showMore && (
+          <>
+            <button
+              aria-label="Close more menu"
+              onClick={() => setShowMore(false)}
+              className="fixed inset-0 z-40 bg-black/20"
+            />
+
+            <div className="absolute bottom-full right-3 z-50 mb-3 w-60 overflow-hidden rounded-2xl border border-[#f1dfd2] bg-white p-2 shadow-xl">
+              <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-[#a66a4a]">
+                More options
+              </p>
+
+              {moreNavigation.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`block rounded-xl px-4 py-3 text-sm font-medium ${
+                    pathname === item.href
+                      ? "bg-[#fff1e6] text-[#d96f2b]"
+                      : "text-[#5b2f1f] hover:bg-[#fff8f2]"
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              ))}
+
+              <div className="my-2 border-t border-[#f1dfd2]" />
+
+              <button
+                onClick={handleSignOut}
+                className="w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-[#c0392b] hover:bg-red-50"
+              >
+                Sign out
+              </button>
+            </div>
+          </>
+        )}
+
+        <nav
+          className="grid items-center px-1 py-2"
+          style={{
+            gridTemplateColumns: `repeat(${role === "ADMIN" ? 5 : 3}, minmax(0, 1fr))`,
+          }}
+        >
+          {mobileNavigation.map((item) => {
+            const active = pathname === item.href;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex min-h-[58px] flex-col items-center justify-center gap-1 rounded-xl text-center transition ${
+                  active ? "text-[#d96f2b]" : "text-[#596273]"
+                }`}
+              >
+                <span className="text-2xl leading-none">
+                  {item.icon}
+                </span>
+                <span className="text-[10px] font-medium">
+                  {item.name}
+                </span>
+              </Link>
+            );
+          })}
+
+          {role === "ADMIN" && (
+            <button
+              onClick={() => setShowMore((current) => !current)}
+              className={`flex min-h-[58px] flex-col items-center justify-center gap-1 rounded-xl ${
+                showMore ||
+                moreNavigation.some(
+                  (item) => item.href === pathname
+                )
+                  ? "text-[#d96f2b]"
+                  : "text-[#596273]"
               }`}
             >
-              {item.name}
-            </Link>
-          );
-        })}
-      </nav>
+              <span className="text-2xl leading-none">•••</span>
+              <span className="text-[10px] font-medium">More</span>
+            </button>
+          )}
 
-      <div className="border-t border-[#f1dfd2] p-4">
-        <button
-          onClick={handleSignOut}
-          className="w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-[#a64b2b] hover:bg-[#fff1e6]"
-        >
-          Sign out
-        </button>
+          {role !== "ADMIN" && (
+            <button
+              onClick={handleSignOut}
+              className="flex min-h-[58px] flex-col items-center justify-center gap-1 rounded-xl text-[#596273]"
+            >
+              <span className="text-2xl leading-none">↪</span>
+              <span className="text-[10px] font-medium">
+                Sign out
+              </span>
+            </button>
+          )}
+        </nav>
       </div>
-    </aside>
+    </>
   );
 }

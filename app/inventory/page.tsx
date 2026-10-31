@@ -250,11 +250,11 @@ export default function InventoryPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#fff8f2]">
+    <div className="swp-inventory flex min-h-screen min-w-0 bg-[#fff8f2]">
       <Sidebar />
 
-      <main className="flex-1 p-4 sm:p-8">
-        <div className="mx-auto max-w-6xl">
+      <main className="swp-page-main min-w-0 flex-1 p-4 sm:p-8">
+        <div className="swp-page-content mx-auto max-w-6xl">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
               <p className="text-sm text-[#a66a4a]">
@@ -268,7 +268,7 @@ export default function InventoryPage() {
               </p>
             </div>
 
-            <div className="rounded-xl bg-[#fff1e6] px-4 py-3">
+            <div className="swp-user-chip rounded-xl bg-[#fff1e6] px-4 py-3">
               <p className="text-xs text-[#a66a4a]">Signed in as</p>
               <p className="font-semibold text-[#3b2117]">{userName}</p>
             </div>
@@ -286,7 +286,7 @@ export default function InventoryPage() {
             </div>
           )}
 
-          <section className="mt-8 rounded-2xl border border-[#f1dfd2] bg-white p-4 shadow-sm sm:p-8">
+          <section className="mt-5 min-w-0 rounded-2xl border border-[#f1dfd2] bg-white p-4 shadow-sm sm:mt-8 sm:p-8">
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
               <div>
                 <h2 className="text-lg font-semibold text-[#3b2117]">
@@ -297,7 +297,7 @@ export default function InventoryPage() {
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
                 <button
                   type="button"
                   onClick={() => {
@@ -397,7 +397,7 @@ export default function InventoryPage() {
                   />
                 </div>
 
-                <div className="flex justify-end gap-3">
+                <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
                   <button
                     type="button"
                     onClick={() => {
@@ -488,7 +488,7 @@ export default function InventoryPage() {
                   />
                 </div>
 
-                <div className="flex justify-end gap-3">
+                <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
                   <button
                     type="button"
                     onClick={() => {
@@ -512,7 +512,7 @@ export default function InventoryPage() {
               </form>
             )}
 
-            <div className="mt-8 overflow-hidden rounded-xl border border-[#f1dfd2]">
+            <div className="swp-inventory-table-wrap mt-6 overflow-hidden rounded-xl border border-[#f1dfd2] sm:mt-8">
               {inventory.length === 0 ? (
                 <div className="bg-[#fffaf6] p-10 text-center">
                   <p className="font-medium text-[#5b2f1f]">No products yet.</p>
@@ -521,8 +521,8 @@ export default function InventoryPage() {
                   </p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
+                <div className="swp-inventory-table-scroll overflow-x-auto">
+                  <table className="swp-inventory-table w-full text-left">
                     <thead className="bg-[#fffaf6]">
                       <tr className="border-b border-[#f1dfd2]">
                         <th className="px-5 py-4 text-sm font-semibold text-[#5b3928]">Product</th>

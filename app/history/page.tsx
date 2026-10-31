@@ -293,11 +293,11 @@ export default function HistoryPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#fff8f2]">
+    <div className="swp-history flex min-h-screen min-w-0 bg-[#fff8f2]">
       <Sidebar />
 
-      <main className="flex-1 p-8">
-        <div className="mx-auto max-w-7xl">
+      <main className="swp-page-main min-w-0 flex-1 p-8">
+        <div className="swp-page-content mx-auto max-w-7xl">
           {/* Header */}
           <div>
             <p className="text-sm text-[#a66a4a]">
@@ -315,7 +315,7 @@ export default function HistoryPage() {
           </div>
 
           {/* Filters */}
-          <div className="mt-8 rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
+          <div className="swp-history-filters mt-5 rounded-2xl border border-[#f1dfd2] bg-white p-4 shadow-sm sm:mt-8 sm:p-6">
             <div className="flex flex-wrap items-end gap-4">
               <div>
                 <label
@@ -435,7 +435,7 @@ export default function HistoryPage() {
           )}
 
           {/* Table */}
-          <div className="mt-8 rounded-2xl border border-[#f1dfd2] bg-white shadow-sm">
+          <div className="swp-history-records mt-5 min-w-0 rounded-2xl border border-[#f1dfd2] bg-white shadow-sm sm:mt-8">
             <div className="flex flex-col gap-2 border-b border-[#f1dfd2] px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-[#3b2117]">
@@ -477,8 +477,8 @@ export default function HistoryPage() {
               </div>
             ) : (
               <>
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[1000px]">
+                <div className="swp-history-table-wrap overflow-x-auto">
+                  <table className="swp-history-table w-full min-w-[1000px]">
                     <thead>
                       <tr className="border-b border-[#f1dfd2] bg-[#fffaf6] text-left">
                         <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-[#8b6b5a]">
@@ -554,7 +554,7 @@ export default function HistoryPage() {
                 </div>
 
                 {/* Pagination */}
-                <div className="flex flex-col items-center justify-between gap-4 border-t border-[#f1dfd2] px-6 py-4 sm:flex-row">
+                <div className="swp-history-pagination flex flex-col items-center justify-between gap-3 border-t border-[#f1dfd2] px-4 py-4 sm:flex-row sm:px-6">
                   <button
                     type="button"
                     disabled={

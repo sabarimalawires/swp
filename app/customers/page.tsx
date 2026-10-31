@@ -192,10 +192,10 @@ const handleSaveCustomer = async (
     );
   }
   return (
-    <div className="flex min-h-screen bg-[#fff8f2]">
+    <div className="swp-customers flex min-h-screen bg-[#fff8f2]">
       <Sidebar />
-      <main className="flex-1 p-8">
-        <div className="mx-auto max-w-7xl">
+      <main className="swp-page-main min-w-0 flex-1 p-8">
+        <div className="swp-page-content mx-auto max-w-7xl">
           {/* Header */}
           <div className="flex items-start justify-between">
             <div>
@@ -227,7 +227,7 @@ const handleSaveCustomer = async (
             </div>
           )}
           {/* Summary */}
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+          <div className="swp-customer-summary mt-8 grid gap-4 sm:grid-cols-3">
             <div className="rounded-2xl border border-[#f1dfd2] bg-white p-5 shadow-sm">
               <p className="text-sm text-[#8b6b5a]">
                 Customers
@@ -350,8 +350,8 @@ const handleSaveCustomer = async (
   </div>
 )}
           {/* Customer list */}
-          <div className="mt-8 rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between">
+          <div className="swp-customer-list mt-8 rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
+            <div className="swp-customer-list-header flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-[#3b2117]">
                   Customer List
@@ -383,8 +383,8 @@ const handleSaveCustomer = async (
                 </p>
               </div>
             ) : (
-              <div className="mt-6 overflow-x-auto">
-                <table className="w-[99%]">
+              <div className="swp-customer-table-wrap mt-6 overflow-x-auto">
+                <table className="swp-customer-table w-full">
                   <thead>
                     <tr className="border-b border-[#ead8c9] text-left text-xs uppercase tracking-wide text-[#8b6b5a]">
                       <th className="px-4 py-3">

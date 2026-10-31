@@ -256,7 +256,7 @@ const handleSendWhatsAppNow = async () => {
 
  return (
   
-<div className="flex min-h-screen bg-[#fffaf5]">
+<div className="swp-ledger flex min-h-screen bg-[#fffaf5]">
   <div className="no-print">
     <Sidebar />
   </div>
@@ -475,8 +475,137 @@ box-sizing: border-box;
       width: 100%;
     }
   }
+@media (max-width: 767px) {
+  .ledger-page {
+    width: 100%;
+    min-width: 0;
+    padding: 14px;
+    padding-bottom: 100px;
+  }
 
-`}</style>
+  .ledger-page header {
+    margin-bottom: 18px;
+  }
+
+  .ledger-page header h1 {
+    font-size: 22px !important;
+    line-height: 1.3;
+  }
+
+  .ledger-toolbar {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .ledger-field {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .ledger-field select,
+  .ledger-page input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    min-height: 46px;
+  }
+
+  .ledger-toolbar button,
+  .ledger-toolbar > * {
+    max-width: 100%;
+  }
+
+  .ledger-toolbar button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .ledger-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 18px 0;
+  }
+
+  .ledger-stat {
+    padding: 13px;
+    border-radius: 12px;
+  }
+
+  .ledger-stat span {
+    font-size: 11px;
+    margin-bottom: 7px;
+  }
+
+  .ledger-stat strong {
+    font-size: 15px;
+    overflow-wrap: anywhere;
+  }
+
+  .ledger-card {
+    margin: 16px 0;
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .ledger-heading {
+    margin-bottom: 14px;
+  }
+
+  .ledger-heading h2 {
+    font-size: 16px;
+  }
+
+  .ledger-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+  }
+
+  .ledger-table {
+    min-width: 1050px;
+    font-size: 11px;
+  }
+
+  .ledger-table th,
+  .ledger-table td {
+    padding: 9px 7px;
+  }
+
+  .opening-balance-panel {
+    margin: 16px 0;
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .opening-balance-panel .ledger-toolbar {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .opening-balance-panel input,
+  .opening-balance-panel button {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+@media (max-width: 380px) {
+  .ledger-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .ledger-page {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+`}
+</style>
       <header>
         <h1 style={{ fontSize: 26, fontWeight: 700 }}>
           Yearly Sales Ledger

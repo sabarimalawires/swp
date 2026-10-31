@@ -428,11 +428,11 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#fff8f2]">
+    <div className="swp-products flex min-h-screen min-w-0 bg-[#fff8f2]">
       <Sidebar />
 
-      <main className="flex-1 p-8">
-        <div className="mx-auto max-w-7xl">
+      <main className="swp-page-main min-w-0 flex-1 p-8">
+        <div className="swp-page-content mx-auto max-w-7xl">
 
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -449,7 +449,7 @@ export default function ProductsPage() {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-[#f1dfd2] bg-white px-6 py-4 shadow-sm">
+            <div className="swp-user-chip rounded-2xl border border-[#f1dfd2] bg-white px-6 py-4 shadow-sm">
               <p className="text-xs font-semibold uppercase tracking-wide text-[#a66a4a]">
                 Signed in as
               </p>
@@ -476,7 +476,7 @@ export default function ProductsPage() {
             </div>
           )}
 
-          <section className="mt-8 rounded-2xl border border-[#f1dfd2] bg-white shadow-sm">
+          <section className="mt-5 min-w-0 rounded-2xl border border-[#f1dfd2] bg-white shadow-sm sm:mt-8">
 
             <div className="flex flex-col gap-4 border-b border-[#f1dfd2] px-6 py-6 sm:flex-row sm:items-center sm:justify-between">
 
@@ -493,7 +493,7 @@ export default function ProductsPage() {
               <button
                 type="button"
                 onClick={startCreate}
-                className="rounded-xl bg-[#d96f2b] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#c85f22]"
+                className="w-full rounded-xl bg-[#d96f2b] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#c85f22] sm:w-auto"
               >
                 Add Product
               </button>
@@ -501,7 +501,7 @@ export default function ProductsPage() {
             </div>
 
             {showForm && (
-              <div className="border-b border-[#f1dfd2] bg-[#fffaf6] p-6">
+              <div className="border-b border-[#f1dfd2] bg-[#fffaf6] p-4 sm:p-6">
 
                 <div className="mb-6">
                   <h3 className="text-lg font-bold text-[#3b2117]">
@@ -519,7 +519,7 @@ export default function ProductsPage() {
 
                 <form
                   onSubmit={handleSubmit}
-                  className="grid gap-5 md:grid-cols-2"
+                  className="grid min-w-0 gap-4 sm:grid-cols-2 sm:gap-5"
                 >
 
                   <div>
@@ -624,7 +624,7 @@ export default function ProductsPage() {
                     />
                   </div>
 
-                  <div className="flex justify-end gap-3 md:col-span-2">
+                  <div className="flex flex-col-reverse gap-2 sm:col-span-2 sm:flex-row sm:justify-end sm:gap-3">
 
                     <button
                       type="button"
@@ -653,7 +653,7 @@ export default function ProductsPage() {
               </div>
             )}
 
-            <div className="overflow-x-auto">
+            <div className="swp-products-table-wrap overflow-x-auto">
 
               {products.length === 0 ? (
                 <div className="p-12 text-center">
@@ -662,7 +662,7 @@ export default function ProductsPage() {
                   </p>
                 </div>
               ) : (
-                <table className="w-full min-w-[1050px]">
+                <table className="swp-products-table w-full min-w-[1050px]">
 
                   <thead>
                     <tr className="border-b border-[#f1dfd2] bg-[#fffaf6] text-left">

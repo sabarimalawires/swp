@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Sidebar from "@/src/components/Sidebar";
 import { authClient } from "@/src/lib/auth-client";
@@ -127,7 +127,6 @@ const [profilePhone, setProfilePhone] =
 const [savingProfile, setSavingProfile] = useState(false);
 
 const [savingWhatsApp, setSavingWhatsApp] = useState(false);
-const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
 
   const [loading, setLoading] =
 
@@ -140,6 +139,7 @@ const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
   const [showPaymentForm, setShowPaymentForm] =
 
     useState(false);
+    const paymentHistoryRef = useRef<HTMLElement>(null);
 
   const [paymentAmount, setPaymentAmount] =
 
@@ -325,38 +325,7 @@ const handleSaveProfile = async (
     setSavingProfile(false);
   }
 };
-const handleSendWhatsAppNow = async () => {
-  if (!customer || sendingWhatsApp) return;
 
-  setSendingWhatsApp(true);
-  setError("");
-  setSuccess("");
-
-  try {
-    const response = await fetch(
-      `/api/customers/${customer.id}/whatsapp-reminders`,
-      { method: "POST" }
-    );
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.error || "Failed to send WhatsApp reminder.");
-    }
-
-    setSuccess(
-      `WhatsApp reminder accepted by Meta. Pending: ${money(result.pendingBalance)}`
-    );
-  } catch (error) {
-    setError(
-      error instanceof Error
-        ? error.message
-        : "Failed to send WhatsApp reminder."
-    );
-  } finally {
-    setSendingWhatsApp(false);
-  }
-};
 const handleWhatsAppToggle = async () => {
   if (!customer || savingWhatsApp) return;
 
@@ -936,17 +905,17 @@ const handleDeletePayment = async (paymentId: string) => {
 
   return (
 
-    <div className="flex min-h-screen bg-[#fff8f2]">
+    <div className="swp-customer-detail flex min-h-screen min-w-0 bg-[#fff8f2]">
 
       <Sidebar />
 
-      <main className="flex-1 p-8">
+      <main className="swp-page-main min-w-0 flex-1 p-8">
 
-        <div className="mx-auto max-w-7xl">
+        <div className="swp-page-content mx-auto max-w-7xl">
 
           {/* Header */}
 
-          <div className="flex items-start justify-between">
+          <div className="flex min-w-0 flex-wrap items-start justify-between gap-4">
 
             <div>
 
@@ -1014,19 +983,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
   </button>
 
-  <button
-  type="button"
-  onClick={handleSendWhatsAppNow}
-  disabled={
-    sendingWhatsApp ||
-    !customer.whatsappDueRemindersOptIn ||
-    !customer.phone ||
-    customer.pendingBalance <= 0
-  }
-  className="rounded-xl bg-green-700 px-4 py-2 text-sm font-semibold text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-50"
->
-  {sendingWhatsApp ? "Sending..." : "Send WhatsApp Now"}
-</button>
+  
 
 </div>
 
@@ -1040,7 +997,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
             </div>
 
-            <div className="rounded-xl bg-[#fff1e6] px-4 py-3">
+            <div className="swp-user-chip rounded-xl bg-[#fff1e6] px-4 py-3">
 
               <p className="text-xs text-[#a66a4a]">
 
@@ -1234,7 +1191,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
           {/* Summary */}
 
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <div className="swp-customer-summary mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
 
             <div className="rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
 
@@ -1297,12 +1254,34 @@ const handleDeletePayment = async (paymentId: string) => {
               </p>
             </div>
           </div>
+          <div className="mb-4 mt-3 flex justify-end">
+  <button
+    type="button"
+    onClick={() => {
+      setError("");
+      setSuccess("");
+      cancelEditingPayment();
+      setShowPaymentForm(true);
 
-          <div className="mt-8 grid gap-6 lg:grid-cols-2">
+      requestAnimationFrame(() => {
+        paymentHistoryRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      });
+    }}
+    className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#d96f2b] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#c85f22] active:scale-[0.98]"
+  >
+    <span className="text-lg leading-none">+</span>
+    Add Payment
+  </button>
+</div>
+
+          <div className="mt-6 grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6"> 
 
             {/* Sales */}
 
-            <section className="rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
+            <section className="mt-2 rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
 
               <h2 className="text-lg font-semibold text-[#3b2117]">
 
@@ -1408,9 +1387,12 @@ const handleDeletePayment = async (paymentId: string) => {
 
             {/* Payments */}
 
-            <section className="rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
+            <section
+  ref={paymentHistoryRef}
+  className="scroll-mt-20 rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm"
+>
 
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
 
                 <div>
 

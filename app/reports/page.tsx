@@ -398,11 +398,11 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#fff8f2]">
+    <div className="swp-reports flex min-h-screen min-w-0 bg-[#fff8f2]">
       <Sidebar />
 
-      <main className="flex-1 p-8">
-        <div className="mx-auto max-w-7xl">
+      <main className="swp-page-main min-w-0 flex-1 p-8">
+        <div className="swp-page-content mx-auto max-w-7xl">
 
           {/* PAGE HEADER */}
           <div>
@@ -420,7 +420,7 @@ export default function ReportsPage() {
           </div>
 
           {/* FILTERS */}
-          <section className="mt-8 rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
+          <section className="swp-report-filters mt-5 rounded-2xl border border-[#f1dfd2] bg-white p-4 shadow-sm sm:mt-8 sm:p-6">
 
             <div className="mb-5">
               <h2 className="text-lg font-semibold text-[#3b2117]">
@@ -432,7 +432,7 @@ export default function ReportsPage() {
               </p>
             </div>
 
-            <div className="flex flex-wrap items-end gap-5">
+            <div className="swp-report-filter-grid flex flex-wrap items-end gap-5">
 
               {/* FROM */}
               <div>
@@ -593,10 +593,10 @@ export default function ReportsPage() {
 
           {/* REPORT */}
           {report && (
-            <div className="mt-8 space-y-8">
+            <div className="swp-report-output mt-5 space-y-5 sm:mt-8 sm:space-y-8">
 
               {/* REPORT HEADER */}
-              <section className="rounded-2xl border border-[#f1dfd2] bg-white p-8 shadow-sm">
+              <section className="swp-report-header rounded-2xl border border-[#f1dfd2] bg-white p-4 shadow-sm sm:p-8">
 
                 <div className="border-b border-[#f1dfd2] pb-6 text-center">
                   <p className="text-sm font-semibold tracking-wide text-[#a66a4a]">
@@ -679,7 +679,7 @@ export default function ReportsPage() {
               </section>
 
               {/* SUMMARY */}
-              <section className="rounded-2xl border border-[#f1dfd2] bg-white p-8 shadow-sm">
+              <section className="swp-report-summary rounded-2xl border border-[#f1dfd2] bg-white p-4 shadow-sm sm:p-8">
 
                 <div className="mb-6">
                   <h2 className="text-lg font-bold text-[#3b2117]">
@@ -756,7 +756,7 @@ export default function ReportsPage() {
                 title="Inventory"
                 description="Current active product inventory."
               >
-                <table className="w-full min-w-[700px]">
+                <table className="swp-report-table swp-report-inventory-table w-full min-w-[700px]">
                   <thead>
                     <tr className="border-b border-[#f1dfd2] bg-[#fffaf6] text-left">
                       <TableHeader>Product</TableHeader>
@@ -822,7 +822,7 @@ export default function ReportsPage() {
                 title="Work Entries"
                 description="Work submitted during the selected period."
               >
-                <table className="w-full min-w-[850px]">
+                <table className="swp-report-table swp-report-work-table w-full min-w-[850px]">
                   <thead>
                     <tr className="border-b border-[#f1dfd2] bg-[#fffaf6] text-left">
                       <TableHeader>Date</TableHeader>
@@ -886,7 +886,7 @@ export default function ReportsPage() {
                 title="Sales"
                 description="Sales activity during the selected period."
               >
-                <table className="w-full min-w-[900px]">
+                <table className="swp-report-table swp-report-sales-table w-full min-w-[900px]">
                   <thead>
                     <tr className="border-b border-[#f1dfd2] bg-[#fffaf6] text-left">
                       <TableHeader>Date</TableHeader>
@@ -996,8 +996,8 @@ function ReportTable({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-[#f1dfd2] bg-white shadow-sm">
-      <div className="border-b border-[#f1dfd2] px-6 py-5">
+    <section className="swp-report-table-section min-w-0 rounded-2xl border border-[#f1dfd2] bg-white shadow-sm">
+      <div className="border-b border-[#f1dfd2] px-4 py-4 sm:px-6 sm:py-5">
         <h2 className="text-lg font-bold text-[#3b2117]">
           {title}
         </h2>
@@ -1007,7 +1007,7 @@ function ReportTable({
         </p>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="swp-report-table-wrap overflow-x-auto">
         {children}
       </div>
     </section>

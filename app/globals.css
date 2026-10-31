@@ -111,3 +111,1233 @@ body {
     animation-delay: 0ms;
   }
 }
+
+
+
+/*MOBILE RESPONSIVE*/
+
+/* ==========================================
+   SWP MOBILE RESPONSIVE DESIGN
+   Dashboard | Sales | Customers
+========================================== */
+
+@media (max-width: 767px) {
+
+  html,
+  body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    padding-bottom: 85px;
+  }
+
+  /* COMMON PAGE LAYOUT */
+
+  .swp-page-main {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 16px 13px 25px !important;
+  }
+
+  .swp-page-content {
+    width: 100%;
+    max-width: 100% !important;
+  }
+
+  .swp-page-main h1 {
+    font-size: 25px !important;
+    line-height: 1.25 !important;
+  }
+
+  .swp-user-chip {
+    display: none !important;
+  }
+
+  .swp-page-main section {
+    min-width: 0;
+    border-radius: 16px !important;
+  }
+
+  .swp-page-main section.p-6 {
+    padding: 15px !important;
+  }
+
+  .swp-page-main input,
+  .swp-page-main select,
+  .swp-page-main textarea {
+    width: 100%;
+    max-width: 100%;
+    min-height: 44px;
+    font-size: 16px !important;
+  }
+
+  /* DASHBOARD */
+
+  .swp-dashboard .swp-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    margin-top: 18px !important;
+  }
+
+  .swp-dashboard .swp-kpi-grid > * {
+    padding: 13px !important;
+    min-width: 0;
+  }
+
+  .swp-dashboard .swp-kpi-grid > * p:nth-of-type(2) {
+    font-size: 25px !important;
+    overflow-wrap: anywhere;
+  }
+
+  .swp-dashboard .swp-activity-grid,
+  .swp-dashboard .swp-monthly-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .swp-dashboard .swp-activity-grid > *,
+  .swp-dashboard .swp-monthly-grid > * {
+    padding: 13px !important;
+    min-width: 0;
+  }
+
+  .swp-dashboard .swp-low-stock-table {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .swp-dashboard .swp-low-stock-table table {
+    min-width: 570px;
+  }
+
+  /* SALES */
+
+  .swp-sales .swp-sales-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 16px !important;
+    margin-top: 18px !important;
+  }
+
+  .swp-sales .swp-sales-form,
+  .swp-sales .swp-sales-history {
+    width: 100%;
+    min-width: 0;
+    padding: 15px !important;
+  }
+
+  .swp-sales .swp-sale-product-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 9px !important;
+  }
+
+  .swp-sales .swp-sale-product-row > * {
+    min-width: 0;
+  }
+
+  .swp-sales .swp-sale-history-card {
+    padding: 13px !important;
+  }
+
+  .swp-sales .swp-sale-history-card table {
+    min-width: 500px;
+  }
+
+  .swp-sales .swp-sale-history-card .overflow-x-auto {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+
+  .swp-sales .swp-sale-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px !important;
+  }
+
+  .swp-sales .swp-sale-actions button {
+    width: 100%;
+    min-width: 0;
+    font-size: 12px !important;
+  }
+
+  /* CUSTOMERS */
+
+  .swp-customers .swp-customer-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    margin-top: 18px !important;
+  }
+
+  .swp-customers .swp-customer-summary > * {
+    min-width: 0;
+    padding: 13px !important;
+  }
+
+  .swp-customers .swp-customer-summary > *:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .swp-customers .swp-customer-summary p:last-child {
+    font-size: 19px !important;
+    overflow-wrap: anywhere;
+  }
+
+  .swp-customers .swp-customer-list {
+    margin-top: 16px !important;
+    padding: 14px !important;
+  }
+
+  .swp-customers .swp-customer-list-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px !important;
+    align-items: flex-start !important;
+  }
+
+  /* Convert customer table into mobile cards */
+
+  .swp-customers .swp-customer-table-wrap {
+    overflow: visible !important;
+  }
+
+  .swp-customers .swp-customer-table {
+    display: block;
+    width: 100% !important;
+  }
+
+  .swp-customers .swp-customer-table thead {
+    display: none;
+  }
+
+  .swp-customers .swp-customer-table tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .swp-customers .swp-customer-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid #f1dfd2;
+    border-radius: 13px;
+    background: #fffaf6;
+  }
+
+  .swp-customers .swp-customer-table tbody td {
+    min-width: 0;
+    padding: 0 !important;
+    border: 0 !important;
+    font-size: 12px !important;
+    overflow-wrap: anywhere;
+  }
+
+  .swp-customers .swp-customer-table tbody td:first-child,
+  .swp-customers .swp-customer-table tbody td:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .swp-customers .swp-customer-table tbody td:nth-child(2)::before {
+    content: "SALES";
+  }
+
+  .swp-customers .swp-customer-table tbody td:nth-child(3)::before {
+    content: "AMOUNT";
+  }
+
+  .swp-customers .swp-customer-table tbody td:nth-child(4)::before {
+    content: "PAID";
+  }
+
+  .swp-customers .swp-customer-table tbody td:nth-child(5)::before {
+    content: "PENDING / CREDIT";
+  }
+
+  .swp-customers .swp-customer-table tbody td:not(:first-child)::before {
+    display: block;
+    margin-bottom: 5px;
+    color: #9a7865;
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  .swp-customers .swp-customer-table tbody td:last-child button {
+    width: 100%;
+  }
+}
+
+/* EXTRA SMALL PHONES */
+
+@media (max-width: 380px) {
+
+  .swp-sidebar nav a {
+    flex-basis: 68px;
+    min-width: 68px;
+    font-size: 9px !important;
+  }
+
+  .swp-dashboard .swp-activity-grid,
+  .swp-dashboard .swp-monthly-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .swp-sales .swp-sale-product-row {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* TABLETS */
+
+@media (min-width: 768px) and (max-width: 1023px) {
+
+  .swp-sidebar {
+    width: 210px !important;
+    min-width: 210px;
+  }
+
+  .swp-page-main {
+    min-width: 0;
+    padding: 24px !important;
+  }
+
+  .swp-sales .swp-sales-layout {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Shared mobile header spacing */
+@media (max-width: 767px) {
+  body:has(.swp-mobile-header) {
+    padding-top: 68px;
+    padding-bottom: 76px;
+  }
+}
+
+/* CUSTOMER ACCOUNT PAGE */
+@media (max-width: 767px) {
+  .swp-customer-detail {
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .swp-customer-detail .swp-page-main {
+    padding: 16px 13px 24px !important;
+  }
+
+  .swp-customer-detail .swp-page-content {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .swp-customer-detail h1 {
+    font-size: 25px !important;
+    overflow-wrap: anywhere;
+  }
+
+  .swp-customer-detail section {
+    min-width: 0;
+  }
+
+  .swp-customer-detail section.p-6 {
+    padding: 15px !important;
+  }
+
+  .swp-customer-detail .swp-customer-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .swp-customer-detail .swp-customer-summary > * {
+    min-width: 0;
+    padding: 13px !important;
+  }
+
+  .swp-customer-detail .swp-customer-summary > *:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .swp-customer-detail .swp-customer-summary p.text-2xl {
+    font-size: 19px !important;
+    overflow-wrap: anywhere;
+  }
+
+  .swp-customer-detail input,
+  .swp-customer-detail select,
+  .swp-customer-detail textarea {
+    max-width: 100%;
+    min-width: 0;
+    font-size: 16px !important;
+  }
+
+  .swp-customer-detail button {
+    max-width: 100%;
+  }
+
+  .swp-customer-detail .swp-customer-summary,
+  .swp-customer-detail section {
+    overflow-wrap: anywhere;
+  }
+}
+
+/* =================================
+   SWP EMPLOYEES MOBILE RESPONSIVE
+================================= */
+
+@media (max-width: 767px) {
+  .swp-employees {
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .swp-employees .swp-page-main {
+    width: 100%;
+    min-width: 0;
+    padding: 16px 13px 25px !important;
+  }
+
+  .swp-employees .swp-page-content {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .swp-employees h1 {
+    font-size: 25px !important;
+  }
+
+  .swp-employees section {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .swp-employees section > div:first-child {
+    padding: 16px !important;
+  }
+
+  /* Add employee form */
+
+  .swp-employees form {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 15px !important;
+  }
+
+  .swp-employees form > div:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .swp-employees form button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  /* Employee table to cards */
+
+  .swp-employees .swp-employee-table-wrap {
+    overflow: visible !important;
+    padding: 12px;
+  }
+
+  .swp-employees .swp-employee-table {
+    display: block;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .swp-employees .swp-employee-table thead {
+    display: none;
+  }
+
+  .swp-employees .swp-employee-table tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .swp-employees .swp-employee-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 15px;
+    border: 1px solid #f1dfd2;
+    border-radius: 14px;
+    background: #fffaf6;
+  }
+
+  .swp-employees .swp-employee-table tbody td {
+    display: block;
+    min-width: 0;
+    padding: 0 !important;
+    border: 0 !important;
+    font-size: 12px !important;
+    overflow-wrap: anywhere;
+  }
+
+  /* Employee name gets full width */
+
+  .swp-employees .swp-employee-table tbody td:first-child {
+    grid-column: 1 / -1;
+    padding-bottom: 10px !important;
+    border-bottom: 1px solid #f1dfd2 !important;
+  }
+
+  .swp-employees .swp-employee-table tbody td:nth-child(2)::before {
+    content: "USERNAME";
+  }
+
+  .swp-employees .swp-employee-table tbody td:nth-child(3)::before {
+    content: "ROLE";
+  }
+
+  .swp-employees .swp-employee-table tbody td:nth-child(4)::before {
+    content: "STATUS";
+  }
+
+  .swp-employees .swp-employee-table tbody td:nth-child(5) {
+    grid-column: 1 / -1;
+    text-align: left !important;
+    padding-top: 8px !important;
+    border-top: 1px solid #f1dfd2 !important;
+  }
+
+  .swp-employees .swp-employee-table tbody td:nth-child(5)::before {
+    content: "ACTION";
+  }
+
+  .swp-employees .swp-employee-table tbody td:not(:first-child)::before {
+    display: block;
+    margin-bottom: 6px;
+    color: #9a7865;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .04em;
+  }
+
+  .swp-employees .swp-employee-table tbody td button {
+    width: 100%;
+    min-height: 40px;
+  }
+}
+
+/* =================================
+   SWP INVENTORY MOBILE RESPONSIVE
+================================= */
+
+@media (max-width: 767px) {
+  .swp-inventory {
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .swp-inventory .swp-page-main {
+    width: 100%;
+    min-width: 0;
+    padding: 16px 13px 25px !important;
+  }
+
+  .swp-inventory .swp-page-content {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .swp-inventory h1 {
+    font-size: 25px !important;
+  }
+
+  .swp-inventory section {
+    min-width: 0;
+  }
+
+  .swp-inventory section > div:first-child {
+    min-width: 0;
+  }
+
+  /* Management buttons */
+
+  .swp-inventory section > div:first-child > div:last-child {
+    width: 100%;
+  }
+
+  .swp-inventory section > div:first-child > div:last-child button {
+    min-width: 0;
+    padding: 11px 7px !important;
+    font-size: 12px !important;
+  }
+
+  /* Forms */
+
+  .swp-inventory form {
+    min-width: 0;
+    padding: 14px !important;
+  }
+
+  .swp-inventory input,
+  .swp-inventory select {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    font-size: 16px !important;
+  }
+
+  .swp-inventory form button {
+    min-height: 43px;
+  }
+
+  /* Inventory table to product cards */
+
+  .swp-inventory .swp-inventory-table-wrap {
+    overflow: visible !important;
+    border: 0 !important;
+  }
+
+  .swp-inventory .swp-inventory-table-scroll {
+    overflow: visible !important;
+  }
+
+  .swp-inventory .swp-inventory-table {
+    display: block;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .swp-inventory .swp-inventory-table thead {
+    display: none;
+  }
+
+  .swp-inventory .swp-inventory-table tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .swp-inventory .swp-inventory-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 13px 10px;
+    padding: 15px;
+    border: 1px solid #f1dfd2;
+    border-radius: 14px;
+    background: #fffaf6;
+  }
+
+  .swp-inventory .swp-inventory-table tbody td {
+    min-width: 0;
+    padding: 0 !important;
+    border: 0 !important;
+    font-size: 12px !important;
+    overflow-wrap: anywhere;
+  }
+
+  /* Product name */
+
+  .swp-inventory .swp-inventory-table tbody td:first-child {
+    grid-column: 1 / -1;
+    padding-bottom: 10px !important;
+    border-bottom: 1px solid #f1dfd2 !important;
+  }
+
+  .swp-inventory .swp-inventory-table tbody td:nth-child(2)::before {
+    content: "PRODUCT CODE";
+  }
+
+  .swp-inventory .swp-inventory-table tbody td:nth-child(3)::before {
+    content: "CURRENT STOCK";
+  }
+
+  .swp-inventory .swp-inventory-table tbody td:nth-child(4)::before {
+    content: "LOW STOCK AT";
+  }
+
+  .swp-inventory .swp-inventory-table tbody td:nth-child(5)::before {
+    content: "STOCK STATUS";
+  }
+
+  .swp-inventory .swp-inventory-table tbody td:not(:first-child)::before {
+    display: block;
+    margin-bottom: 6px;
+    color: #9a7865;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .03em;
+  }
+
+  .swp-inventory .swp-inventory-table tbody td:nth-child(3) span {
+    font-size: 14px !important;
+  }
+}
+/* =================================
+   SWP HISTORY MOBILE RESPONSIVE
+================================= */
+
+@media (max-width: 767px) {
+  .swp-history {
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .swp-history .swp-page-main {
+    width: 100%;
+    min-width: 0;
+    padding: 16px 13px 25px !important;
+  }
+
+  .swp-history .swp-page-content {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .swp-history h1 {
+    font-size: 25px !important;
+  }
+
+  /* FILTERS */
+
+  .swp-history .swp-history-filters {
+    padding: 14px !important;
+  }
+
+  .swp-history .swp-history-filters > div {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 13px 10px !important;
+    align-items: end;
+  }
+
+  .swp-history .swp-history-filters > div > div {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .swp-history .swp-history-filters label {
+    font-size: 12px !important;
+  }
+
+  .swp-history .swp-history-filters select,
+  .swp-history .swp-history-filters input {
+    width: 100%;
+    min-width: 0;
+    height: 44px;
+    padding: 0 8px !important;
+    font-size: 13px !important;
+  }
+
+  .swp-history .swp-history-filters > div > button {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: 43px;
+  }
+
+  /* ACTIVITY HEADER */
+
+  .swp-history .swp-history-records {
+    overflow: hidden;
+  }
+
+  .swp-history .swp-history-records > div:first-child {
+    padding: 16px !important;
+  }
+
+  /* TABLE TO MOBILE CARDS */
+
+  .swp-history .swp-history-table-wrap {
+    overflow: visible !important;
+    padding: 12px;
+  }
+
+  .swp-history .swp-history-table {
+    display: block;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .swp-history .swp-history-table thead {
+    display: none;
+  }
+
+  .swp-history .swp-history-table tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .swp-history .swp-history-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 10px;
+    padding: 14px;
+    border: 1px solid #f1dfd2;
+    border-radius: 14px;
+    background: #fffaf6;
+  }
+
+  .swp-history .swp-history-table tbody td {
+    display: block;
+    min-width: 0;
+    padding: 0 !important;
+    border: 0 !important;
+    font-size: 12px !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+
+  /* Date and time */
+
+  .swp-history .swp-history-table tbody td:first-child {
+    grid-column: 1 / -1;
+    padding-bottom: 10px !important;
+    border-bottom: 1px solid #f1dfd2 !important;
+    color: #8b6b5a;
+  }
+
+  .swp-history .swp-history-table tbody td:nth-child(2)::before {
+    content: "USER";
+  }
+
+  .swp-history .swp-history-table tbody td:nth-child(3)::before {
+    content: "ACTION";
+  }
+
+  .swp-history .swp-history-table tbody td:nth-child(4)::before {
+    content: "AREA";
+  }
+
+  .swp-history .swp-history-table tbody td:nth-child(5) {
+    grid-column: 1 / -1;
+    padding-top: 10px !important;
+    border-top: 1px solid #f1dfd2 !important;
+    line-height: 1.6 !important;
+  }
+
+  .swp-history .swp-history-table tbody td:nth-child(5)::before {
+    content: "DETAILS";
+  }
+
+  .swp-history .swp-history-table tbody td:not(:first-child)::before {
+    display: block;
+    margin-bottom: 6px;
+    color: #9a7865;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .04em;
+  }
+
+  /* PAGINATION */
+
+  .swp-history .swp-history-pagination {
+    padding: 14px !important;
+    gap: 12px !important;
+  }
+
+  .swp-history .swp-history-pagination button {
+    width: 100%;
+    min-height: 42px;
+  }
+
+  .swp-history .swp-history-pagination p {
+    order: -1;
+    text-align: center;
+    font-size: 12px;
+  }
+}
+/* =================================
+   SWP REPORTS MOBILE RESPONSIVE
+================================= */
+
+@media (max-width: 767px) {
+  .swp-reports {
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .swp-reports .swp-page-main {
+    width: 100%;
+    min-width: 0;
+    padding: 16px 13px 25px !important;
+  }
+
+  .swp-reports .swp-page-content {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .swp-reports h1 {
+    font-size: 25px !important;
+  }
+
+  /* FILTERS */
+
+  .swp-reports .swp-report-filters {
+    padding: 14px !important;
+  }
+
+  .swp-reports .swp-report-filter-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 10px !important;
+  }
+
+  .swp-reports .swp-report-filter-grid > div {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .swp-reports .swp-report-filter-grid label {
+    font-size: 12px !important;
+  }
+
+  .swp-reports .swp-report-filter-grid input,
+  .swp-reports .swp-report-filter-grid select {
+    width: 100%;
+    min-width: 0;
+    height: 44px;
+    padding: 0 8px !important;
+    font-size: 13px !important;
+  }
+
+  .swp-reports .swp-report-filter-grid button {
+    width: 100%;
+    min-width: 0;
+    height: 43px;
+    padding: 0 5px !important;
+    font-size: 12px !important;
+  }
+
+  /* REPORT HEADER */
+
+  .swp-reports .swp-report-header {
+    padding: 16px !important;
+  }
+
+  .swp-reports .swp-report-header h2 {
+    font-size: 19px !important;
+  }
+
+  .swp-reports .swp-report-header h3 {
+    font-size: 16px !important;
+  }
+
+  .swp-reports .swp-report-header > div:nth-child(2) {
+    grid-template-columns: 1fr !important;
+    gap: 15px !important;
+  }
+
+  .swp-reports .swp-report-header > div:last-child {
+    justify-content: stretch;
+  }
+
+  .swp-reports .swp-report-header a {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* SUMMARY CARDS */
+
+  .swp-reports .swp-report-summary {
+    padding: 15px !important;
+  }
+
+  .swp-reports .swp-report-summary > div:last-child {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .swp-reports .swp-report-summary > div:last-child > * {
+    min-width: 0;
+    padding: 12px !important;
+  }
+
+  .swp-reports .swp-report-summary > div:last-child p:last-child {
+    font-size: 20px !important;
+    overflow-wrap: anywhere;
+  }
+
+  /* REPORT TABLES TO CARDS */
+
+  .swp-reports .swp-report-table-section {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .swp-reports .swp-report-table-wrap {
+    overflow: visible !important;
+    padding: 12px;
+  }
+
+  .swp-reports .swp-report-table {
+    display: block;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .swp-reports .swp-report-table thead {
+    display: none;
+  }
+
+  .swp-reports .swp-report-table tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .swp-reports .swp-report-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 10px;
+    padding: 14px;
+    border: 1px solid #f1dfd2;
+    border-radius: 14px;
+    background: #fffaf6;
+  }
+
+  .swp-reports .swp-report-table tbody td {
+    display: block;
+    min-width: 0;
+    padding: 0 !important;
+    border: 0 !important;
+    font-size: 12px !important;
+    overflow-wrap: anywhere;
+  }
+
+  /* Inventory: Product, Code, Stock, Threshold, Status */
+
+  .swp-reports .swp-report-inventory-table tbody td:first-child,
+  .swp-reports .swp-report-work-table tbody td:first-child,
+  .swp-reports .swp-report-sales-table tbody td:first-child {
+    grid-column: 1 / -1;
+    padding-bottom: 9px !important;
+    border-bottom: 1px solid #f1dfd2 !important;
+  }
+
+  .swp-reports .swp-report-inventory-table tbody td:nth-child(2)::before {
+    content: "CODE";
+  }
+
+  .swp-reports .swp-report-inventory-table tbody td:nth-child(3)::before {
+    content: "STOCK";
+  }
+
+  .swp-reports .swp-report-inventory-table tbody td:nth-child(4)::before {
+    content: "THRESHOLD";
+  }
+
+  .swp-reports .swp-report-inventory-table tbody td:nth-child(5)::before {
+    content: "STATUS";
+  }
+
+  /* Work Entries: Date, Worker, Product, Quantity, Status */
+
+  .swp-reports .swp-report-work-table tbody td:nth-child(2)::before {
+    content: "WORKER";
+  }
+
+  .swp-reports .swp-report-work-table tbody td:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  .swp-reports .swp-report-work-table tbody td:nth-child(3)::before {
+    content: "PRODUCT";
+  }
+
+  .swp-reports .swp-report-work-table tbody td:nth-child(4)::before {
+    content: "QUANTITY";
+  }
+
+  .swp-reports .swp-report-work-table tbody td:nth-child(5)::before {
+    content: "STATUS";
+  }
+
+  /* Sales: Date, Customer, Product, Quantity, Status */
+
+  .swp-reports .swp-report-sales-table tbody td:nth-child(2) {
+    grid-column: 1 / -1;
+  }
+
+  .swp-reports .swp-report-sales-table tbody td:nth-child(2)::before {
+    content: "CUSTOMER";
+  }
+
+  .swp-reports .swp-report-sales-table tbody td:nth-child(3)::before {
+    content: "PRODUCT";
+  }
+
+  .swp-reports .swp-report-sales-table tbody td:nth-child(4)::before {
+    content: "QUANTITY";
+  }
+
+  .swp-reports .swp-report-sales-table tbody td:nth-child(5)::before {
+    content: "STATUS";
+  }
+
+  .swp-reports .swp-report-table tbody td:not(:first-child)::before {
+    display: block;
+    margin-bottom: 5px;
+    color: #9a7865;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .04em;
+  }
+}
+
+/* =================================
+   SWP PRODUCTS MOBILE RESPONSIVE
+================================= */
+
+@media (max-width: 767px) {
+  .swp-products {
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .swp-products .swp-page-main {
+    width: 100%;
+    min-width: 0;
+    padding: 16px 13px 25px !important;
+  }
+
+  .swp-products .swp-page-content {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .swp-products h1 {
+    font-size: 25px !important;
+  }
+
+  .swp-products section {
+    min-width: 0;
+  }
+
+  /* Product management header */
+
+  .swp-products section > div:first-child {
+    padding: 15px !important;
+    gap: 12px !important;
+  }
+
+  .swp-products section > div:first-child button {
+    min-height: 43px;
+  }
+
+  /* Product form */
+
+  .swp-products form {
+    min-width: 0;
+  }
+
+  .swp-products form > div {
+    min-width: 0;
+  }
+
+  .swp-products input {
+    width: 100%;
+    min-width: 0;
+    font-size: 16px !important;
+  }
+
+  .swp-products form button {
+    min-height: 43px;
+  }
+
+  /* Convert product table into cards */
+
+  .swp-products .swp-products-table-wrap {
+    overflow: visible !important;
+    padding: 12px;
+  }
+
+  .swp-products .swp-products-table {
+    display: block;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .swp-products .swp-products-table thead {
+    display: none;
+  }
+
+  .swp-products .swp-products-table tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .swp-products .swp-products-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 13px 10px;
+    padding: 14px;
+    border: 1px solid #f1dfd2;
+    border-radius: 14px;
+    background: #fffaf6;
+  }
+
+  .swp-products .swp-products-table tbody td {
+    display: block;
+    min-width: 0;
+    padding: 0 !important;
+    border: 0 !important;
+    font-size: 12px !important;
+    overflow-wrap: anywhere;
+  }
+
+  /* Product name and ID */
+
+  .swp-products .swp-products-table tbody td:first-child {
+    grid-column: 1 / -1;
+    padding-bottom: 10px !important;
+    border-bottom: 1px solid #f1dfd2 !important;
+  }
+
+  .swp-products .swp-products-table tbody td:nth-child(2)::before {
+    content: "PRODUCT CODE";
+  }
+
+  .swp-products .swp-products-table tbody td:nth-child(3)::before {
+    content: "INITIAL STOCK";
+  }
+
+  .swp-products .swp-products-table tbody td:nth-child(4)::before {
+    content: "LOW STOCK THRESHOLD";
+  }
+
+  .swp-products .swp-products-table tbody td:nth-child(5)::before {
+    content: "STATUS";
+  }
+
+  .swp-products .swp-products-table tbody td:not(:first-child)::before {
+    display: block;
+    margin-bottom: 6px;
+    color: #9a7865;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .03em;
+  }
+
+  /* Actions */
+
+  .swp-products .swp-products-table tbody td:last-child {
+    grid-column: 1 / -1;
+    padding-top: 10px !important;
+    border-top: 1px solid #f1dfd2 !important;
+  }
+
+  .swp-products .swp-products-table tbody td:last-child > div {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px !important;
+  }
+
+  .swp-products .swp-products-table tbody td:last-child button {
+    width: 100%;
+    min-width: 0;
+    padding: 10px 5px !important;
+    font-size: 11px !important;
+  }
+}

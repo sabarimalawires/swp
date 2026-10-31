@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/src/lib/authorization";
 import { prisma } from "@/src/lib/prisma";
+import { getCustomerLedgerBalance } from "@/src/lib/ledger-balance";
 
 export const runtime = "nodejs";
 
@@ -31,6 +32,7 @@ export async function PATCH(
     }
 
     const { id } = await context.params;
+    
     const body = await request.json();
 
     if (typeof body.enabled !== "boolean") {
@@ -111,6 +113,26 @@ export async function POST(
 
     const { id } = await context.params;
 
+    const { searchParams } = new URL(request.url);
+const yearValue = searchParams.get("year");
+
+const year = yearValue ? Number(yearValue) : undefined;
+
+if (
+  year !== undefined &&
+  (!Number.isInteger(year) || year < 2000 || year > 2200)
+) {
+  return NextResponse.json(
+    { error: "Invalid financial year start." },
+    { status: 400 }
+  );
+}
+
+const financialYear =
+  year ??
+  new Date().getFullYear() -
+    (new Date().getMonth() < 3 ? 1 : 0);
+
     const customer = await prisma.customer.findUnique({
       where: { id },
       select: {
@@ -118,13 +140,6 @@ export async function POST(
         name: true,
         phone: true,
         whatsappDueRemindersOptIn: true,
-        sales: {
-          where: { status: "ACTIVE" },
-          select: { amount: true },
-        },
-        payments: {
-          select: { amount: true },
-        },
       },
     });
 
@@ -161,20 +176,14 @@ export async function POST(
       );
     }
 
-    const totalPurchases = customer.sales.reduce(
-      (sum, sale) => sum + Number(sale.amount),
-      0
-    );
+    const ledgerBalance = await getCustomerLedgerBalance(
+  customer.id,
+  financialYear
+);
 
-    const totalPaid = customer.payments.reduce(
-      (sum, payment) => sum + Number(payment.amount),
-      0
-    );
+const closingBalance = ledgerBalance.closingBalance;
 
-    const netBalance = totalPurchases - totalPaid;
-    const pendingBalance = Math.max(0, netBalance);
-
-    if (pendingBalance <= 0) {
+    if (closingBalance <= 0) {
       return NextResponse.json(
         { error: "This customer has no pending balance." },
         { status: 400 }
@@ -248,8 +257,7 @@ export async function POST(
                 parameters: [
                   {
                     type: "text",
-                    text: pendingBalance.toFixed(2),
-                  },
+                    text: closingBalance.toFixed(2),                  },
                 ],
               },
             ],
@@ -281,7 +289,8 @@ export async function POST(
       message: testMode
         ? "Test reminder accepted by WhatsApp."
         : `Reminder accepted by WhatsApp for ${customer.name}.`,
-      pendingBalance,
+      closingBalance,
+      financialYear,
       testMode,
       messageId: result?.messages?.[0]?.id ?? null,
     });

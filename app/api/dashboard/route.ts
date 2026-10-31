@@ -2,9 +2,14 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/src/lib/authorization";
 import { prisma } from "@/src/lib/prisma";
+import { getCustomerLedgerBalance } from "@/src/lib/ledger-balance";
 
 function roundKg(value: number): number {
   return Math.round((value + Number.EPSILON) * 1000) / 1000;
+}
+
+function roundMoney(value: number): number {
+  return Number(value.toFixed(2));
 }
 
 export async function GET(request: Request) {
@@ -48,14 +53,16 @@ export async function GET(request: Request) {
         },
       },
       select: {
-        quantity: true,
-      },
+  weight: true,
+},
     });
 
-    const todaysProduction = todaysApprovedWork.reduce(
-      (total, entry) => total + entry.quantity,
-      0
-    );
+    const todaysProduction = roundKg(
+  todaysApprovedWork.reduce(
+    (total, entry) => total + Number(entry.weight),
+    0
+  )
+);
 
     // Today's active sales.
     const todaysSales = await prisma.sale.findMany({
@@ -67,16 +74,18 @@ export async function GET(request: Request) {
         },
       },
       select: {
-        quantity: true,
+        weight: true,
       },
     });
 
     const todaysSalesCount = todaysSales.length;
 
-    const unitsSoldToday = todaysSales.reduce(
-      (total, sale) => total + sale.quantity,
-      0
-    );
+    const salesQuantityToday = roundKg(
+  todaysSales.reduce(
+    (total, sale) => total + Number(sale.weight),
+    0
+  )
+);
 
     // Monthly approved production.
     const monthlyApprovedWork = await prisma.workEntry.findMany({
@@ -88,14 +97,16 @@ export async function GET(request: Request) {
         },
       },
       select: {
-        quantity: true,
+        weight: true,
       },
     });
 
-    const monthlyProduction = monthlyApprovedWork.reduce(
-      (total, entry) => total + entry.quantity,
-      0
-    );
+    const monthlyProduction = roundKg(
+  monthlyApprovedWork.reduce(
+    (total, entry) => total + Number(entry.weight),
+    0
+  )
+);
 
     // Monthly active sales.
     const monthlySales = await prisma.sale.findMany({
@@ -107,51 +118,96 @@ export async function GET(request: Request) {
         },
       },
       select: {
-        quantity: true,
+        weight: true,
       },
     });
 
-    const monthlySalesQuantity = monthlySales.reduce(
-      (total, sale) => total + sale.quantity,
+    const monthlySalesQuantity = roundKg(
+  monthlySales.reduce(
+    (total, sale) => total + Number(sale.weight),
+    0
+  )
+);
+
+const [
+  pendingWork,
+  activeProducts,
+  products,
+  inventoryTransactions,
+  customers,
+] = await Promise.all([
+  prisma.workEntry.count({
+    where: { status: "PENDING" },
+  }),
+
+  prisma.product.count({
+    where: { isActive: true },
+  }),
+
+  prisma.product.findMany({
+    where: { isActive: true },
+    select: {
+      id: true,
+      name: true,
+      code: true,
+      initialStockKg: true,
+      lowStockThresholdKg: true,
+    },
+    orderBy: { name: "asc" },
+  }),
+
+  prisma.inventoryTransaction.findMany({
+    select: {
+      productId: true,
+      type: true,
+      weight: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: "asc" },
+  }),
+
+  prisma.customer.findMany({
+    select: {
+      id: true,
+    },
+  }),
+]);
+
+    // Overall customer ledger for the current financial year.
+const financialYearStartYear =
+  now.getFullYear() - (now.getMonth() < 3 ? 1 : 0);
+
+const customerLedgerBalances = await Promise.all(
+  customers.map((customer) =>
+    getCustomerLedgerBalance(
+      customer.id,
+      financialYearStartYear
+    )
+  )
+);
+
+const ledgerSummary = {
+  openingBalance: roundMoney(
+    customerLedgerBalances.reduce(
+      (total, ledger) => total + ledger.openingBalance,
       0
-    );
+    )
+  ),
 
-    const [
-      pendingWork,
-      activeProducts,
-      products,
-      inventoryTransactions,
-    ] = await Promise.all([
-      prisma.workEntry.count({
-        where: { status: "PENDING" },
-      }),
+  totalSales: roundMoney(
+    customerLedgerBalances.reduce(
+      (total, ledger) => total + ledger.totalSales,
+      0
+    )
+  ),
 
-      prisma.product.count({
-        where: { isActive: true },
-      }),
-
-      prisma.product.findMany({
-        where: { isActive: true },
-        select: {
-          id: true,
-          name: true,
-          code: true,
-          initialStockKg: true,
-          lowStockThresholdKg: true,
-        },
-        orderBy: { name: "asc" },
-      }),
-
-      prisma.inventoryTransaction.findMany({
-        select: {
-          productId: true,
-          type: true,
-          weight: true,
-          createdAt: true,
-        },
-        orderBy: { createdAt: "asc" },
-      }),
-    ]);
+  closingBalance: roundMoney(
+    customerLedgerBalances.reduce(
+      (total, ledger) => total + ledger.closingBalance,
+      0
+    )
+  ),
+};
 
     // Start from opening kg stock. If a nonzero kg opening-stock
     // transaction exists, use the ledger for that product instead.
@@ -244,21 +300,22 @@ export async function GET(request: Request) {
     );
 
     const monthlyBusiness = {
-      production: monthlyProduction,
-      sales: monthlySalesQuantity,
-      inventory: totalInventory,
-    };
+  salesCount: monthlySales.length,
+  salesQuantity: monthlySalesQuantity,
+  production: monthlyProduction,
+};
 
     return NextResponse.json({
-      pendingWork,
-      activeProducts,
-      todaysSales: todaysSalesCount,
-      unitsSoldToday,
-      todaysProduction,
-      lowStockCount: lowStockProducts.length,
-      lowStockProducts,
-      monthlyBusiness,
-    });
+  ledgerSummary,
+  pendingWork,
+  activeProducts,
+  todaysSales: todaysSalesCount,
+  salesQuantityToday,
+  todaysProduction,
+  lowStockCount: lowStockProducts.length,
+  lowStockProducts,
+  monthlyBusiness,
+});
   } catch (error) {
     console.error("Dashboard loading failed:", error);
 
