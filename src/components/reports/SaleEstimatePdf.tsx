@@ -209,7 +209,7 @@ export default function SaleEstimatePdf({
               <Text>Quantity</Text>
             </View>
             <View style={[styles.cell, styles.headerCell, styles.weight]}>
-              <Text>Sales Unit</Text>
+              <Text>Unit</Text>
             </View>
             <View style={[styles.cell, styles.headerCell, styles.rate]}>
               <Text>Rate / Unit</Text>

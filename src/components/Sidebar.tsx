@@ -4,24 +4,39 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import {
+  LayoutDashboard,
+  Users,
+  ClipboardList,
+  Package,
+  ShoppingCart,
+  UserRound,
+  History,
+  ChartNoAxesCombined,
+  BookOpen,
+  PackageSearch,
+  Menu,
+  LogOut,
+  ChevronLeft,
+} from "lucide-react";
 import { authClient } from "@/src/lib/auth-client";
 
 const adminNavigation = [
-  { name: "Dashboard", href: "/dashboard" },
-  { name: "Employees", href: "/employees" },
-  { name: "Work Entries", href: "/work" },
-  { name: "Inventory", href: "/inventory" },
-  { name: "Sales", href: "/sales" },
-  { name: "Customers", href: "/customers" },
-  { name: "History", href: "/history" },
-  { name: "Reports", href: "/reports" },
-  { name: "Ledger", href: "/ledger" },
-  { name: "Products", href: "/products" },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Employees", href: "/employees", icon: Users },
+  { name: "Work Entries", href: "/work", icon: ClipboardList },
+  { name: "Inventory", href: "/inventory", icon: Package },
+  { name: "Sales", href: "/sales", icon: ShoppingCart },
+  { name: "Customers", href: "/customers", icon: UserRound },
+  { name: "History", href: "/history", icon: History },
+  { name: "Reports", href: "/reports", icon: ChartNoAxesCombined },
+  { name: "Ledger", href: "/ledger", icon: BookOpen },
+  { name: "Products", href: "/products", icon: PackageSearch },
 ];
 
 const workerNavigation = [
-  { name: "Dashboard", href: "/dashboard" },
-  { name: "Work Entries", href: "/work" },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Work Entries", href: "/work", icon: ClipboardList },
 ];
 
 const mobileAdminNavigation = [
@@ -43,6 +58,7 @@ export default function Sidebar() {
   const [role, setRole] = useState<"ADMIN" | "WORKER" | null>(null);
   const [employeeName, setEmployeeName] = useState("");
   const [showMore, setShowMore] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     const loadEmployee = async () => {
@@ -56,9 +72,7 @@ export default function Sidebar() {
         const employee = await response.json();
 
         setRole(employee.role);
-        setEmployeeName(
-          employee.name || employee.username || ""
-        );
+        setEmployeeName(employee.name || employee.username || "");
       } catch (error) {
         console.error("Failed to load employee details:", error);
       }
@@ -100,7 +114,7 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* MOBILE HEADER - SHARED ACROSS ALL PAGES */}
+      {/* MOBILE HEADER */}
       <header className="swp-mobile-header fixed left-0 right-0 top-0 z-[60] flex h-[68px] items-center justify-between border-b border-[#f1dfd2] bg-[#fffaf5] px-4 md:hidden">
         <div className="flex items-center gap-3">
           <img
@@ -124,11 +138,26 @@ export default function Sidebar() {
         </div>
       </header>
 
-      {/* DESKTOP SIDEBAR */}
-      <aside className="swp-sidebar hidden min-h-screen w-64 flex-col border-r border-[#f1dfd2] bg-white md:flex">
-        <div className="border-b border-[#f1dfd2] p-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#fff1e6]">
+      {/* DESKTOP COLLAPSIBLE SIDEBAR */}
+      <aside
+        className={`swp-sidebar sticky top-0 hidden h-screen shrink-0 flex-col border-r border-[#f1dfd2] bg-white transition-[width] duration-300 ease-in-out md:flex ${
+          collapsed ? "w-[76px]" : "w-64"
+        }`}
+      >
+        {/* BRAND AND TOGGLE */}
+        <div
+          className={`flex min-h-[100px] items-center border-b border-[#f1dfd2] ${
+            collapsed
+              ? "flex-col justify-center gap-2 px-2 py-3"
+              : "justify-between gap-2 p-5"
+          }`}
+        >
+          <div
+            className={`flex min-w-0 items-center ${
+              collapsed ? "justify-center" : "gap-3"
+            }`}
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fff1e6]">
               <img
                 src="/ledger-watermark-logo.png"
                 alt="SWP Logo"
@@ -136,41 +165,94 @@ export default function Sidebar() {
               />
             </div>
 
-            <div>
-              <h1 className="font-bold text-[#3b2117]">SWP</h1>
-              <p className="text-xs text-[#a66a4a]">
-                Business Management
-              </p>
-            </div>
+            {!collapsed && (
+              <div className="min-w-0">
+                <h1 className="font-bold text-[#3b2117]">SWP</h1>
+                <p className="whitespace-nowrap text-xs text-[#a66a4a]">
+                  Business Management
+                </p>
+              </div>
+            )}
           </div>
+
+          <button
+            type="button"
+            onClick={() => setCollapsed((current) => !current)}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[#8b5940] transition hover:bg-[#fff1e6] hover:text-[#d96f2b]"
+          >
+            {collapsed ? (
+              <Menu size={21} />
+            ) : (
+              <ChevronLeft size={21} />
+            )}
+          </button>
         </div>
 
-        <nav className="flex-1 space-y-2 p-4">
+        {/* DESKTOP NAVIGATION */}
+        <nav
+          className={`flex-1 space-y-2 overflow-y-auto overflow-x-hidden py-4 ${
+            collapsed ? "px-2" : "px-4"
+          }`}
+        >
           {navigation.map((item) => {
-            const active = pathname === item.href;
+            const active =
+              pathname === item.href ||
+              pathname.startsWith(`${item.href}/`);
+
+            const Icon = item.icon;
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`block rounded-xl px-4 py-3 text-sm font-medium transition ${
+                title={collapsed ? item.name : undefined}
+                aria-label={item.name}
+                className={`group flex min-h-12 items-center rounded-xl text-sm font-medium transition-all duration-200 ${
+                  collapsed
+                    ? "justify-center px-2"
+                    : "gap-3 px-4"
+                } ${
                   active
-                    ? "bg-[#d96f2b] text-white"
-                    : "text-[#5b2f1f] hover:bg-[#fff1e6]"
+                    ? "bg-[#d96f2b] text-white shadow-sm"
+                    : "text-[#5b2f1f] hover:bg-[#fff1e6] hover:text-[#d96f2b]"
                 }`}
               >
-                {item.name}
+                <Icon
+                  size={21}
+                  strokeWidth={active ? 2.4 : 1.9}
+                  className="shrink-0"
+                />
+
+                {!collapsed && (
+                  <span className="truncate">{item.name}</span>
+                )}
               </Link>
             );
           })}
         </nav>
 
-        <div className="border-t border-[#f1dfd2] p-4">
+        {/* SIGN OUT */}
+        <div
+          className={`border-t border-[#f1dfd2] py-4 ${
+            collapsed ? "px-2" : "px-4"
+          }`}
+        >
           <button
+            type="button"
             onClick={handleSignOut}
-            className="w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-[#a64b2b] hover:bg-[#fff1e6]"
+            title={collapsed ? "Sign out" : undefined}
+            aria-label="Sign out"
+            className={`flex min-h-12 w-full items-center rounded-xl text-sm font-medium text-[#a64b2b] transition hover:bg-[#fff1e6] ${
+              collapsed
+                ? "justify-center px-2"
+                : "gap-3 px-4"
+            }`}
           >
-            Sign out
+            <LogOut size={21} className="shrink-0" />
+
+            {!collapsed && <span>Sign out</span>}
           </button>
         </div>
       </aside>
@@ -236,6 +318,7 @@ export default function Sidebar() {
                 <span className="text-2xl leading-none">
                   {item.icon}
                 </span>
+
                 <span className="text-[10px] font-medium">
                   {item.name}
                 </span>

@@ -1,5 +1,6 @@
 CREATE TYPE "SalesUnit" AS ENUM ('KGS', 'SQ_FT', 'R_FT', 'R_MTR');
 
+
 ALTER TABLE "SaleItem"
 ADD COLUMN "salesMeasurement" DECIMAL(12,3),
 ADD COLUMN "salesUnit" "SalesUnit" NOT NULL DEFAULT 'KGS';
