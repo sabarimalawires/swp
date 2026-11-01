@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/src/lib/authorization";
 import { prisma } from "@/src/lib/prisma";
@@ -7,6 +6,19 @@ import { createAuditLog } from "@/src/lib/audit";
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
+
+function normalizePhoneForComparison(value: string | null): string | null {
+  if (!value) return null;
+
+  let digits = value.replace(/\D/g, "");
+
+  // Treat a 10-digit Indian mobile number and its +91 form as identical.
+  if (/^[6-9]\d{9}$/.test(digits)) {
+    digits = `91${digits}`;
+  }
+
+  return digits || null;
+}
 
 export async function PATCH(
   request: Request,
@@ -36,7 +48,7 @@ export async function PATCH(
       );
     }
 
-    if (phone && !/^[0-9+\-\s()]{7,20}$/.test(phone)) {
+    if (phone && !/^[0-9+\s()-]{7,20}$/.test(phone)) {
       return NextResponse.json(
         { error: "Enter a valid mobile number." },
         { status: 400 }
@@ -49,6 +61,8 @@ export async function PATCH(
         id: true,
         name: true,
         phone: true,
+        whatsappDueRemindersOptIn: true,
+        whatsappDueRemindersOptInAt: true,
       },
     });
 
@@ -59,16 +73,31 @@ export async function PATCH(
       );
     }
 
+    const phoneChanged =
+      normalizePhoneForComparison(existing.phone) !==
+      normalizePhoneForComparison(phone);
+
     const customer = await prisma.$transaction(async (tx) => {
       const updated = await tx.customer.update({
         where: { id },
-        data: { name, phone },
+        data: {
+          name,
+          phone,
+          ...(phoneChanged
+            ? {
+                whatsappDueRemindersOptIn: false,
+                whatsappDueRemindersOptInAt: null,
+              }
+            : {}),
+        },
         select: {
           id: true,
           name: true,
           phone: true,
           createdAt: true,
           updatedAt: true,
+          whatsappDueRemindersOptIn: true,
+          whatsappDueRemindersOptInAt: true,
         },
       });
 
@@ -81,10 +110,18 @@ export async function PATCH(
           oldValue: {
             name: existing.name,
             phone: existing.phone,
+            whatsappDueRemindersOptIn:
+              existing.whatsappDueRemindersOptIn,
+            whatsappDueRemindersOptInAt:
+              existing.whatsappDueRemindersOptInAt,
           },
           newValue: {
             name: updated.name,
             phone: updated.phone,
+            whatsappDueRemindersOptIn:
+              updated.whatsappDueRemindersOptIn,
+            whatsappDueRemindersOptInAt:
+              updated.whatsappDueRemindersOptInAt,
           },
         },
         tx
