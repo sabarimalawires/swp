@@ -31,17 +31,44 @@ export async function GET(request: Request) {
     const tomorrowStart = new Date(todayStart);
     tomorrowStart.setDate(tomorrowStart.getDate() + 1);
 
-    const monthStart = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      1
-    );
+    const searchParams = new URL(request.url).searchParams;
 
-    const nextMonthStart = new Date(
-      now.getFullYear(),
-      now.getMonth() + 1,
-      1
-    );
+const requestedMonth = Number(searchParams.get("month"));
+const requestedYear = Number(searchParams.get("year"));
+
+const selectedMonth = searchParams.has("month")
+  ? requestedMonth
+  : now.getMonth() + 1;
+
+const selectedYear = searchParams.has("year")
+  ? requestedYear
+  : now.getFullYear();
+
+if (
+  !Number.isInteger(selectedMonth) ||
+  selectedMonth < 1 ||
+  selectedMonth > 12 ||
+  !Number.isInteger(selectedYear) ||
+  selectedYear < 2000 ||
+  selectedYear > 2100
+) {
+  return NextResponse.json(
+    { error: "Invalid month or year." },
+    { status: 400 }
+  );
+}
+
+const monthStart = new Date(
+  selectedYear,
+  selectedMonth - 1,
+  1
+);
+
+const nextMonthStart = new Date(
+  selectedYear,
+  selectedMonth,
+  1
+);
 
     // Today's approved production.
     const todaysApprovedWork = await prisma.workEntry.findMany({
@@ -303,6 +330,8 @@ const ledgerSummary = {
   salesCount: monthlySales.length,
   salesQuantity: monthlySalesQuantity,
   production: monthlyProduction,
+  selectedMonth,
+  selectedYear,
 };
 
     return NextResponse.json({

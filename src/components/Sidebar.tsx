@@ -58,7 +58,7 @@ export default function Sidebar() {
   const [role, setRole] = useState<"ADMIN" | "WORKER" | null>(null);
   const [employeeName, setEmployeeName] = useState("");
   const [showMore, setShowMore] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     const loadEmployee = async () => {
@@ -140,15 +140,23 @@ export default function Sidebar() {
 
       {/* DESKTOP COLLAPSIBLE SIDEBAR */}
       <aside
-        className={`swp-sidebar sticky top-0 z-[55] hidden h-screen shrink-0 flex-col overflow-hidden border-r border-[#f1dfd2] bg-white transition-all duration-300 ease-in-out ${
-          sidebarOpen
-            ? "w-64 translate-x-0 opacity-100"
-            : "w-0 -translate-x-full border-r-0 opacity-0 pointer-events-none"
+        className={`swp-sidebar sticky top-0 hidden h-screen shrink-0 flex-col border-r border-[#f1dfd2] bg-white transition-[width] duration-300 ease-in-out md:flex ${
+          collapsed ? "w-[76px]" : "w-64"
         }`}
       >
-        {/* BRAND AND CLOSE BUTTON */}
-        <div className="flex min-h-[100px] items-center justify-between gap-2 border-b border-[#f1dfd2] p-5">
-          <div className="flex min-w-0 items-center gap-3">
+        {/* BRAND AND TOGGLE */}
+        <div
+          className={`flex min-h-[100px] items-center border-b border-[#f1dfd2] ${
+            collapsed
+              ? "flex-col justify-center gap-2 px-2 py-3"
+              : "justify-between gap-2 p-5"
+          }`}
+        >
+          <div
+            className={`flex min-w-0 items-center ${
+              collapsed ? "justify-center" : "gap-3"
+            }`}
+          >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fff1e6]">
               <img
                 src="/ledger-watermark-logo.png"
@@ -157,27 +165,37 @@ export default function Sidebar() {
               />
             </div>
 
-            <div className="min-w-0">
-              <h1 className="font-bold text-[#3b2117]">SWP</h1>
-              <p className="whitespace-nowrap text-xs text-[#a66a4a]">
-                Business Management
-              </p>
-            </div>
+            {!collapsed && (
+              <div className="min-w-0">
+                <h1 className="font-bold text-[#3b2117]">SWP</h1>
+                <p className="whitespace-nowrap text-xs text-[#a66a4a]">
+                  Business Management
+                </p>
+              </div>
+            )}
           </div>
 
           <button
             type="button"
-            onClick={() => setSidebarOpen(false)}
-            aria-label="Close sidebar"
-            title="Close sidebar"
+            onClick={() => setCollapsed((current) => !current)}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[#8b5940] transition hover:bg-[#fff1e6] hover:text-[#d96f2b]"
           >
-            <ChevronLeft size={21} />
+            {collapsed ? (
+              <Menu size={21} />
+            ) : (
+              <ChevronLeft size={21} />
+            )}
           </button>
         </div>
 
         {/* DESKTOP NAVIGATION */}
-        <nav className="flex-1 space-y-2 overflow-y-auto overflow-x-hidden px-4 py-4">
+        <nav
+          className={`flex-1 space-y-2 overflow-y-auto overflow-x-hidden py-4 ${
+            collapsed ? "px-2" : "px-4"
+          }`}
+        >
           {navigation.map((item) => {
             const active =
               pathname === item.href ||
@@ -189,8 +207,13 @@ export default function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
+                title={collapsed ? item.name : undefined}
                 aria-label={item.name}
-                className={`group flex min-h-12 items-center gap-3 rounded-xl px-4 text-sm font-medium transition-all duration-200 ${
+                className={`group flex min-h-12 items-center rounded-xl text-sm font-medium transition-all duration-200 ${
+                  collapsed
+                    ? "justify-center px-2"
+                    : "gap-3 px-4"
+                } ${
                   active
                     ? "bg-[#d96f2b] text-white shadow-sm"
                     : "text-[#5b2f1f] hover:bg-[#fff1e6] hover:text-[#d96f2b]"
@@ -202,38 +225,37 @@ export default function Sidebar() {
                   className="shrink-0"
                 />
 
-                <span className="truncate">{item.name}</span>
+                {!collapsed && (
+                  <span className="truncate">{item.name}</span>
+                )}
               </Link>
             );
           })}
         </nav>
 
         {/* SIGN OUT */}
-        <div className="border-t border-[#f1dfd2] px-4 py-4">
+        <div
+          className={`border-t border-[#f1dfd2] py-4 ${
+            collapsed ? "px-2" : "px-4"
+          }`}
+        >
           <button
             type="button"
             onClick={handleSignOut}
+            title={collapsed ? "Sign out" : undefined}
             aria-label="Sign out"
-            className="flex min-h-12 w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-[#a64b2b] transition hover:bg-[#fff1e6]"
+            className={`flex min-h-12 w-full items-center rounded-xl text-sm font-medium text-[#a64b2b] transition hover:bg-[#fff1e6] ${
+              collapsed
+                ? "justify-center px-2"
+                : "gap-3 px-4"
+            }`}
           >
             <LogOut size={21} className="shrink-0" />
-            <span>Sign out</span>
+
+            {!collapsed && <span>Sign out</span>}
           </button>
         </div>
       </aside>
-
-      {/* REOPEN SIDEBAR BUTTON */}
-      {!sidebarOpen && (
-        <button
-          type="button"
-          onClick={() => setSidebarOpen(true)}
-          aria-label="Open sidebar"
-          title="Open sidebar"
-          className="fixed left-3 top-3 z-[70] hidden h-11 w-11 items-center justify-center rounded-xl border border-[#f1dfd2] bg-white text-[#d96f2b] shadow-lg transition hover:bg-[#fff1e6] md:flex"
-        >
-          <Menu size={23} />
-        </button>
-      )}
 
       {/* MOBILE BOTTOM NAVIGATION */}
       <div className="fixed bottom-0 left-0 z-50 w-full border-t border-[#f1dfd2] bg-white md:hidden">

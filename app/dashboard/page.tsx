@@ -31,6 +31,8 @@ type DashboardData = {
   salesCount: number;
   salesQuantity: number;
   production: number;
+  selectedMonth: number;
+  selectedYear: number;
 };
 };
 
@@ -48,6 +50,14 @@ export default function DashboardPage() {
 
   const [error, setError] =
     useState("");
+
+    const [selectedMonth, setSelectedMonth] = useState(
+  new Date().getMonth() + 1
+);
+
+const [selectedYear, setSelectedYear] = useState(
+  new Date().getFullYear()
+);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,8 +79,8 @@ export default function DashboardPage() {
         setUserName(data.user.name);
 
         const response = await fetch(
-          "/api/dashboard",
-          {
+  `/api/dashboard?month=${selectedMonth}&year=${selectedYear}`,
+  {
             method: "GET",
             headers: {
               Accept:
@@ -140,7 +150,7 @@ export default function DashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [router]);
+ }, [router, selectedMonth, selectedYear]);
 
   if (loading) {
     return (
@@ -219,24 +229,21 @@ export default function DashboardPage() {
     </p>
   </div>
 
-  <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+  <div className="swp-today-kpi-grid mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
 
     <ActivityCard
   title="No. of Sales"
   value={dashboard.todaysSales}
-  description="Active sales today"
 />
 
 <ActivityCard
   title="Sales Qty (kg)"
   value={dashboard.salesQuantityToday}
-  description="Total weight sold today"
 />
 
 <ActivityCard
-  title="Production Qty (kg)"
+  title="Production in (kg)"
   value={dashboard.todaysProduction}
-  description="Total weight produced today"
 />
 
   </div>
@@ -244,42 +251,75 @@ export default function DashboardPage() {
               {/* MONTHLY BUSINESS OVERVIEW */}
 <section className="mt-6 rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
 
-  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+  <div>
+    <h2 className="text-lg font-bold text-[#3b2117]">
+      Monthly Business Overview
+    </h2>
 
-    <div>
-      <h2 className="text-lg font-bold text-[#3b2117]">
-        Monthly Business Overview
-      </h2>
-
-      <p className="mt-1 text-sm text-[#7b5a49]">
-        Sales and production recorded this month.
-      </p>
-    </div>
-
-    <span className="w-fit rounded-full bg-[#fff1e6] px-3 py-1 text-xs font-semibold text-[#a66a4a]">
-      Current Month
-    </span>
-
+    <p className="mt-1 text-sm text-[#7b5a49]">
+      Sales and production for the selected month.
+    </p>
   </div>
 
-  <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+  <div className="grid grid-cols-2 gap-2 sm:flex sm:w-auto sm:min-w-[320px] sm:gap-3">
+  <select
+    value={selectedMonth}
+    onChange={(e) => setSelectedMonth(Number(e.target.value))}
+    className="h-9 min-w-0 rounded-lg border border-[#f1dfd2] bg-white px-2 text-sm font-medium text-[#3b2117] outline-none sm:h-12 sm:px-4 sm:text-base"
+  >
+      {[
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ].map((month, index) => (
+        <option key={month} value={index + 1}>
+          {month}
+        </option>
+      ))}
+    </select>
+
+     <select
+    value={selectedYear}
+    onChange={(e) => setSelectedYear(Number(e.target.value))}
+    className="h-9 min-w-0 rounded-lg border border-[#f1dfd2] bg-white px-2 text-sm font-medium text-[#3b2117] outline-none sm:h-12 sm:px-4 sm:text-base"
+  >
+      {Array.from(
+        { length: new Date().getFullYear() - 2020 + 1 },
+        (_, index) => new Date().getFullYear() - index
+      ).map((year) => (
+        <option key={year} value={year}>
+          {year}
+        </option>
+      ))}
+    </select>
+  </div>
+</div>
+
+  <div className="swp-monthly-kpi-grid mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
 
     <ActivityCard
   title="No. of Sales"
   value={dashboard.monthlyBusiness.salesCount}
-  description="Active sales this month"
 />
 
 <ActivityCard
   title="Sales Qty (kg)"
   value={dashboard.monthlyBusiness.salesQuantity}
-  description="Total weight sold this month"
 />
 
 <ActivityCard
-  title="Production Qty (kg)"
+  title="Production in (kg)"
   value={dashboard.monthlyBusiness.production}
-  description="Total weight produced this month"
 />   
 
   </div>
@@ -294,9 +334,6 @@ export default function DashboardPage() {
         Overall Ledger Summary
       </h2>
 
-      <p className="mt-1 text-sm text-[#7b5a49]">
-        Consolidated customer balances for the current financial year.
-      </p>
     </div>
 
     <span className="w-fit rounded-full bg-[#fff1e6] px-3 py-1 text-xs font-semibold text-[#a66a4a]">
@@ -306,7 +343,7 @@ export default function DashboardPage() {
     </span>
   </div>
 
-  <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+  <div className="swp-ledger-summary-grid mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
 
     <LedgerCard
       title="Total Opening Balance"
@@ -490,7 +527,7 @@ function MetricCard({
 }: {
   label: string;
   value: number;
-  description: string;
+  description?: string;
   accent:
     | "orange"
     | "brown"
@@ -561,7 +598,7 @@ function ActivityCard({
 }: {
   title: string;
   value: number;
-  description: string;
+  description?: string;
 }) {
   return (
     <div className="rounded-xl border border-[#f1dfd2] bg-[#fffaf6] p-5">
@@ -574,9 +611,11 @@ function ActivityCard({
         {value.toLocaleString()}
       </p>
 
-      <p className="mt-2 text-sm text-[#7b5a49]">
-        {description}
-      </p>
+      {description && (
+  <p className="mt-2 text-sm text-[#7b5a49]">
+    {description}
+  </p>
+)}
 
     </div>
   );
