@@ -512,3 +512,17 @@ model CustomerDueReminderLog {
   @@index([customerId, createdAt])
   @@map("customer_due_reminder_logs")
 }
+
+model WhatsAppWebhookEvent {
+  id                String   @id @default(cuid())
+  whatsappMessageId String   @unique
+  fromPhone         String
+  status            String   @default("PROCESSING")
+  replyMessageId    String?
+  error             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([createdAt])
+  @@map("whatsapp_webhook_events")
+}
