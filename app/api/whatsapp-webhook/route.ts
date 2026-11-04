@@ -1,7 +1,6 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
-import { prisma } from "@/src/lib/prisma";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -13,7 +12,7 @@ const TEMPLATE_NAME =
 const TEMPLATE_LANGUAGE =
   process.env.WHATSAPP_AUTO_REPLY_TEMPLATE_LANGUAGE || "en";
 
-// Meta webhook verification
+// Verify Meta webhook subscription
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
 
@@ -35,7 +34,7 @@ export async function GET(request: NextRequest) {
   return new NextResponse("Forbidden", { status: 403 });
 }
 
-// Verify that the POST request genuinely came from Meta
+// Verify Meta request signature
 function verifySignature(body: string, signature: string | null) {
   const appSecret = process.env.META_APP_SECRET;
 
@@ -43,25 +42,22 @@ function verifySignature(body: string, signature: string | null) {
     return false;
   }
 
+  const receivedHex = signature.slice(7);
+
+  if (!/^[a-f0-9]{64}$/i.test(receivedHex)) {
+    return false;
+  }
+
   const expected = createHmac("sha256", appSecret)
     .update(body)
     .digest();
 
-  let received: Buffer;
+  const received = Buffer.from(receivedHex, "hex");
 
-  try {
-    received = Buffer.from(signature.slice(7), "hex");
-  } catch {
-    return false;
-  }
-
-  return (
-    received.length === expected.length &&
-    timingSafeEqual(received, expected)
-  );
+  return timingSafeEqual(received, expected);
 }
 
-// Send the approved automatic reply template
+// Send automatic WhatsApp template reply
 async function sendAutoReply(phone: string) {
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
   const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
@@ -99,13 +95,7 @@ async function sendAutoReply(phone: string) {
     );
   }
 
-  const replyMessageId = result?.messages?.[0]?.id;
-
-  if (!replyMessageId) {
-    throw new Error("WhatsApp did not return a reply message ID.");
-  }
-
-  return replyMessageId as string;
+  return result?.messages?.[0]?.id;
 }
 
 // Receive incoming WhatsApp messages
@@ -139,7 +129,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   }
 
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const configuredPhoneNumberId =
+    process.env.WHATSAPP_PHONE_NUMBER_ID;
 
   for (const entry of payload.entry ?? []) {
     for (const change of entry.changes ?? []) {
@@ -147,59 +138,27 @@ export async function POST(request: NextRequest) {
 
       if (!value?.messages?.length) continue;
 
-      // Only handle events for our configured WhatsApp number.
-      if (value.metadata?.phone_number_id !== phoneNumberId) {
+      // Only process messages sent to our SWP WhatsApp number.
+      if (
+        value.metadata?.phone_number_id !==
+        configuredPhoneNumberId
+      ) {
         continue;
       }
 
       for (const message of value.messages) {
-        const incomingMessageId = message.id;
         const senderPhone = message.from;
 
-        if (!incomingMessageId || !senderPhone) continue;
-
-        // Claim this incoming message exactly once.
-        try {
-          await prisma.whatsAppWebhookEvent.create({
-            data: {
-              whatsappMessageId: incomingMessageId,
-              fromPhone: senderPhone,
-              status: "PROCESSING",
-            },
-          });
-        } catch (error: any) {
-          // A duplicate Meta webhook delivery is ignored.
-          if (error?.code === "P2002") continue;
-          throw error;
-        }
+        if (!message.id || !senderPhone) continue;
 
         try {
-          const replyMessageId = await sendAutoReply(senderPhone);
-
-          await prisma.whatsAppWebhookEvent.update({
-            where: { whatsappMessageId: incomingMessageId },
-            data: {
-              status: "ACCEPTED",
-              replyMessageId,
-              error: null,
-            },
-          });
+          await sendAutoReply(senderPhone);
+          console.log("WhatsApp automatic reply accepted.");
         } catch (error) {
           console.error(
             "WhatsApp automatic reply failed:",
             error
           );
-
-          await prisma.whatsAppWebhookEvent.update({
-            where: { whatsappMessageId: incomingMessageId },
-            data: {
-              status: "FAILED",
-              error:
-                error instanceof Error
-                  ? error.message.slice(0, 2000)
-                  : "Automatic reply failed.",
-            },
-          });
         }
       }
     }
