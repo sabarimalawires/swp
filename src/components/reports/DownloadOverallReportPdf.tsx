@@ -21,7 +21,7 @@ export default function DownloadOverallReportPdf({
         <button
           type="button"
           disabled={loading}
-          className="h-11 rounded-xl bg-[#b95720] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#a94d1c] disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-11 rounded-xl bg-[#b95720] px-5 text-sm font-semibold text-[#F2EAD2] shadow-sm transition hover:bg-[#a94d1c] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading
             ? "Preparing PDF..."

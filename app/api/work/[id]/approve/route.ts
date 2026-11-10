@@ -85,17 +85,17 @@ export async function POST(
         });
 
         await tx.inventoryTransaction.create({
-          data: {
-            productId: entry.productId,
-            type: "PRODUCTION",
-            quantity: 0,
-            weight: entry.weight,
-            referenceType: "WORK_ENTRY",
-            referenceId: entry.id,
-            createdById: admin.id,
-            workEntryId: entry.id,
-          },
-        });
+  data: {
+    productId: entry.productId,
+    type: "PRODUCTION",
+    quantity: entry.quantity,
+    weight: entry.weight,
+    referenceType: "WORK_ENTRY",
+    referenceId: entry.id,
+    createdById: admin.id,
+    workEntryId: entry.id,
+  },
+});
 
         await createAuditLog(
           {
@@ -107,12 +107,13 @@ export async function POST(
               status: "PENDING",
             },
             newValue: {
-              status: "APPROVED",
-              weight: entry.weight,
-              unit: "kg",
-              productId: entry.productId,
-              approvedById: admin.id,
-            },
+  status: "APPROVED",
+  quantity: entry.quantity,
+  weight: entry.weight,
+  weightUnit: "kg",
+  productId: entry.productId,
+  approvedById: admin.id,
+},
           },
           tx
         );

@@ -27,7 +27,7 @@ function DownloadSaleEstimatePdf({ data }: Props) {
     <PDFDownloadLink
       document={<SaleEstimatePdf data={data} />}
       fileName={`Estimate-${fileDate(data.saleDate)}.pdf`}
-      className="inline-flex shrink-0 items-center justify-center rounded-lg border border-[#e8d4c5] bg-white px-3 py-2 text-[11px] font-semibold text-[#c85f22] shadow-sm transition hover:border-[#d96f2b] hover:bg-[#fffaf6] hover:text-[#b9531d] sm:rounded-xl sm:px-4 sm:py-2.5 sm:text-xs"
+      className="inline-flex shrink-0 items-center justify-center rounded-lg border border-[#e8d4c5] bg-[#F2EAD2] px-3 py-2 text-[11px] font-semibold text-[#c85f22] shadow-sm transition hover:border-[#1E3B2F] hover:bg-[#fffaf6] hover:text-[#b9531d] sm:rounded-xl sm:px-4 sm:py-2.5 sm:text-xs"
     >
       Generate Estimate
     </PDFDownloadLink>

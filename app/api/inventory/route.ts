@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { auth } from "@/src/lib/auth";
 import { prisma } from "@/src/lib/prisma";
@@ -34,6 +33,7 @@ export async function GET(request: Request) {
         id: true,
         name: true,
         code: true,
+        initialStockQuantity: true,
         initialStockKg: true,
         lowStockThresholdKg: true,
       },
@@ -48,6 +48,7 @@ export async function GET(request: Request) {
           select: {
             productId: true,
             type: true,
+            quantity: true,
             weight: true,
           },
           orderBy: { createdAt: "asc" },
@@ -60,28 +61,29 @@ export async function GET(request: Request) {
       );
 
       let stockKg = 0;
+      let stockQuantity = 0;
 
       for (const transaction of productTransactions) {
-        const weightKg = Number(transaction.weight);
-
-        // Legacy transactions have no verified kg value.
-        // Never interpret their old unit quantity as kilograms.
-        if (!Number.isFinite(weightKg) || weightKg === 0) {
-          continue;
-        }
+        const weightKg = Number(transaction.weight) || 0;
+        const quantity = Number(transaction.quantity) || 0;
 
         switch (transaction.type) {
           case "INITIAL_STOCK":
           case "PRODUCTION":
+          case "PURCHASE":
           case "STOCK_ADJUSTMENT_ADD":
           case "SALE_VOID":
             stockKg += weightKg;
+            stockQuantity += quantity;
             break;
 
           case "SALE":
+          case "PURCHASE_VOID":
+          case "PURCHASE_EDIT_REVERSAL":
           case "STOCK_ADJUSTMENT_REMOVE":
           case "PRODUCTION_REVERSAL":
             stockKg -= weightKg;
+            stockQuantity -= quantity;
             break;
 
           default:
@@ -89,20 +91,34 @@ export async function GET(request: Request) {
         }
       }
 
-      // Use the product's kg opening balance unless a verified,
-      // non-zero kg INITIAL_STOCK transaction already represents it.
-      const hasKgInitialStockTransaction = productTransactions.some(
-        (transaction) =>
-          transaction.type === "INITIAL_STOCK" &&
-          Number(transaction.weight) !== 0,
-      );
+      // Opening quantity: use the product opening stock
+      // unless an explicit INITIAL_STOCK quantity exists.
+      const hasInitialQuantityTransaction =
+        productTransactions.some(
+          (transaction) =>
+            transaction.type === "INITIAL_STOCK" &&
+            Number(transaction.quantity) !== 0,
+        );
 
-      if (!hasKgInitialStockTransaction) {
+      if (!hasInitialQuantityTransaction) {
+        stockQuantity += Number(product.initialStockQuantity ?? 0);
+      }
+
+      // Opening weight: use the product opening weight
+      // unless an explicit INITIAL_STOCK kg value exists.
+      const hasInitialWeightTransaction =
+        productTransactions.some(
+          (transaction) =>
+            transaction.type === "INITIAL_STOCK" &&
+            Number(transaction.weight) !== 0,
+        );
+
+      if (!hasInitialWeightTransaction) {
         stockKg += Number(product.initialStockKg);
       }
 
-      // Keep three decimal places without clamping negative stock.
-      stockKg = Math.round((stockKg + Number.EPSILON) * 1000) / 1000;
+      stockKg =
+        Math.round((stockKg + Number.EPSILON) * 1000) / 1000;
 
       const lowStockThresholdKg = Number(
         product.lowStockThresholdKg,
@@ -112,6 +128,7 @@ export async function GET(request: Request) {
         id: product.id,
         name: product.name,
         code: product.code,
+        stockQuantity,
         stockKg,
         lowStockThresholdKg,
         isLowStock: stockKg <= lowStockThresholdKg,

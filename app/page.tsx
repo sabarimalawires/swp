@@ -24,7 +24,7 @@ useEffect(() => {
 
   return (
     <main
-      className="relative min-h-screen overflow-hidden bg-cover bg-center bg-no-repeat text-white"
+      className="relative min-h-screen overflow-hidden bg-cover bg-center bg-no-repeat text-[#F2EAD2]"
       style={{ backgroundImage: "url('/Golden Hour Fence Line.png')" }}
     >
 
@@ -154,7 +154,7 @@ useEffect(() => {
                     onChange={(e) => setUsername(e.target.value)}
                     autoComplete="username"
                     placeholder="Enter your username"
-                    className="h-16 w-full rounded-2xl border border-white/25 bg-white/[0.06] pl-12 pr-4 text-white outline-none transition placeholder:text-gray-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-500/30"
+                    className="h-16 w-full rounded-2xl border border-white/25 bg-[#F2EAD2]/[0.06] pl-12 pr-4 text-[#F2EAD2] outline-none transition placeholder:text-gray-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-500/30"
                   />
                 </div>
               </div>
@@ -182,7 +182,7 @@ useEffect(() => {
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="current-password"
                     placeholder="Enter your password"
-                    className="h-16 w-full rounded-2xl border border-white/25 bg-white/[0.06] pl-12 pr-14 text-white outline-none transition placeholder:text-gray-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-500/30"
+                    className="h-16 w-full rounded-2xl border border-white/25 bg-[#F2EAD2]/[0.06] pl-12 pr-14 text-[#F2EAD2] outline-none transition placeholder:text-gray-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-500/30"
                   />
 
                   <button

@@ -1,4 +1,4 @@
-﻿
+
     "use client";
 
     import { useCallback, useEffect, useState } from "react";
@@ -51,17 +51,68 @@
       rows: LedgerRow[];
     };
 
-    type LedgerResponse = {
-      financialYear: string;
-      summary: {
-        customerCount: number;
-        openingBalance: number;
-        totalSales: number;
-        totalPayments: number;
-        closingBalance: number;
-      };
-      ledgers: CustomerLedger[];
-    };
+    type SupplierLedgerRow = {
+  id: string;
+  date: string;
+  type: "PURCHASE" | "SUPPLIER_PAYMENT";
+  item: string;
+  invoiceNumber: string | null;
+  quantity: number | null;
+  weight: number | null;
+  amount: number;
+  paymentMade: number;
+  paymentNote: string | null;
+  serialNumber: number;
+  balance: number;
+  items: {
+    id: string;
+    productId: string;
+    productName: string;
+    quantity: number | null;
+    weight: number;
+    rate: number;
+    amount: number;
+  }[];
+};
+
+type SupplierLedger = {
+  supplier: {
+    id: string;
+    name: string;
+    phone: string | null;
+    email: string | null;
+    gstNumber: string | null;
+  };
+  financialYear: string;
+  financialYearStart: string;
+  financialYearEnd: string;
+  openingBalance: number;
+  totalPurchases: number;
+  totalPayments: number;
+    closingBalance: number;
+  openingBalanceIsManualOverride: boolean;
+  rows: SupplierLedgerRow[];
+};
+
+type LedgerResponse = {
+  financialYear: string;
+  summary: {
+    customerCount: number;
+    openingBalance: number;
+    totalSales: number;
+    totalPayments: number;
+    closingBalance: number;
+  };
+  supplierSummary: {
+    supplierCount: number;
+    openingBalance: number;
+    totalPurchases: number;
+    totalPayments: number;
+    closingBalance: number;
+  };
+  ledgers: CustomerLedger[];
+  supplierLedgers: SupplierLedger[];
+};
 
     const currency = (value: number) =>
       new Intl.NumberFormat("en-IN", {
@@ -85,7 +136,23 @@
         new Date().getMonth() < 3 ? currentYear - 1 : currentYear;
 
       const [year, setYear] = useState(defaultYear);
-      const [selectedCustomer, setSelectedCustomer] = useState("ALL");
+      const [ledgerType, setLedgerType] = useState<
+  "CUSTOMER" | "SUPPLIER" | "COMBINED"
+>("COMBINED");
+
+const [selectedCustomer, setSelectedCustomer] = useState("ALL");
+const [selectedSupplier, setSelectedSupplier] = useState("ALL");
+const [supplierOpeningBalanceInput, setSupplierOpeningBalanceInput] =
+  useState("");
+
+const [supplierOverrideReason, setSupplierOverrideReason] =
+  useState("");
+
+const [savingSupplierOpening, setSavingSupplierOpening] =
+  useState(false);
+
+const [supplierOpeningMessage, setSupplierOpeningMessage] =
+  useState("");
       const [data, setData] = useState<LedgerResponse | null>(null);
       const [loading, setLoading] = useState(true);
       const [error, setError] = useState("");
@@ -102,7 +169,13 @@
       setOpeningMessage("");
     }, [selectedCustomer, year]);
 
-     
+    useEffect(() => {
+  setSupplierOpeningBalanceInput("");
+  setSupplierOverrideReason("");
+  setSupplierOpeningMessage("");
+}, [selectedSupplier, year]);
+
+
       const loadLedger = useCallback(async () => {
         setLoading(true);
         setError("");
@@ -135,14 +208,37 @@
         void loadLedger();
       }, [loadLedger]);
 
-      
+
 
       const visibleLedgers =
-        data?.ledgers.filter(
-          (ledger) =>
-            selectedCustomer === "ALL" ||
-            ledger.customer.id === selectedCustomer
-        ) ?? [];
+  data?.ledgers.filter(
+    (ledger) =>
+      selectedCustomer === "ALL" ||
+      ledger.customer.id === selectedCustomer
+  ) ?? [];
+
+const visibleSupplierLedgers =
+  data?.supplierLedgers.filter(
+    (ledger) =>
+      selectedSupplier === "ALL" ||
+      ledger.supplier.id === selectedSupplier
+  ) ?? [];
+
+const combined = ledgerType === "COMBINED";
+
+const selectedLedger =
+  ledgerType === "CUSTOMER" &&
+  selectedCustomer !== "ALL" &&
+  visibleLedgers.length === 1
+    ? visibleLedgers[0]
+    : null;
+
+const selectedSupplierLedger =
+  ledgerType === "SUPPLIER" &&
+  selectedSupplier !== "ALL" &&
+  visibleSupplierLedgers.length === 1
+    ? visibleSupplierLedgers[0]
+    : null;
       const saveOpeningBalance = async () => {
         if (selectedCustomer === "ALL") {
           setOpeningMessage("Select an individual customer first.");
@@ -178,7 +274,7 @@
           );
 
           const result = await response.json();
-          
+
 
           if (!response.ok) {
             throw new Error(result.error ?? "Failed to save opening balance.");
@@ -197,12 +293,75 @@
         }
       };
 
+      const saveSupplierOpeningBalance = async () => {
+  if (
+    ledgerType !== "SUPPLIER" ||
+    selectedSupplier === "ALL"
+  ) {
+    setSupplierOpeningMessage(
+      "Select an individual supplier first."
+    );
+    return;
+  }
 
-      const combined = selectedCustomer === "ALL";
-      const selectedLedger =
-      !combined && visibleLedgers.length === 1
-        ? visibleLedgers[0]
-        : null;
+  const balance = Number(supplierOpeningBalanceInput);
+
+  if (
+    supplierOpeningBalanceInput.trim() === "" ||
+    !Number.isFinite(balance)
+  ) {
+    setSupplierOpeningMessage(
+      "Enter a valid opening balance."
+    );
+    return;
+  }
+
+  setSavingSupplierOpening(true);
+  setSupplierOpeningMessage("");
+
+  try {
+    const response = await fetch(
+      "/api/ledger/supplier-opening-balance",
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          supplierId: selectedSupplier,
+          financialYearStart: `${year}-04-01`,
+          openingBalance: balance,
+          overrideReason: supplierOverrideReason.trim(),
+        }),
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        result.error ?? "Failed to save supplier opening balance."
+      );
+    }
+
+    setSupplierOpeningBalanceInput("");
+    setSupplierOverrideReason("");
+
+    setSupplierOpeningMessage(
+      "Supplier opening balance saved successfully."
+    );
+
+    await loadLedger();
+  } catch (err) {
+    setSupplierOpeningMessage(
+      err instanceof Error
+        ? err.message
+        : "Failed to save supplier opening balance."
+    );
+  } finally {
+    setSavingSupplierOpening(false);
+  }
+};
 
     const isValidWhatsAppPhone = (phone: string | null) => {
       if (!phone) return false;
@@ -255,8 +414,8 @@
     };
 
      return (
-      
-    <div className="swp-ledger flex min-h-screen bg-[#fffaf5]">
+
+    <div className="swp-ledger flex min-h-screen bg-[#F2EAD2]">
       <div className="no-print">
         <Sidebar />
       </div>
@@ -273,8 +432,8 @@
     margin: 0;
     box-sizing: border-box;
         padding: 28px;
-        color: #3b2117;
-        background: #fffaf5;
+        color: #1E3B2F;
+        background: #F2EAD2;
         min-height: 100vh;
       }
 
@@ -283,7 +442,7 @@
       }
 
       .ledger-page header h1 {
-        color: #3b2117;
+        color: #1E3B2F;
       }
 
       .ledger-toolbar {
@@ -303,7 +462,7 @@
       .ledger-field label {
         font-size: 13px;
         font-weight: 600;
-        color: #5b2f1f;
+        color: #1E3B2F;
       }
 
       .ledger-field select,
@@ -313,13 +472,13 @@
         border-radius: 10px;
         padding: 10px 12px;
         background: white;
-        color: #3b2117;
+        color: #1E3B2F;
         font: inherit;
       }
 
       .ledger-page button {
-        border: 1px solid #d96f2b;
-        background: #d96f2b;
+        border: 1px solid #1E3B2F;
+        background: #1E3B2F;
         color: white;
         padding: 11px 17px;
         border-radius: 10px;
@@ -346,10 +505,10 @@
       .ledger-stat,
       .ledger-card,
       .opening-balance-panel {
-        border: 1px solid #f1dfd2;
+        border: 1px solid #D5CBB3;
         background: white;
         border-radius: 16px;
-        box-shadow: 0 4px 16px #5b2f1f08;
+        box-shadow: 0 4px 16px #1E3B2F08;
       }
 
       .ledger-stat {
@@ -359,14 +518,14 @@
 
       .ledger-stat span {
         display: block;
-        color: #a66a4a;
+        color: #718477;
         font-size: 13px;
         font-weight: 600;
         margin-bottom: 10px;
       }
 
       .ledger-stat strong {
-        color: #3b2117;
+        color: #1E3B2F;
         font-size: 19px;
         overflow-wrap: anywhere;
       }
@@ -380,7 +539,7 @@
       .ledger-heading {
         text-align: center;
         margin-bottom: 20px;
-        color: #3b2117;
+        color: #1E3B2F;
       }
 
       .ledger-heading h2 {
@@ -395,7 +554,7 @@
 
       .ledger-table-wrap {
         overflow-x: auto;
-        border: 1px solid #f1dfd2;
+        border: 1px solid #D5CBB3;
         border-radius: 10px;
       }
 
@@ -408,15 +567,15 @@
 
       .ledger-table th,
       .ledger-table td {
-        border: 1px solid #f1dfd2;
+        border: 1px solid #D5CBB3;
         padding: 10px 8px;
         text-align: right;
         white-space: nowrap;
       }
 
       .ledger-table th {
-        background: #fff1e6;
-        color: #5b2f1f;
+        background: #E5E9DA;
+        color: #1E3B2F;
         font-weight: 700;
       }
 
@@ -428,18 +587,18 @@
       }
 
       .ledger-table tbody tr:nth-child(even) {
-        background: #fffaf5;
+        background: #F2EAD2;
       }
 
       .ledger-table .opening-row td,
       .ledger-table .closing-row td {
         font-weight: 700;
-        background: #fff1e6;
-        color: #5b2f1f;
+        background: #E5E9DA;
+        color: #1E3B2F;
       }
 
       .ledger-muted {
-        color: #a66a4a;
+        color: #718477;
         font-size: 13px;
       }
 
@@ -450,7 +609,7 @@
 
       .opening-balance-panel h2 {
         margin: 0 0 8px;
-        color: #3b2117;
+        color: #1E3B2F;
         font-size: 18px;
       }
 
@@ -698,11 +857,20 @@
     </style>
           <header>
             <h1 style={{ fontSize: 26, fontWeight: 700 }}>
-              Yearly Sales Ledger
-            </h1>
-            <p className="ledger-muted">
-              Customer accounts and combined business report
-            </p>
+  {ledgerType === "CUSTOMER"
+    ? "Yearly Customer Ledger"
+    : ledgerType === "SUPPLIER"
+      ? "Yearly Supplier Ledger"
+      : "Yearly Combined Business Ledger"}
+</h1>
+
+<p className="ledger-muted">
+  {ledgerType === "CUSTOMER"
+    ? "Customer sales and payment accounts"
+    : ledgerType === "SUPPLIER"
+      ? "Supplier purchase and payment accounts"
+      : "Combined customer and supplier business report"}
+</p>
           </header>
 
           <section className="ledger-toolbar no-print">
@@ -724,50 +892,103 @@
               </select>
             </div>
 
+
             <div className="ledger-field">
-              <label htmlFor="ledger-customer">Ledger view</label>
-              <select
-                id="ledger-customer"
-                value={selectedCustomer}
-                onChange={(event) => setSelectedCustomer(event.target.value)}
-              >
-                <option value="ALL">Combined business report</option>
-                {(data?.ledgers ?? []).map((ledger) => (
-                  <option key={ledger.customer.id} value={ledger.customer.id}>
-                    {ledger.customer.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+  <label htmlFor="ledger-type">Ledger Type</label>
+  <select
+    id="ledger-type"
+    value={ledgerType}
+    onChange={(event) => {
+      setLedgerType(
+        event.target.value as "CUSTOMER" | "SUPPLIER" | "COMBINED"
+      );
+    }}
+  >
+    <option value="CUSTOMER">Customer Ledger</option>
+    <option value="SUPPLIER">Supplier Ledger</option>
+    <option value="COMBINED">Combined Business Ledger</option>
+  </select>
+</div>
+
+{(ledgerType === "CUSTOMER" || ledgerType === "COMBINED") && (
+  <div className="ledger-field">
+    <label htmlFor="ledger-customer">Customer</label>
+    <select
+      id="ledger-customer"
+      value={selectedCustomer}
+      onChange={(event) => setSelectedCustomer(event.target.value)}
+    >
+      <option value="ALL">All Customers</option>
+      {(data?.ledgers ?? []).map((ledger) => (
+        <option key={ledger.customer.id} value={ledger.customer.id}>
+          {ledger.customer.name}
+        </option>
+      ))}
+    </select>
+  </div>
+)}
+
+{(ledgerType === "SUPPLIER" || ledgerType === "COMBINED") && (
+  <div className="ledger-field">
+    <label htmlFor="ledger-supplier">Supplier</label>
+    <select
+      id="ledger-supplier"
+      value={selectedSupplier}
+      onChange={(event) => setSelectedSupplier(event.target.value)}
+    >
+      <option value="ALL">All Suppliers</option>
+      {(data?.supplierLedgers ?? []).map((ledger) => (
+        <option key={ledger.supplier.id} value={ledger.supplier.id}>
+          {ledger.supplier.name}
+        </option>
+      ))}
+    </select>
+  </div>
+)}
 
             {data && !loading && !error && (
-      <DownloadLedgerPdf
-        data={data}
-        combined={combined}
-        financialYear={`${year}-${String(year + 1).slice(-2)}`}
-        customerName={
-          combined
-            ? undefined
-            : visibleLedgers[0]?.customer.name
-        }
-          customerId={combined ? undefined : selectedCustomer}
-      />
-    )}
+  <DownloadLedgerPdf
+    data={data}
+    ledgerType={ledgerType}
+    financialYear={`${year}-${String(year + 1).slice(-2)}`}
+    customerId={
+      ledgerType === "CUSTOMER" && selectedCustomer !== "ALL"
+        ? selectedCustomer
+        : undefined
+    }
+    supplierId={
+      ledgerType === "SUPPLIER" && selectedSupplier !== "ALL"
+        ? selectedSupplier
+        : undefined
+    }
+    customerName={
+      visibleLedgers.length === 1
+        ? visibleLedgers[0].customer.name
+        : undefined
+    }
+    supplierName={
+      visibleSupplierLedgers.length === 1
+        ? visibleSupplierLedgers[0].supplier.name
+        : undefined
+    }
+  />
+)}
 
-    <button
-      type="button"
-      onClick={() => void handleSendWhatsAppNow()}
-      disabled={!canSendWhatsApp || sendingWhatsApp || loading}
-      style={{
-        backgroundColor: "#25D366",
-        borderColor: "#25D366",
-        color: "#ffffff",
-      }}
-    >
-      {sendingWhatsApp ? "Sending..." : "Send WhatsApp Now"}
-    </button>
-
-            <button
+    {ledgerType === "CUSTOMER" && (
+  <button
+    type="button"
+    onClick={() => void handleSendWhatsAppNow()}
+    disabled={!canSendWhatsApp || sendingWhatsApp || loading}
+    style={{
+      backgroundColor: "#25D366",
+      borderColor: "#25D366",
+      color: "#ffffff",
+    }}
+  >
+    {sendingWhatsApp ? "Sending..." : "Send WhatsApp Now"}
+  </button>
+)}
+                  <button
               type="button"
               className="ledger-button"
               onClick={() => void loadLedger()}
@@ -789,7 +1010,8 @@
       </p>
     )}
 
-                <section className="opening-balance-panel no-print">
+                {ledgerType === "CUSTOMER" && (
+  <section className="opening-balance-panel no-print">
       <h2>Edit Opening Balance</h2>
       <p>
         Select an individual customer and enter the opening balance for the
@@ -829,6 +1051,69 @@
 
       {openingMessage && <p>{openingMessage}</p>}
     </section>
+                )}
+                {ledgerType === "SUPPLIER" &&
+  selectedSupplier !== "ALL" &&
+  selectedSupplierLedger && (
+    <section className="opening-balance-panel no-print">
+      <h2>Edit Supplier Opening Balance</h2>
+
+      <p>
+        Supplier: <strong>{selectedSupplierLedger.supplier.name}</strong>
+      </p>
+
+      <p>
+        Automatically calculated opening balance:{" "}
+        {currency(selectedSupplierLedger.openingBalance)}
+      </p>
+
+      {selectedSupplierLedger.openingBalanceIsManualOverride && (
+        <p className="ledger-muted">
+          The opening balance has been manually overridden.
+        </p>
+      )}
+
+      <div className="ledger-toolbar">
+        <input
+          type="number"
+          step="0.01"
+          value={supplierOpeningBalanceInput}
+          onChange={(event) =>
+            setSupplierOpeningBalanceInput(event.target.value)
+          }
+          placeholder="New opening balance"
+          disabled={savingSupplierOpening}
+        />
+
+        <input
+          type="text"
+          value={supplierOverrideReason}
+          onChange={(event) =>
+            setSupplierOverrideReason(event.target.value)
+          }
+          placeholder="Reason for adjustment (optional)"
+          disabled={savingSupplierOpening}
+        />
+
+        <button
+          type="button"
+          onClick={() => void saveSupplierOpeningBalance()}
+          disabled={
+            savingSupplierOpening ||
+            supplierOpeningBalanceInput.trim() === ""
+          }
+        >
+          {savingSupplierOpening
+            ? "Saving..."
+            : "Save Supplier Opening Balance"}
+        </button>
+      </div>
+
+      {supplierOpeningMessage && (
+        <p role="status">{supplierOpeningMessage}</p>
+      )}
+    </section>
+  )}
 
           {loading && <p>Loading ledger...</p>}
 
@@ -848,54 +1133,101 @@
 
           {!loading && !error && data && (
             <>
-              <section className="ledger-summary">
-                <div className="ledger-stat">
-                  <span>Opening balance</span>
-                  <strong>
-                    {currency(
-                      combined
-                        ? data.summary.openingBalance
-                        : visibleLedgers[0]?.openingBalance ?? 0
-                    )}
-                  </strong>
-                </div>
-                <div className="ledger-stat">
-                  <span>Total sales</span>
-                  <strong>
-                    {currency(
-                      combined
-                        ? data.summary.totalSales
-                        : visibleLedgers[0]?.totalSales ?? 0
-                    )}
-                  </strong>
-                </div>
-                <div className="ledger-stat">
-                  <span>Payments received</span>
-                  <strong>
-                    {currency(
-                      combined
-                        ? data.summary.totalPayments
-                        : visibleLedgers[0]?.totalPayments ?? 0
-                    )}
-                  </strong>
-                </div>
-                <div className="ledger-stat">
-                  <span>Closing balance</span>
-                  <strong>
-                    {currency(
-                      combined
-                        ? data.summary.closingBalance
-                        : visibleLedgers[0]?.closingBalance ?? 0
-                    )}
-                  </strong>
-                </div>
-              </section>
+                            {ledgerType === "CUSTOMER" && (
+  <section className="ledger-summary">
+    <div className="ledger-stat">
+      <span>Opening Balance</span>
+      <strong>
+        {currency(visibleLedgers[0]?.openingBalance ?? 0)}
+      </strong>
+    </div>
 
-              {visibleLedgers.length === 0 && (
-                <p>No customer ledgers found for this financial year.</p>
-              )}
+    <div className="ledger-stat">
+      <span>Total Sales</span>
+      <strong>
+        {currency(visibleLedgers[0]?.totalSales ?? 0)}
+      </strong>
+    </div>
 
-              {visibleLedgers.map((ledger) => (
+    <div className="ledger-stat">
+      <span>Payments Received</span>
+      <strong>
+        {currency(visibleLedgers[0]?.totalPayments ?? 0)}
+      </strong>
+    </div>
+
+    <div className="ledger-stat">
+      <span>Closing Balance</span>
+      <strong>
+        {currency(visibleLedgers[0]?.closingBalance ?? 0)}
+      </strong>
+    </div>
+  </section>
+)}
+
+{ledgerType === "SUPPLIER" && (
+  <section className="ledger-summary">
+    <div className="ledger-stat">
+      <span>Opening Balance</span>
+      <strong>
+        {currency(visibleSupplierLedgers[0]?.openingBalance ?? 0)}
+      </strong>
+    </div>
+
+    <div className="ledger-stat">
+      <span>Total Purchases</span>
+      <strong>
+        {currency(visibleSupplierLedgers[0]?.totalPurchases ?? 0)}
+      </strong>
+    </div>
+
+    <div className="ledger-stat">
+      <span>Payments Made</span>
+      <strong>
+        {currency(visibleSupplierLedgers[0]?.totalPayments ?? 0)}
+      </strong>
+    </div>
+
+    <div className="ledger-stat">
+      <span>Closing Balance</span>
+      <strong>
+        {currency(visibleSupplierLedgers[0]?.closingBalance ?? 0)}
+      </strong>
+    </div>
+  </section>
+)}
+
+{ledgerType === "COMBINED" && (
+  <section className="ledger-summary">
+    <div className="ledger-stat">
+      <span>Customer Closing Balance</span>
+      <strong>{currency(data.summary.closingBalance)}</strong>
+    </div>
+
+    <div className="ledger-stat">
+      <span>Supplier Closing Balance</span>
+      <strong>{currency(data.supplierSummary.closingBalance)}</strong>
+    </div>
+
+    <div className="ledger-stat">
+      <span>Total Sales</span>
+      <strong>{currency(data.summary.totalSales)}</strong>
+    </div>
+
+    <div className="ledger-stat">
+      <span>Total Purchases</span>
+      <strong>{currency(data.supplierSummary.totalPurchases)}</strong>
+    </div>
+  </section>
+)}
+
+              {(ledgerType === "CUSTOMER" || ledgerType === "COMBINED") &&
+  visibleLedgers.length === 0 && (
+    <p>No customer ledgers found for this financial year.</p>
+  )}
+
+              {(ledgerType === "CUSTOMER" || ledgerType === "COMBINED") &&
+  visibleLedgers.map((ledger) => (
                 <section className="ledger-card" key={ledger.customer.id}>
                   <div className="ledger-heading">
                     <h2>
@@ -1020,6 +1352,146 @@
                   )}
                 </section>
               ))}
+              {(ledgerType === "SUPPLIER" || ledgerType === "COMBINED") && (
+  <>
+    {visibleSupplierLedgers.length === 0 && (
+      <p>No supplier ledgers found for this financial year.</p>
+    )}
+
+    {visibleSupplierLedgers.map((ledger) => (
+      <section className="ledger-card" key={ledger.supplier.id}>
+        <div className="ledger-heading">
+          <h2>
+            {ledgerType === "COMBINED"
+              ? ledger.supplier.name
+              : "SUPPLIER PURCHASE LEDGER"}
+          </h2>
+
+          <p>Financial Year: {ledger.financialYear}</p>
+
+          {ledgerType === "SUPPLIER" && (
+            <p>Supplier: {ledger.supplier.name}</p>
+          )}
+
+          {ledger.supplier.phone && (
+            <p>Phone: {ledger.supplier.phone}</p>
+          )}
+
+          {ledger.supplier.gstNumber && (
+            <p>GST: {ledger.supplier.gstNumber}</p>
+          )}
+        </div>
+
+        <div className="ledger-table-wrap">
+          <table className="ledger-table">
+            <thead>
+              <tr>
+                <th>S.No</th>
+                <th>Date</th>
+                <th>Item / Particulars</th>
+                <th>Quantity / Weight</th>
+                <th>Rate</th>
+                <th>Purchase Amount</th>
+                <th>Payment Made</th>
+                <th>Balance</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr className="opening-row">
+                <td>-</td>
+                <td>{dateText(ledger.financialYearStart)}</td>
+                <td>Opening Balance</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>{currency(ledger.openingBalance)}</td>
+              </tr>
+
+              {ledger.rows.map((row) => (
+                <tr key={`${row.type}-${row.id}`}>
+                  <td>{row.serialNumber}</td>
+                  <td>{dateText(row.date)}</td>
+
+                  <td>
+                    {row.type === "PURCHASE" && row.items.length > 0 ? (
+                      <div>
+                        {row.items.map((item) => (
+                          <div key={item.id} style={{ marginBottom: 5 }}>
+                            {item.productName}
+                          </div>
+                        ))}
+                        {row.invoiceNumber && (
+                          <div>Invoice: {row.invoiceNumber}</div>
+                        )}
+                      </div>
+                    ) : (
+                      row.item || row.paymentNote || "-"
+                    )}
+                  </td>
+
+                  <td>
+                    {row.type === "PURCHASE" && row.items.length > 0 ? (
+                      <div>
+                        {row.items.map((item) => (
+                          <div key={item.id} style={{ marginBottom: 5 }}>
+                            {item.quantity != null
+                              ? `${item.quantity} units`
+                              : `${item.weight.toFixed(3)} kg`}
+                          </div>
+                        ))}
+                      </div>
+                    ) : row.type === "PURCHASE" ? (
+                      `${(row.weight ?? 0).toFixed(3)} kg`
+                    ) : (
+                      "-"
+                    )}
+                  </td>
+
+                  <td>
+                    {row.type === "PURCHASE" && row.items.length > 0 ? (
+                      <div>
+                        {row.items.map((item) => (
+                          <div key={item.id} style={{ marginBottom: 5 }}>
+                            {currency(item.rate)}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      "-"
+                    )}
+                  </td>
+
+                  <td>
+                    {row.type === "PURCHASE"
+                      ? currency(row.amount)
+                      : "-"}
+                  </td>
+
+                  <td>
+                    {row.type === "SUPPLIER_PAYMENT"
+                      ? currency(row.paymentMade)
+                      : "-"}
+                  </td>
+
+                  <td>{currency(row.balance)}</td>
+                </tr>
+              ))}
+
+              <tr className="closing-row">
+                <td colSpan={5}>Closing Balance</td>
+                <td>{currency(ledger.totalPurchases)}</td>
+                <td>{currency(ledger.totalPayments)}</td>
+                <td>{currency(ledger.closingBalance)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    ))}
+  </>
+)}
             </>
           )}
             </main>

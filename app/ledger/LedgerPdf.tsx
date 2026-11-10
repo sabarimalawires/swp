@@ -1,4 +1,3 @@
-
 import {
   Document,
   Page,
@@ -21,7 +20,7 @@ type LedgerSaleItem = {
   inventoryDeductionKg: number;
 };
 
-type LedgerRow = {
+type CustomerLedgerRow = {
   id: string;
   date: string | Date;
   type: "SALE" | "PAYMENT";
@@ -36,7 +35,7 @@ type LedgerRow = {
   items?: LedgerSaleItem[];
 };
 
-type Ledger = {
+type CustomerLedger = {
   customer: {
     id: string;
     name: string;
@@ -50,7 +49,51 @@ type Ledger = {
   totalPayments: number;
   closingBalance: number;
   openingBalanceIsManualOverride?: boolean;
-  rows: LedgerRow[];
+  rows: CustomerLedgerRow[];
+};
+
+type SupplierLedgerItem = {
+  id: string;
+  productId: string;
+  productName: string;
+  quantity: number | null;
+  weight: number;
+  rate: number;
+  amount: number;
+};
+
+type SupplierLedgerRow = {
+  id: string;
+  date: string | Date;
+  type: "PURCHASE" | "SUPPLIER_PAYMENT";
+  item: string;
+  invoiceNumber: string | null;
+  quantity: number | null;
+  weight: number | null;
+  amount: number;
+  paymentMade: number;
+  paymentNote: string | null;
+  serialNumber: number;
+  balance: number;
+  items: SupplierLedgerItem[];
+};
+
+type SupplierLedger = {
+  supplier: {
+    id: string;
+    name: string;
+    phone: string | null;
+    email: string | null;
+    gstNumber: string | null;
+  };
+  financialYear: string;
+  financialYearStart: string | Date;
+  financialYearEnd: string | Date;
+  openingBalance: number;
+  totalPurchases: number;
+  totalPayments: number;
+  closingBalance: number;
+  rows: SupplierLedgerRow[];
 };
 
 export type LedgerPdfData = {
@@ -62,13 +105,22 @@ export type LedgerPdfData = {
     totalPayments: number;
     closingBalance: number;
   };
-  ledgers: Ledger[];
+  supplierSummary: {
+    supplierCount: number;
+    openingBalance: number;
+    totalPurchases: number;
+    totalPayments: number;
+    closingBalance: number;
+  };
+  ledgers: CustomerLedger[];
+  supplierLedgers: SupplierLedger[];
 };
 
 type LedgerPdfProps = {
   data: LedgerPdfData;
-  combined: boolean;
+  ledgerType: "CUSTOMER" | "SUPPLIER" | "COMBINED";
   customerId?: string;
+  supplierId?: string;
 };
 
 const COMPANY = "SABARIMALA WIRE PRODUCTS";
@@ -77,7 +129,7 @@ const PHONE = "+91 94424 90142";
 const PHONE_LINK = "tel:+919442490142";
 const LOCATION = "Tirunelveli, Tamil Nadu";
 const MAP_LINK =
-  "https://maps.app.goo.gl/Nts1UHuD7wEZ4njSA?g_st=awb" +
+  "https://www.google.com/maps/search/?api=1&query=" +
   encodeURIComponent("Tirunelveli, Tamil Nadu, India");
 
 const colors = {
@@ -90,23 +142,16 @@ const colors = {
   text: "#33372B",
   muted: "#727365",
   white: "#FFFFFF",
-  watermark: "#F0F0E9",
 };
+
 const salesUnitLabels: Record<LedgerSaleItem["salesUnit"], string> = {
   KGS: "kg",
   SQ_FT: "Sq.ft",
   R_FT: "R.ft",
   R_MTR: "R.m",
 };
+
 const styles = StyleSheet.create({
-      serial: { width: "5%" },
-  date: { width: "9%" },
-  particulars: { width: "20%" },
-  salesMeasurement: { width: "14%", textAlign: "right" },
-  rate: { width: "12%", textAlign: "right" },
-  amount: { width: "12%", textAlign: "right" },
-  payment: { width: "14%", textAlign: "right" },
-  balance: { width: "14%", textAlign: "right" },
   page: {
     paddingTop: 22,
     paddingBottom: 36,
@@ -164,13 +209,6 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
 
-  tagline: {
-    fontSize: 8,
-    color: colors.muted,
-    marginTop: 3,
-    textAlign: "right",
-  },
-
   contactLine: {
     fontSize: 8,
     marginTop: 4,
@@ -211,7 +249,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
-  customerHeader: {
+  partyHeader: {
     marginBottom: 10,
     padding: 10,
     borderWidth: 1,
@@ -220,14 +258,14 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
 
-  customerName: {
+  partyName: {
     fontSize: 12,
     fontWeight: "bold",
     color: colors.oliveDark,
     marginBottom: 4,
   },
 
-  customerMeta: {
+  partyMeta: {
     fontSize: 8,
     color: colors.muted,
     marginTop: 2,
@@ -326,6 +364,15 @@ const styles = StyleSheet.create({
     fontSize: 7,
     color: colors.muted,
   },
+
+  serial: { width: "5%" },
+  date: { width: "10%" },
+  particulars: { width: "25%" },
+  measurement: { width: "13%", textAlign: "right" },
+  rate: { width: "12%", textAlign: "right" },
+  amount: { width: "12%", textAlign: "right" },
+  payment: { width: "12%", textAlign: "right" },
+  balance: { width: "11%", textAlign: "right" },
 });
 
 function money(value: number) {
@@ -375,7 +422,7 @@ function BusinessHeader() {
 
       <View style={styles.companyArea}>
         <Text style={styles.company}>{COMPANY}</Text>
-        
+
         <Text style={styles.contactLine}>
           Location:{" "}
           <Link src={MAP_LINK} style={styles.link}>
@@ -400,7 +447,21 @@ function BusinessHeader() {
     </View>
   );
 }
-function LedgerTable({ ledger }: { ledger: Ledger }) {
+
+function Footer() {
+  return (
+    <View style={styles.footer} fixed>
+      <Text>{COMPANY}</Text>
+      <Text
+        render={({ pageNumber, totalPages }) =>
+          `Page ${pageNumber} of ${totalPages}`
+        }
+      />
+    </View>
+  );
+}
+
+function CustomerTable({ ledger }: { ledger: CustomerLedger }) {
   return (
     <View style={styles.table}>
       <View style={styles.tableHeader} fixed>
@@ -409,7 +470,7 @@ function LedgerTable({ ledger }: { ledger: Ledger }) {
         <Text style={[styles.headerCell, styles.particulars]}>
           Item / Particulars
         </Text>
-        <Text style={[styles.headerCell, styles.salesMeasurement]}>
+        <Text style={[styles.headerCell, styles.measurement]}>
           Sales Quantity
         </Text>
         <Text style={[styles.headerCell, styles.rate]}>Rate / Unit</Text>
@@ -428,7 +489,7 @@ function LedgerTable({ ledger }: { ledger: Ledger }) {
         <Text style={[styles.cell, styles.particulars]}>
           Opening Balance
         </Text>
-        <Text style={[styles.cell, styles.salesMeasurement]}>-</Text>
+        <Text style={[styles.cell, styles.measurement]}>-</Text>
         <Text style={[styles.cell, styles.rate]}>-</Text>
         <Text style={[styles.cell, styles.amount]}>-</Text>
         <Text style={[styles.cell, styles.payment]}>-</Text>
@@ -461,16 +522,10 @@ function LedgerTable({ ledger }: { ledger: Ledger }) {
               ? row.items
                   .map((item) => `${item.productName} (${item.quantity})`)
                   .join("\n")
-              : row.item}
-            {row.type === "PAYMENT" &&
-            row.paymentNote &&
-            row.paymentNote.trim().toLowerCase() !==
-              row.item.trim().toLowerCase()
-              ? ` - ${row.paymentNote}`
-              : ""}
+              : row.item || row.paymentNote || "-"}
           </Text>
 
-          <Text style={[styles.cell, styles.salesMeasurement]}>
+          <Text style={[styles.cell, styles.measurement]}>
             {row.type === "SALE" && row.items?.length
               ? row.items
                   .map(
@@ -511,39 +566,16 @@ function LedgerTable({ ledger }: { ledger: Ledger }) {
       ))}
 
       <View style={styles.totalRow} wrap={false}>
-        <Text
-          style={[
-            styles.cell,
-            { width: "60%", fontWeight: "bold" },
-          ]}
-        >
+        <Text style={[styles.cell, { width: "63%", fontWeight: "bold" }]}>
           TOTAL / CLOSING BALANCE
         </Text>
-
-        <Text
-          style={[
-            styles.cell,
-            { width: "12%", textAlign: "right", fontWeight: "bold" },
-          ]}
-        >
+        <Text style={[styles.cell, { width: "12%", textAlign: "right" }]}>
           {money(ledger.totalSales)}
         </Text>
-
-        <Text
-          style={[
-            styles.cell,
-            { width: "14%", textAlign: "right", fontWeight: "bold" },
-          ]}
-        >
+        <Text style={[styles.cell, { width: "12%", textAlign: "right" }]}>
           {money(ledger.totalPayments)}
         </Text>
-
-        <Text
-          style={[
-            styles.cell,
-            { width: "14%", textAlign: "right", fontWeight: "bold" },
-          ]}
-        >
+        <Text style={[styles.cell, { width: "13%", textAlign: "right" }]}>
           {money(ledger.closingBalance)}
         </Text>
       </View>
@@ -551,22 +583,131 @@ function LedgerTable({ ledger }: { ledger: Ledger }) {
   );
 }
 
-function LedgerPage({
+function SupplierTable({ ledger }: { ledger: SupplierLedger }) {
+  return (
+    <View style={styles.table}>
+      <View style={styles.tableHeader} fixed>
+        <Text style={[styles.headerCell, styles.serial]}>S.No</Text>
+        <Text style={[styles.headerCell, styles.date]}>Date</Text>
+        <Text style={[styles.headerCell, styles.particulars]}>
+          Item / Particulars
+        </Text>
+        <Text style={[styles.headerCell, styles.measurement]}>
+          Quantity / Weight
+        </Text>
+        <Text style={[styles.headerCell, styles.rate]}>Invoice No.</Text>
+        <Text style={[styles.headerCell, styles.amount]}>Purchase</Text>
+        <Text style={[styles.headerCell, styles.payment]}>
+          Payment Made
+        </Text>
+        <Text style={[styles.headerCell, styles.balance]}>Balance</Text>
+      </View>
+
+      <View style={styles.openingRow} wrap={false}>
+        <Text style={[styles.cell, styles.serial]}>-</Text>
+        <Text style={[styles.cell, styles.date]}>
+          {dateText(ledger.financialYearStart)}
+        </Text>
+        <Text style={[styles.cell, styles.particulars]}>
+          Opening Balance
+        </Text>
+        <Text style={[styles.cell, styles.measurement]}>-</Text>
+        <Text style={[styles.cell, styles.rate]}>-</Text>
+        <Text style={[styles.cell, styles.amount]}>-</Text>
+        <Text style={[styles.cell, styles.payment]}>-</Text>
+        <Text style={[styles.cell, styles.balance]}>
+          {money(ledger.openingBalance)}
+        </Text>
+      </View>
+
+      {ledger.rows.map((row, index) => (
+        <View
+          key={`${row.type}-${row.id}`}
+          style={[
+            styles.tableRow,
+            ...(index % 2 === 1
+              ? [{ backgroundColor: colors.beigeLight }]
+              : []),
+          ]}
+          wrap={false}
+        >
+          <Text style={[styles.cell, styles.serial]}>
+            {row.serialNumber}
+          </Text>
+
+          <Text style={[styles.cell, styles.date]}>
+            {dateText(row.date)}
+          </Text>
+
+          <Text style={[styles.cell, styles.particulars]}>
+            {row.type === "PURCHASE" && row.items?.length
+              ? row.items
+                  .map((item) => `${item.productName} (${item.quantity ?? "-"})`)
+                  .join("\n")
+              : row.item || row.paymentNote || "-"}
+          </Text>
+
+          <Text style={[styles.cell, styles.measurement]}>
+            {row.type === "PURCHASE"
+              ? row.weight != null
+                ? `${row.weight.toFixed(3)} kg`
+                : row.quantity != null
+                  ? String(row.quantity)
+                  : "-"
+              : "-"}
+          </Text>
+
+          <Text style={[styles.cell, styles.rate]}>
+            {row.invoiceNumber || "-"}
+          </Text>
+
+          <Text style={[styles.cell, styles.amount]}>
+            {row.type === "PURCHASE" ? money(row.amount) : "-"}
+          </Text>
+
+          <Text style={[styles.cell, styles.payment]}>
+            {row.type === "SUPPLIER_PAYMENT"
+              ? money(row.paymentMade)
+              : "-"}
+          </Text>
+
+          <Text style={[styles.cell, styles.balance]}>
+            {money(row.balance)}
+          </Text>
+        </View>
+      ))}
+
+      <View style={styles.totalRow} wrap={false}>
+        <Text style={[styles.cell, { width: "63%", fontWeight: "bold" }]}>
+          TOTAL / CLOSING BALANCE
+        </Text>
+        <Text style={[styles.cell, { width: "12%", textAlign: "right" }]}>
+          {money(ledger.totalPurchases)}
+        </Text>
+        <Text style={[styles.cell, { width: "12%", textAlign: "right" }]}>
+          {money(ledger.totalPayments)}
+        </Text>
+        <Text style={[styles.cell, { width: "13%", textAlign: "right" }]}>
+          {money(ledger.closingBalance)}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+function CustomerLedgerPage({
   ledger,
-  combined,
   generatedDate,
 }: {
-  ledger: Ledger;
-  combined: boolean;
+  ledger: CustomerLedger;
   generatedDate: string;
 }) {
   return (
     <Page
-      key={ledger.customer.id}
+      key={`customer-${ledger.customer.id}`}
       size="A4"
       orientation="landscape"
       style={styles.page}
-      wrap
     >
       <Image
         src="/ledger-watermark-logo.png"
@@ -587,35 +728,18 @@ function LedgerPage({
         Generated on: {generatedDate}
       </Text>
 
-      <View style={styles.customerHeader}>
-        <Text style={styles.customerName}>
-          {ledger.customer.name}
+      <View style={styles.partyHeader}>
+        <Text style={styles.partyName}>{ledger.customer.name}</Text>
+        <Text style={styles.partyMeta}>
+          Mobile: {ledger.customer.phone || "Not provided"}
         </Text>
-
-        {!combined && (
-          <Text style={styles.customerMeta}>
-            Mobile: {ledger.customer.phone || "Not provided"}
-          </Text>
-        )}
       </View>
 
       <View style={styles.summary}>
-        <SummaryItem
-          label="Opening Balance"
-          value={money(ledger.openingBalance)}
-        />
-        <SummaryItem
-          label="Total Sales"
-          value={money(ledger.totalSales)}
-        />
-        <SummaryItem
-          label="Payments Received"
-          value={money(ledger.totalPayments)}
-        />
-        <SummaryItem
-          label="Closing Balance"
-          value={money(ledger.closingBalance)}
-        />
+        <SummaryItem label="Opening Balance" value={money(ledger.openingBalance)} />
+        <SummaryItem label="Total Sales" value={money(ledger.totalSales)} />
+        <SummaryItem label="Payments Received" value={money(ledger.totalPayments)} />
+        <SummaryItem label="Closing Balance" value={money(ledger.closingBalance)} />
       </View>
 
       {ledger.rows.length === 0 ? (
@@ -625,46 +749,251 @@ function LedgerPage({
           </Text>
         </View>
       ) : (
-        <LedgerTable ledger={ledger} />
+        <CustomerTable ledger={ledger} />
       )}
 
-      <View style={styles.footer} fixed>
-        <Text>{COMPANY}</Text>
-        <Text
-          render={({ pageNumber, totalPages }) =>
-            `Page ${pageNumber} of ${totalPages}`
-          }
+      {ledger.openingBalanceIsManualOverride && (
+        <Text style={styles.partyMeta}>
+          Opening balance manually overridden by an administrator.
+        </Text>
+      )}
+
+      <Footer />
+    </Page>
+  );
+}
+
+function SupplierLedgerPage({
+  ledger,
+  generatedDate,
+}: {
+  ledger: SupplierLedger;
+  generatedDate: string;
+}) {
+  return (
+    <Page
+      key={`supplier-${ledger.supplier.id}`}
+      size="A4"
+      orientation="landscape"
+      style={styles.page}
+    >
+      <Image
+        src="/ledger-watermark-logo.png"
+        style={styles.watermark}
+        fixed
+      />
+
+      <BusinessHeader />
+
+      <View style={styles.reportHeading}>
+        <Text style={styles.title}>SUPPLIER PURCHASE LEDGER</Text>
+        <Text style={styles.subtitle}>
+          Financial Year: {ledger.financialYear}
+        </Text>
+      </View>
+
+      <Text style={styles.generated}>
+        Generated on: {generatedDate}
+      </Text>
+
+      <View style={styles.partyHeader}>
+        <Text style={styles.partyName}>{ledger.supplier.name}</Text>
+        <Text style={styles.partyMeta}>
+          Mobile: {ledger.supplier.phone || "Not provided"}
+        </Text>
+        <Text style={styles.partyMeta}>
+          Email: {ledger.supplier.email || "Not provided"}
+        </Text>
+        <Text style={styles.partyMeta}>
+          GST: {ledger.supplier.gstNumber || "Not provided"}
+        </Text>
+      </View>
+
+      <View style={styles.summary}>
+        <SummaryItem label="Opening Balance" value={money(ledger.openingBalance)} />
+        <SummaryItem label="Total Purchases" value={money(ledger.totalPurchases)} />
+        <SummaryItem label="Payments Made" value={money(ledger.totalPayments)} />
+        <SummaryItem label="Closing Balance" value={money(ledger.closingBalance)} />
+      </View>
+
+      {ledger.rows.length === 0 ? (
+        <View style={styles.table}>
+          <Text style={styles.empty}>
+            No transactions recorded for this financial year.
+          </Text>
+        </View>
+      ) : (
+        <SupplierTable ledger={ledger} />
+      )}
+
+      <Footer />
+    </Page>
+  );
+}
+
+function CombinedSummaryPage({
+  data,
+  generatedDate,
+}: {
+  data: LedgerPdfData;
+  generatedDate: string;
+}) {
+  return (
+    <Page
+      size="A4"
+      orientation="landscape"
+      style={styles.page}
+    >
+      <BusinessHeader />
+
+      <View style={styles.reportHeading}>
+        <Text style={styles.title}>COMBINED BUSINESS LEDGER</Text>
+        <Text style={styles.subtitle}>
+          Customer and Supplier Summary — Financial Year: {data.financialYear}
+        </Text>
+      </View>
+
+      <Text style={styles.generated}>
+        Generated on: {generatedDate}
+      </Text>
+
+      <Text style={{ fontSize: 11, fontWeight: "bold", marginBottom: 8 }}>
+        CUSTOMER SUMMARY
+      </Text>
+
+      <View style={styles.summary}>
+        <SummaryItem
+          label="Customers"
+          value={String(data.summary.customerCount)}
+        />
+        <SummaryItem
+          label="Opening Balance"
+          value={money(data.summary.openingBalance)}
+        />
+        <SummaryItem
+          label="Total Sales"
+          value={money(data.summary.totalSales)}
+        />
+        <SummaryItem
+          label="Payments Received"
+          value={money(data.summary.totalPayments)}
         />
       </View>
+
+      <View style={[styles.summary, { marginBottom: 20 }]}>
+        <SummaryItem
+          label="Customer Closing Balance"
+          value={money(data.summary.closingBalance)}
+        />
+        <SummaryItem
+          label=" "
+          value=" "
+        />
+        <SummaryItem
+          label=" "
+          value=" "
+        />
+        <SummaryItem
+          label=" "
+          value=" "
+        />
+      </View>
+
+      <Text style={{ fontSize: 11, fontWeight: "bold", marginBottom: 8 }}>
+        SUPPLIER SUMMARY
+      </Text>
+
+      <View style={styles.summary}>
+        <SummaryItem
+          label="Suppliers"
+          value={String(data.supplierSummary.supplierCount)}
+        />
+        <SummaryItem
+          label="Opening Balance"
+          value={money(data.supplierSummary.openingBalance)}
+        />
+        <SummaryItem
+          label="Total Purchases"
+          value={money(data.supplierSummary.totalPurchases)}
+        />
+        <SummaryItem
+          label="Payments Made"
+          value={money(data.supplierSummary.totalPayments)}
+        />
+      </View>
+
+      <View style={styles.summary}>
+        <SummaryItem
+          label="Supplier Closing Balance"
+          value={money(data.supplierSummary.closingBalance)}
+        />
+        <SummaryItem label=" " value=" " />
+        <SummaryItem label=" " value=" " />
+        <SummaryItem label=" " value=" " />
+      </View>
+
+      <Text style={styles.empty}>
+        Customer receivables and supplier payables are shown separately.
+        They are not netted against each other.
+      </Text>
+
+      <Footer />
     </Page>
   );
 }
 
 export default function LedgerPdf({
   data,
-  combined,
+  ledgerType,
   customerId,
+  supplierId,
 }: LedgerPdfProps) {
-  const ledgers = combined
-    ? data.ledgers
-    : data.ledgers.filter(
-        (ledger) => ledger.customer.id === customerId
-      );
+  const customerLedgers =
+    ledgerType === "SUPPLIER"
+      ? []
+      : customerId
+        ? data.ledgers.filter(
+            (ledger) => ledger.customer.id === customerId
+          )
+        : data.ledgers;
+
+  const supplierLedgers =
+    ledgerType === "CUSTOMER"
+      ? []
+      : supplierId
+        ? data.supplierLedgers.filter(
+            (ledger) => ledger.supplier.id === supplierId
+          )
+        : data.supplierLedgers;
 
   const generatedDate = dateText(new Date());
 
   return (
     <Document
-      title={`SWP Customer Ledger ${data.financialYear}`}
+      title={`SWP ${ledgerType} Ledger ${data.financialYear}`}
       author={COMPANY}
-      subject={`Customer Sales Ledger - ${data.financialYear}`}
+      subject={`${ledgerType} Ledger - ${data.financialYear}`}
       creator="SWP Business Management System"
     >
-      {ledgers.map((ledger) => (
-        <LedgerPage
+      {ledgerType === "COMBINED" && (
+        <CombinedSummaryPage
+          data={data}
+          generatedDate={generatedDate}
+        />
+      )}
+
+      {customerLedgers.map((ledger) => (
+        <CustomerLedgerPage
           key={ledger.customer.id}
           ledger={ledger}
-          combined={combined}
+          generatedDate={generatedDate}
+        />
+      ))}
+
+      {supplierLedgers.map((ledger) => (
+        <SupplierLedgerPage
+          key={ledger.supplier.id}
+          ledger={ledger}
           generatedDate={generatedDate}
         />
       ))}

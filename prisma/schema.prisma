@@ -32,6 +32,11 @@ enum SaleStatus {
   VOIDED
 }
 
+enum PurchaseStatus {
+  ACTIVE
+  VOIDED
+}
+
 enum InventoryTransactionType {
   INITIAL_STOCK
   PRODUCTION
@@ -40,6 +45,9 @@ enum InventoryTransactionType {
   STOCK_ADJUSTMENT_REMOVE
   SALE_VOID
   PRODUCTION_REVERSAL
+  PURCHASE
+  PURCHASE_VOID
+  PURCHASE_EDIT_REVERSAL
 }
 
 enum ReferenceType {
@@ -49,6 +57,9 @@ enum ReferenceType {
   STOCK_ADJUSTMENT
   SALE_VOID
   WORK_ENTRY_EDIT
+  PURCHASE
+  PURCHASE_VOID
+  PURCHASE_EDIT
 }
 
 enum AuditAction {
@@ -75,6 +86,9 @@ enum AuditEntityType {
   CUSTOMER
   CUSTOMER_PAYMENT
   CUSTOMER_LEDGER_OPENING_BALANCE
+  SUPPLIER
+  PURCHASE
+  SUPPLIER_PAYMENT
 }
 
 enum SalesUnit {
@@ -185,14 +199,16 @@ model Employee {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  workEntries           WorkEntry[]            @relation("WorkerWorkEntries")
-  approvedWorkEntries   WorkEntry[]            @relation("ApprovedBy")
-  createdSales          Sale[]                 @relation("SalesCreatedBy")
-  voidedSales           Sale[]                 @relation("SalesVoidedBy")
-  inventoryTransactions InventoryTransaction[]
-  auditLogs             AuditLog[]
-  changedWorkVersions   WorkEntryVersion[]
-  customerPayments      CustomerPayment[]      @relation("PaymentsCreatedBy")
+  workEntries             WorkEntry[]            @relation("WorkerWorkEntries")
+  approvedWorkEntries     WorkEntry[]            @relation("ApprovedBy")
+  createdSales            Sale[]                 @relation("SalesCreatedBy")
+  voidedSales             Sale[]                 @relation("SalesVoidedBy")
+  inventoryTransactions   InventoryTransaction[]
+  auditLogs               AuditLog[]
+  changedWorkVersions     WorkEntryVersion[]
+  customerPayments        CustomerPayment[]      @relation("PaymentsCreatedBy")
+  createdPurchases        Purchase[]             @relation("PurchasesCreatedBy")
+  createdSupplierPayments SupplierPayment[]      @relation("SupplierPaymentsCreatedBy")
 
   @@index([role])
   @@index([status])
@@ -229,8 +245,11 @@ model Product {
   name String  @unique
   code String? @unique
 
-  // Inventory is tracked in kilograms
-  initialStockKg      Decimal @default(0) @db.Decimal(14, 3)
+  // Inventory opening stock
+  initialStockQuantity Int? // Optional piece quantity
+  initialStockKg       Decimal @default(0) @db.Decimal(14, 3)
+
+  // Low stock threshold in kilograms
   lowStockThresholdKg Decimal @default(0) @db.Decimal(14, 3)
 
   isActive  Boolean  @default(true)
@@ -241,6 +260,7 @@ model Product {
   sales                 Sale[]
   inventoryTransactions InventoryTransaction[]
   saleItems             SaleItem[]
+  purchaseItems         PurchaseItem[]
 
   @@index([isActive])
 }
@@ -456,8 +476,10 @@ model InventoryTransaction {
   workEntry WorkEntry? @relation(fields: [workEntryId], references: [id])
   sale      Sale?      @relation(fields: [saleId], references: [id])
 
-  workEntryId String?
-  saleId      String?
+  purchaseItem   PurchaseItem? @relation(fields: [purchaseItemId], references: [id])
+  workEntryId    String?
+  saleId         String?
+  purchaseItemId String?
 
   @@index([productId])
   @@index([type])
@@ -525,4 +547,119 @@ model WhatsAppWebhookEvent {
 
   @@index([createdAt])
   @@map("whatsapp_webhook_events")
+}
+
+// ============================================================
+// SUPPLIERS
+// ============================================================
+model Supplier {
+  id        String  @id @default(cuid())
+  name      String
+  phone     String?
+  email     String?
+  address   String?
+  gstNumber String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  purchases             Purchase[]
+  payments              SupplierPayment[]
+  ledgerOpeningBalances SupplierLedgerOpeningBalance[]
+
+  @@index([name])
+  @@index([phone])
+}
+
+model SupplierLedgerOpeningBalance {
+  id                 String   @id @default(cuid())
+  supplierId         String
+  financialYearStart DateTime @db.Date
+  openingBalance     Decimal  @db.Decimal(14, 2)
+  isManualOverride   Boolean  @default(false)
+  overrideReason     String?
+  updatedById        String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  supplier Supplier @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+
+  @@unique([supplierId, financialYearStart])
+  @@index([financialYearStart])
+  @@map("supplier_ledger_opening_balances")
+}
+
+// ============================================================
+// PURCHASES
+// ============================================================
+
+model Purchase {
+  id            String         @id @default(cuid())
+  supplierId    String
+  invoiceNumber String?
+  purchaseDate  DateTime
+  totalAmount   Decimal        @db.Decimal(14, 2)
+  status        PurchaseStatus @default(ACTIVE)
+
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  supplier  Supplier          @relation(fields: [supplierId], references: [id])
+  items     PurchaseItem[]
+  payments  SupplierPayment[]
+  createdBy Employee          @relation("PurchasesCreatedBy", fields: [createdById], references: [id])
+
+  @@index([supplierId])
+  @@index([purchaseDate])
+  @@index([status])
+}
+
+// ============================================================
+// PURCHASE ITEMS
+// ============================================================
+
+model PurchaseItem {
+  id         String @id @default(cuid())
+  purchaseId String
+  productId  String
+
+  quantity Int? // Optional piece quantity
+  weight   Decimal @db.Decimal(14, 3)
+  rate     Decimal @db.Decimal(14, 6)
+  amount   Decimal @db.Decimal(14, 2)
+
+  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id])
+
+  inventoryTransactions InventoryTransaction[]
+
+  @@index([purchaseId])
+  @@index([productId])
+}
+
+// ============================================================
+// SUPPLIER PAYMENTS
+// ============================================================
+
+model SupplierPayment {
+  id         String  @id @default(cuid())
+  supplierId String
+  purchaseId String?
+
+  amount      Decimal  @db.Decimal(14, 2)
+  paymentDate DateTime @default(now())
+  note        String?
+
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   Employee @relation("SupplierPaymentsCreatedBy", fields: [createdById], references: [id])
+
+  supplier Supplier  @relation(fields: [supplierId], references: [id])
+  purchase Purchase? @relation(fields: [purchaseId], references: [id])
+
+  @@index([supplierId])
+  @@index([purchaseId])
+  @@index([paymentDate])
 }

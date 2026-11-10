@@ -156,9 +156,9 @@ const [selectedYear, setSelectedYear] = useState(
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#fff8f2]">
         <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-[#f1dfd2] border-t-[#d96f2b]" />
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-[#D5CBB3] border-t-[#1E3B2F]" />
 
-          <p className="mt-4 text-sm font-medium text-[#5b2f1f]">
+          <p className="mt-4 text-sm font-medium text-[#1E3B2F]">
             Loading dashboard...
           </p>
         </div>
@@ -176,11 +176,11 @@ const [selectedYear, setSelectedYear] = useState(
           {/* HEADER */}
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-sm font-medium text-[#a66a4a]">
+              <p className="text-sm font-medium text-[#718477]">
                 SWP Business Management System
               </p>
 
-              <h1 className="mt-2 text-3xl font-bold text-[#3b2117]">
+              <h1 className="mt-2 text-3xl font-bold text-[#1E3B2F]">
                 Welcome, {userName}!
               </h1>
 
@@ -189,12 +189,12 @@ const [selectedYear, setSelectedYear] = useState(
               </p>
             </div>
 
-            <div className="rounded-2xl border border-[#f1dfd2] bg-white px-6 py-4 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#a66a4a]">
+            <div className="rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] px-6 py-4 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#718477]">
                 Today
               </p>
 
-              <p className="mt-1 font-semibold text-[#3b2117]">
+              <p className="mt-1 font-semibold text-[#1E3B2F]">
                 Business Overview
               </p>
 
@@ -217,10 +217,10 @@ const [selectedYear, setSelectedYear] = useState(
             <>
 
               {/* TODAY'S BUSINESS OVERVIEW */}
-<section className="mt-8 rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
+<section className="mt-8 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
 
   <div>
-    <h2 className="text-lg font-bold text-[#3b2117]">
+    <h2 className="text-lg font-bold text-[#1E3B2F]">
       Today's Business Overview
     </h2>
 
@@ -249,11 +249,11 @@ const [selectedYear, setSelectedYear] = useState(
   </div>
 </section>
               {/* MONTHLY BUSINESS OVERVIEW */}
-<section className="mt-6 rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
+<section className="mt-6 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
 
   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
   <div>
-    <h2 className="text-lg font-bold text-[#3b2117]">
+    <h2 className="text-lg font-bold text-[#1E3B2F]">
       Monthly Business Overview
     </h2>
 
@@ -266,7 +266,7 @@ const [selectedYear, setSelectedYear] = useState(
   <select
     value={selectedMonth}
     onChange={(e) => setSelectedMonth(Number(e.target.value))}
-    className="h-9 min-w-0 rounded-lg border border-[#f1dfd2] bg-white px-2 text-sm font-medium text-[#3b2117] outline-none sm:h-12 sm:px-4 sm:text-base"
+    className="h-9 min-w-0 rounded-lg border border-[#D5CBB3] bg-[#F2EAD2] px-2 text-sm font-medium text-[#1E3B2F] outline-none sm:h-12 sm:px-4 sm:text-base"
   >
       {[
         "January",
@@ -291,7 +291,7 @@ const [selectedYear, setSelectedYear] = useState(
      <select
     value={selectedYear}
     onChange={(e) => setSelectedYear(Number(e.target.value))}
-    className="h-9 min-w-0 rounded-lg border border-[#f1dfd2] bg-white px-2 text-sm font-medium text-[#3b2117] outline-none sm:h-12 sm:px-4 sm:text-base"
+    className="h-9 min-w-0 rounded-lg border border-[#D5CBB3] bg-[#F2EAD2] px-2 text-sm font-medium text-[#1E3B2F] outline-none sm:h-12 sm:px-4 sm:text-base"
   >
       {Array.from(
         { length: new Date().getFullYear() - 2020 + 1 },
@@ -326,17 +326,17 @@ const [selectedYear, setSelectedYear] = useState(
 </section>
 
 {/* OVERALL LEDGER SUMMARY */}
-<section className="mt-6 rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
+<section className="mt-6 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
 
   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
     <div>
-      <h2 className="text-lg font-bold text-[#3b2117]">
+      <h2 className="text-lg font-bold text-[#1E3B2F]">
         Overall Ledger Summary
       </h2>
 
     </div>
 
-    <span className="w-fit rounded-full bg-[#fff1e6] px-3 py-1 text-xs font-semibold text-[#a66a4a]">
+    <span className="w-fit rounded-full bg-[#E5E9DA] px-3 py-1 text-xs font-semibold text-[#718477]">
       Financial Year {new Date().getMonth() < 3
         ? `${new Date().getFullYear() - 1}-${String(new Date().getFullYear()).slice(-2)}`
         : `${new Date().getFullYear()}-${String(new Date().getFullYear() + 1).slice(-2)}`}
@@ -370,12 +370,12 @@ const [selectedYear, setSelectedYear] = useState(
 </section>
 
               {/* LOW STOCK */}
-              <section className="mt-6 rounded-2xl border border-[#f1dfd2] bg-white shadow-sm">
+              <section className="mt-6 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] shadow-sm">
 
-                <div className="flex flex-col gap-4 border-b border-[#f1dfd2] px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-4 border-b border-[#D5CBB3] px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
 
                   <div>
-                    <h2 className="text-lg font-bold text-[#3b2117]">
+                    <h2 className="text-lg font-bold text-[#1E3B2F]">
                       Low Stock Products
                     </h2>
 
@@ -414,7 +414,7 @@ const [selectedYear, setSelectedYear] = useState(
                       ✓
                     </div>
 
-                    <p className="mt-4 font-semibold text-[#3b2117]">
+                    <p className="mt-4 font-semibold text-[#1E3B2F]">
                       Stock levels look good
                     </p>
 
@@ -429,7 +429,7 @@ const [selectedYear, setSelectedYear] = useState(
                     <table className="w-full min-w-[650px]">
 
                       <thead>
-                        <tr className="border-b border-[#f1dfd2] bg-[#fffaf6] text-left">
+                        <tr className="border-b border-[#D5CBB3] bg-[#fffaf6] text-left">
 
                           <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-[#8b6b5a]">
                             Product
@@ -468,7 +468,7 @@ const [selectedYear, setSelectedYear] = useState(
                               >
 
                                 <td className="px-6 py-4">
-                                  <p className="text-sm font-semibold text-[#3b2117]">
+                                  <p className="text-sm font-semibold text-[#1E3B2F]">
                                     {
                                       product.name
                                     }
@@ -536,9 +536,9 @@ function MetricCard({
 }) {
   const colors = {
     orange: {
-      background: "bg-[#fff1e6]",
-      text: "text-[#d96f2b]",
-      dot: "bg-[#d96f2b]",
+      background: "bg-[#E5E9DA]",
+      text: "text-[#1E3B2F]",
+      dot: "bg-[#1E3B2F]",
     },
 
     brown: {
@@ -563,7 +563,7 @@ function MetricCard({
   const color = colors[accent];
 
   return (
-    <div className="rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
+    <div className="rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
 
       <div className="flex items-center justify-between">
 
@@ -577,7 +577,7 @@ function MetricCard({
 
       </div>
 
-      <p className="mt-3 text-3xl font-bold text-[#3b2117]">
+      <p className="mt-3 text-3xl font-bold text-[#1E3B2F]">
         {value.toLocaleString()}
       </p>
 
@@ -601,13 +601,13 @@ function ActivityCard({
   description?: string;
 }) {
   return (
-    <div className="rounded-xl border border-[#f1dfd2] bg-[#fffaf6] p-5">
+    <div className="rounded-xl border border-[#D5CBB3] bg-[#fffaf6] p-5">
 
-      <p className="text-sm font-semibold text-[#a66a4a]">
+      <p className="text-sm font-semibold text-[#718477]">
         {title}
       </p>
 
-      <p className="mt-2 text-3xl font-bold text-[#3b2117]">
+      <p className="mt-2 text-3xl font-bold text-[#1E3B2F]">
         {value.toLocaleString()}
       </p>
 
@@ -647,8 +647,8 @@ function MonthlyBusinessCard({
     },
 
     orange: {
-      background: "bg-[#fff1e6]",
-      text: "text-[#d96f2b]",
+      background: "bg-[#E5E9DA]",
+      text: "text-[#1E3B2F]",
     },
   };
 
@@ -657,7 +657,7 @@ function MonthlyBusinessCard({
 
   return (
     <div
-      className={`rounded-xl border border-[#f1dfd2] p-6 ${selectedColor.background}`}
+      className={`rounded-xl border border-[#D5CBB3] p-6 ${selectedColor.background}`}
     >
 
       <p className="text-sm font-semibold uppercase tracking-wide text-[#8b6b5a]">
@@ -695,8 +695,8 @@ function LedgerCard({
       text: "text-[#7a4b35]",
     },
     orange: {
-      background: "bg-[#fff1e6]",
-      text: "text-[#d96f2b]",
+      background: "bg-[#E5E9DA]",
+      text: "text-[#1E3B2F]",
     },
     green: {
       background: "bg-green-50",
@@ -707,13 +707,13 @@ function LedgerCard({
   const selectedColor = colors[color];
 
   return (
-    <div className="rounded-xl border border-[#f1dfd2] bg-[#fffaf6] p-5">
+    <div className="rounded-xl border border-[#D5CBB3] bg-[#fffaf6] p-5">
 
-      <p className="text-sm font-semibold text-[#a66a4a]">
+      <p className="text-sm font-semibold text-[#718477]">
         {title}
       </p>
 
-      <p className="mt-3 text-3xl font-bold text-[#3b2117]">
+      <p className="mt-3 text-3xl font-bold text-[#1E3B2F]">
         {value.toLocaleString("en-IN", {
           style: "currency",
           currency: "INR",

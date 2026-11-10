@@ -10,6 +10,7 @@ import {
   ClipboardList,
   Package,
   ShoppingCart,
+  ShoppingBag,
   UserRound,
   History,
   ChartNoAxesCombined,
@@ -28,6 +29,7 @@ const adminNavigation = [
   { name: "Inventory", href: "/inventory", icon: Package },
   { name: "Sales", href: "/sales", icon: ShoppingCart },
   { name: "Customers", href: "/customers", icon: UserRound },
+  { name: "Purchase", href: "/purchase", icon: ShoppingBag },
   { name: "History", href: "/history", icon: History },
   { name: "Reports", href: "/reports", icon: ChartNoAxesCombined },
   { name: "Ledger", href: "/ledger", icon: BookOpen },
@@ -54,6 +56,7 @@ const mobileWorkerNavigation = [
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+
 
   const [role, setRole] = useState<"ADMIN" | "WORKER" | null>(null);
   const [employeeName, setEmployeeName] = useState("");
@@ -115,7 +118,7 @@ export default function Sidebar() {
   return (
     <>
       {/* MOBILE HEADER */}
-      <header className="swp-mobile-header fixed left-0 right-0 top-0 z-[60] flex h-[68px] items-center justify-between border-b border-[#f1dfd2] bg-[#fffaf5] px-4 md:hidden">
+      <header className="swp-mobile-header fixed left-0 right-0 top-0 z-[60] flex h-[68px] items-center justify-between border-b border-[#D5CBB3] bg-[#F2EAD2] px-4 md:hidden">
         <div className="flex items-center gap-3">
           <img
             src="/ledger-watermark-logo.png"
@@ -124,29 +127,29 @@ export default function Sidebar() {
           />
 
           <div className="leading-tight">
-            <h1 className="text-[17px] font-bold text-[#3b2117]">
+            <h1 className="text-[17px] font-bold text-[#1E3B2F]">
               SWP
             </h1>
-            <p className="mt-1 text-[11px] text-[#a66a4a]">
+            <p className="mt-1 text-[11px] text-[#718477]">
               Business Management
             </p>
           </div>
         </div>
 
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#d96f2b] text-sm font-bold text-white shadow-sm">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1E3B2F] text-sm font-bold text-[#F2EAD2] shadow-sm">
           {profileInitial}
         </div>
       </header>
 
       {/* DESKTOP COLLAPSIBLE SIDEBAR */}
       <aside
-        className={`swp-sidebar sticky top-0 hidden h-screen shrink-0 flex-col border-r border-[#f1dfd2] bg-white transition-[width] duration-300 ease-in-out md:flex ${
+        className={`swp-sidebar sticky top-0 hidden h-screen shrink-0 flex-col border-r border-[#D5CBB3] bg-[#F2EAD2] transition-[width] duration-300 ease-in-out md:flex ${
           collapsed ? "w-[76px]" : "w-64"
         }`}
       >
         {/* BRAND AND TOGGLE */}
         <div
-          className={`flex min-h-[100px] items-center border-b border-[#f1dfd2] ${
+          className={`flex min-h-[100px] items-center border-b border-[#D5CBB3] ${
             collapsed
               ? "flex-col justify-center gap-2 px-2 py-3"
               : "justify-between gap-2 p-5"
@@ -157,7 +160,7 @@ export default function Sidebar() {
               collapsed ? "justify-center" : "gap-3"
             }`}
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fff1e6]">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#E5E9DA]">
               <img
                 src="/ledger-watermark-logo.png"
                 alt="SWP Logo"
@@ -167,8 +170,8 @@ export default function Sidebar() {
 
             {!collapsed && (
               <div className="min-w-0">
-                <h1 className="font-bold text-[#3b2117]">SWP</h1>
-                <p className="whitespace-nowrap text-xs text-[#a66a4a]">
+                <h1 className="font-bold text-[#1E3B2F]">SWP</h1>
+                <p className="whitespace-nowrap text-xs text-[#718477]">
                   Business Management
                 </p>
               </div>
@@ -180,7 +183,7 @@ export default function Sidebar() {
             onClick={() => setCollapsed((current) => !current)}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[#8b5940] transition hover:bg-[#fff1e6] hover:text-[#d96f2b]"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[#365B49] transition hover:bg-[#E5E9DA] hover:text-[#1E3B2F]"
           >
             {collapsed ? (
               <Menu size={21} />
@@ -215,8 +218,8 @@ export default function Sidebar() {
                     : "gap-3 px-4"
                 } ${
                   active
-                    ? "bg-[#d96f2b] text-white shadow-sm"
-                    : "text-[#5b2f1f] hover:bg-[#fff1e6] hover:text-[#d96f2b]"
+                    ? "bg-[#1E3B2F] text-[#F2EAD2] shadow-sm"
+                    : "text-[#1E3B2F] hover:bg-[#E5E9DA] hover:text-[#1E3B2F]"
                 }`}
               >
                 <Icon
@@ -235,7 +238,7 @@ export default function Sidebar() {
 
         {/* SIGN OUT */}
         <div
-          className={`border-t border-[#f1dfd2] py-4 ${
+          className={`border-t border-[#D5CBB3] py-4 ${
             collapsed ? "px-2" : "px-4"
           }`}
         >
@@ -244,7 +247,7 @@ export default function Sidebar() {
             onClick={handleSignOut}
             title={collapsed ? "Sign out" : undefined}
             aria-label="Sign out"
-            className={`flex min-h-12 w-full items-center rounded-xl text-sm font-medium text-[#a64b2b] transition hover:bg-[#fff1e6] ${
+            className={`flex min-h-12 w-full items-center rounded-xl text-sm font-medium text-[#a64b2b] transition hover:bg-[#E5E9DA] ${
               collapsed
                 ? "justify-center px-2"
                 : "gap-3 px-4"
@@ -258,7 +261,7 @@ export default function Sidebar() {
       </aside>
 
       {/* MOBILE BOTTOM NAVIGATION */}
-      <div className="fixed bottom-0 left-0 z-50 w-full border-t border-[#f1dfd2] bg-white md:hidden">
+      <div className="fixed bottom-0 left-0 z-50 w-full border-t border-[#D5CBB3] bg-[#F2EAD2] md:hidden">
         {showMore && (
           <>
             <button
@@ -267,8 +270,8 @@ export default function Sidebar() {
               className="fixed inset-0 z-40 bg-black/20"
             />
 
-            <div className="absolute bottom-full right-3 z-50 mb-3 w-60 overflow-hidden rounded-2xl border border-[#f1dfd2] bg-white p-2 shadow-xl">
-              <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-[#a66a4a]">
+            <div className="absolute bottom-full right-3 z-50 mb-3 w-60 overflow-hidden rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-2 shadow-xl">
+              <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-[#718477]">
                 More options
               </p>
 
@@ -278,15 +281,15 @@ export default function Sidebar() {
                   href={item.href}
                   className={`block rounded-xl px-4 py-3 text-sm font-medium ${
                     pathname === item.href
-                      ? "bg-[#fff1e6] text-[#d96f2b]"
-                      : "text-[#5b2f1f] hover:bg-[#fff8f2]"
+                      ? "bg-[#E5E9DA] text-[#1E3B2F]"
+                      : "text-[#1E3B2F] hover:bg-[#E5E9DA]"
                   }`}
                 >
                   {item.name}
                 </Link>
               ))}
 
-              <div className="my-2 border-t border-[#f1dfd2]" />
+              <div className="my-2 border-t border-[#D5CBB3]" />
 
               <button
                 onClick={handleSignOut}
@@ -312,7 +315,7 @@ export default function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={`flex min-h-[58px] flex-col items-center justify-center gap-1 rounded-xl text-center transition ${
-                  active ? "text-[#d96f2b]" : "text-[#596273]"
+                  active ? "text-[#1E3B2F]" : "text-[#718477]"
                 }`}
               >
                 <span className="text-2xl leading-none">
@@ -334,8 +337,8 @@ export default function Sidebar() {
                 moreNavigation.some(
                   (item) => item.href === pathname
                 )
-                  ? "text-[#d96f2b]"
-                  : "text-[#596273]"
+                  ? "text-[#1E3B2F]"
+                  : "text-[#718477]"
               }`}
             >
               <span className="text-2xl leading-none">•••</span>
@@ -346,7 +349,7 @@ export default function Sidebar() {
           {role !== "ADMIN" && (
             <button
               onClick={handleSignOut}
-              className="flex min-h-[58px] flex-col items-center justify-center gap-1 rounded-xl text-[#596273]"
+              className="flex min-h-[58px] flex-col items-center justify-center gap-1 rounded-xl text-[#718477]"
             >
               <span className="text-2xl leading-none">↪</span>
               <span className="text-[10px] font-medium">

@@ -128,10 +128,11 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     const productId = String(
-      body.productId ?? ""
-    ).trim();
+  body.productId ?? ""
+).trim();
 
-    const weight = Number(body.weight);
+const quantity = Number(body.quantity);
+const weight = Number(body.weight);
 
     if (!productId) {
       return NextResponse.json(
@@ -139,6 +140,18 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    if (
+  !Number.isSafeInteger(quantity) ||
+  quantity <= 0
+) {
+  return NextResponse.json(
+    {
+      error: "Quantity must be a positive whole number.",
+    },
+    { status: 400 }
+  );
+}
 
     if (
       !Number.isFinite(weight) ||
@@ -186,14 +199,14 @@ export async function POST(request: Request) {
 
     const result = await prisma.$transaction(
       async (tx) => {
-        const entry = await tx.workEntry.create({
-          data: {
-            workerId: employee.id,
-            productId,
-            quantity: 0,
-            weight,
-            status: "PENDING",
-          },
+       const entry = await tx.workEntry.create({
+  data: {
+    workerId: employee.id,
+    productId,
+    quantity,
+    weight,
+    status: "PENDING",
+  },
           select: {
             id: true,
             quantity: true,
@@ -218,12 +231,13 @@ export async function POST(request: Request) {
             entityId: entry.id,
             oldValue: null,
             newValue: {
-              workerId: employee.id,
-              productId: product.id,
-              weight,
-              unit: "kg",
-              status: "PENDING",
-            },
+  workerId: employee.id,
+  productId: product.id,
+  quantity,
+  weight,
+  weightUnit: "kg",
+  status: "PENDING",
+},
           },
           tx
         );

@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 36,
     fontFamily: "Helvetica",
     fontSize: 9,
-    color: "#3b2117",
+    color: "#1E3B2F",
   },
 
   header: {
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
 
   company: {
     fontSize: 9,
-    color: "#a66a4a",
+    color: "#718477",
     fontWeight: "bold",
     letterSpacing: 1,
   },
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   reportTitle: {
     marginTop: 8,
     fontSize: 13,
-    color: "#d96f2b",
+    color: "#1E3B2F",
     fontWeight: "bold",
   },
 
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
 
   label: {
     fontSize: 7,
-    color: "#a66a4a",
+    color: "#718477",
     fontWeight: "bold",
     textTransform: "uppercase",
   },
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 11,
     fontWeight: "bold",
-    color: "#3b2117",
+    color: "#1E3B2F",
     marginBottom: 7,
   },
 
@@ -166,13 +166,13 @@ const styles = StyleSheet.create({
     width: "25%",
     padding: 7,
     borderWidth: 1,
-    borderColor: "#f1dfd2",
+    borderColor: "#D5CBB3",
     backgroundColor: "#fffaf6",
   },
 
   summaryLabel: {
     fontSize: 6.5,
-    color: "#a66a4a",
+    color: "#718477",
     fontWeight: "bold",
   },
 
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
   tableRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderBottomColor: "#f1dfd2",
+    borderBottomColor: "#D5CBB3",
   },
 
   tableRowLast: {

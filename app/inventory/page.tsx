@@ -244,7 +244,7 @@ export default function InventoryPage() {
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#fff8f2]">
-        <p className="text-[#5b2f1f]">Loading inventory...</p>
+        <p className="text-[#1E3B2F]">Loading inventory...</p>
       </main>
     );
   }
@@ -257,10 +257,10 @@ export default function InventoryPage() {
         <div className="swp-page-content mx-auto max-w-6xl">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-              <p className="text-sm text-[#a66a4a]">
+              <p className="text-sm text-[#718477]">
                 SWP Business Management System
               </p>
-              <h1 className="mt-2 text-3xl font-bold text-[#3b2117]">
+              <h1 className="mt-2 text-3xl font-bold text-[#1E3B2F]">
                 Inventory
               </h1>
               <p className="mt-2 text-[#7b5a49]">
@@ -268,9 +268,9 @@ export default function InventoryPage() {
               </p>
             </div>
 
-            <div className="swp-user-chip rounded-xl bg-[#fff1e6] px-4 py-3">
-              <p className="text-xs text-[#a66a4a]">Signed in as</p>
-              <p className="font-semibold text-[#3b2117]">{userName}</p>
+            <div className="swp-user-chip rounded-xl bg-[#E5E9DA] px-4 py-3">
+              <p className="text-xs text-[#718477]">Signed in as</p>
+              <p className="font-semibold text-[#1E3B2F]">{userName}</p>
             </div>
           </div>
 
@@ -286,10 +286,10 @@ export default function InventoryPage() {
             </div>
           )}
 
-          <section className="mt-5 min-w-0 rounded-2xl border border-[#f1dfd2] bg-white p-4 shadow-sm sm:mt-8 sm:p-8">
+          <section className="mt-5 min-w-0 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-4 shadow-sm sm:mt-8 sm:p-8">
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
               <div>
-                <h2 className="text-lg font-semibold text-[#3b2117]">
+                <h2 className="text-lg font-semibold text-[#1E3B2F]">
                   Product Management
                 </h2>
                 <p className="mt-1 text-sm text-[#7b5a49]">
@@ -306,7 +306,7 @@ export default function InventoryPage() {
                     setError("");
                     setSuccess("");
                   }}
-                  className="rounded-xl border border-[#d96f2b] bg-white px-5 py-3 text-sm font-semibold text-[#d96f2b] hover:bg-[#fff1e6]"
+                  className="rounded-xl border border-[#1E3B2F] bg-[#F2EAD2] px-5 py-3 text-sm font-semibold text-[#1E3B2F] hover:bg-[#E5E9DA]"
                 >
                   Adjust Stock
                 </button>
@@ -319,7 +319,7 @@ export default function InventoryPage() {
                     setError("");
                     setSuccess("");
                   }}
-                  className="rounded-xl bg-[#d96f2b] px-5 py-3 text-sm font-semibold text-white hover:bg-[#c85f22]"
+                  className="rounded-xl bg-[#1E3B2F] px-5 py-3 text-sm font-semibold text-[#F2EAD2] hover:bg-[#c85f22]"
                 >
                   Add Product
                 </button>
@@ -329,9 +329,9 @@ export default function InventoryPage() {
             {showForm && (
               <form
                 onSubmit={handleCreateProduct}
-                className="mt-8 space-y-5 rounded-2xl border border-[#f1dfd2] bg-[#fffaf6] p-5 sm:p-6"
+                className="mt-8 space-y-5 rounded-2xl border border-[#D5CBB3] bg-[#fffaf6] p-5 sm:p-6"
               >
-                <h3 className="text-lg font-semibold text-[#3b2117]">
+                <h3 className="text-lg font-semibold text-[#1E3B2F]">
                   Add Product
                 </h3>
 
@@ -347,7 +347,7 @@ export default function InventoryPage() {
                     placeholder="Enter product name"
                     required
                     minLength={2}
-                    className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm outline-none focus:border-[#d9793a]"
+                    className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm outline-none focus:border-[#d9793a]"
                   />
                 </div>
 
@@ -361,7 +361,7 @@ export default function InventoryPage() {
                     value={code}
                     onChange={(event) => setCode(event.target.value)}
                     placeholder="Optional product code"
-                    className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm outline-none focus:border-[#d9793a]"
+                    className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm outline-none focus:border-[#d9793a]"
                   />
                 </div>
 
@@ -377,7 +377,7 @@ export default function InventoryPage() {
                     value={initialStock}
                     onChange={(event) => setInitialStock(event.target.value)}
                     required
-                    className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm outline-none focus:border-[#d9793a]"
+                    className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm outline-none focus:border-[#d9793a]"
                   />
                 </div>
 
@@ -393,7 +393,7 @@ export default function InventoryPage() {
                     value={lowStockThreshold}
                     onChange={(event) => setLowStockThreshold(event.target.value)}
                     required
-                    className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm outline-none focus:border-[#d9793a]"
+                    className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm outline-none focus:border-[#d9793a]"
                   />
                 </div>
 
@@ -407,14 +407,14 @@ export default function InventoryPage() {
                       setInitialStock("0");
                       setLowStockThreshold("0");
                     }}
-                    className="rounded-xl border border-[#e8d4c5] bg-white px-5 py-3 text-sm font-semibold text-[#5b3928]"
+                    className="rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-5 py-3 text-sm font-semibold text-[#5b3928]"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={saving}
-                    className="rounded-xl bg-[#d96f2b] px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
+                    className="rounded-xl bg-[#1E3B2F] px-5 py-3 text-sm font-semibold text-[#F2EAD2] disabled:opacity-60"
                   >
                     {saving ? "Creating..." : "Create Product"}
                   </button>
@@ -425,9 +425,9 @@ export default function InventoryPage() {
             {showAdjustment && (
               <form
                 onSubmit={handleAdjustStock}
-                className="mt-8 space-y-5 rounded-2xl border border-[#f1dfd2] bg-[#fffaf6] p-5 sm:p-6"
+                className="mt-8 space-y-5 rounded-2xl border border-[#D5CBB3] bg-[#fffaf6] p-5 sm:p-6"
               >
-                <h3 className="text-lg font-semibold text-[#3b2117]">
+                <h3 className="text-lg font-semibold text-[#1E3B2F]">
                   Adjust Stock
                 </h3>
                 <p className="text-sm text-[#7b5a49]">
@@ -443,7 +443,7 @@ export default function InventoryPage() {
                     value={adjustmentProductId}
                     onChange={(event) => setAdjustmentProductId(event.target.value)}
                     required
-                    className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm outline-none focus:border-[#d9793a]"
+                    className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm outline-none focus:border-[#d9793a]"
                   >
                     <option value="">Select a product</option>
                     {inventory.map((item) => (
@@ -464,7 +464,7 @@ export default function InventoryPage() {
                     onChange={(event) =>
                       setAdjustmentType(event.target.value as "ADD" | "REMOVE")
                     }
-                    className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm outline-none focus:border-[#d9793a]"
+                    className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm outline-none focus:border-[#d9793a]"
                   >
                     <option value="ADD">Add Stock</option>
                     <option value="REMOVE">Remove Stock</option>
@@ -484,7 +484,7 @@ export default function InventoryPage() {
                     onChange={(event) => setAdjustmentWeight(event.target.value)}
                     placeholder="Enter weight in kg"
                     required
-                    className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm outline-none focus:border-[#d9793a]"
+                    className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm outline-none focus:border-[#d9793a]"
                   />
                 </div>
 
@@ -497,14 +497,14 @@ export default function InventoryPage() {
                       setAdjustmentType("ADD");
                       setAdjustmentWeight("");
                     }}
-                    className="rounded-xl border border-[#e8d4c5] bg-white px-5 py-3 text-sm font-semibold text-[#5b3928]"
+                    className="rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-5 py-3 text-sm font-semibold text-[#5b3928]"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={saving}
-                    className="rounded-xl bg-[#d96f2b] px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
+                    className="rounded-xl bg-[#1E3B2F] px-5 py-3 text-sm font-semibold text-[#F2EAD2] disabled:opacity-60"
                   >
                     {saving ? "Saving..." : "Adjust Stock"}
                   </button>
@@ -512,10 +512,10 @@ export default function InventoryPage() {
               </form>
             )}
 
-            <div className="swp-inventory-table-wrap mt-6 overflow-hidden rounded-xl border border-[#f1dfd2] sm:mt-8">
+            <div className="swp-inventory-table-wrap mt-6 overflow-hidden rounded-xl border border-[#D5CBB3] sm:mt-8">
               {inventory.length === 0 ? (
                 <div className="bg-[#fffaf6] p-10 text-center">
-                  <p className="font-medium text-[#5b2f1f]">No products yet.</p>
+                  <p className="font-medium text-[#1E3B2F]">No products yet.</p>
                   <p className="mt-2 text-sm text-[#8b6b5a]">
                     Create your first product using Add Product.
                   </p>
@@ -524,7 +524,7 @@ export default function InventoryPage() {
                 <div className="swp-inventory-table-scroll overflow-x-auto">
                   <table className="swp-inventory-table w-full text-left">
                     <thead className="bg-[#fffaf6]">
-                      <tr className="border-b border-[#f1dfd2]">
+                      <tr className="border-b border-[#D5CBB3]">
                         <th className="px-5 py-4 text-sm font-semibold text-[#5b3928]">Product</th>
                         <th className="px-5 py-4 text-sm font-semibold text-[#5b3928]">Code</th>
                         <th className="px-5 py-4 text-sm font-semibold text-[#5b3928]">Current Stock (kg)</th>
@@ -534,15 +534,15 @@ export default function InventoryPage() {
                     </thead>
                     <tbody>
                       {inventory.map((item) => (
-                        <tr key={item.id} className="border-b border-[#f1dfd2] last:border-b-0">
+                        <tr key={item.id} className="border-b border-[#D5CBB3] last:border-b-0">
                           <td className="px-5 py-4">
-                            <p className="font-semibold text-[#3b2117]">{item.name}</p>
+                            <p className="font-semibold text-[#1E3B2F]">{item.name}</p>
                           </td>
                           <td className="px-5 py-4 text-sm text-[#7b5a49]">
                             {item.code || "—"}
                           </td>
                           <td className="px-5 py-4">
-                            <span className="text-lg font-bold text-[#3b2117]">
+                            <span className="text-lg font-bold text-[#1E3B2F]">
                               {formatKg(item.stockKg)}
                             </span>
                           </td>

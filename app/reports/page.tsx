@@ -406,11 +406,11 @@ export default function ReportsPage() {
 
           {/* PAGE HEADER */}
           <div>
-            <p className="text-sm text-[#a66a4a]">
+            <p className="text-sm text-[#718477]">
               SWP Business Management System
             </p>
 
-            <h1 className="mt-2 text-3xl font-bold text-[#3b2117]">
+            <h1 className="mt-2 text-3xl font-bold text-[#1E3B2F]">
               Reports
             </h1>
 
@@ -420,10 +420,10 @@ export default function ReportsPage() {
           </div>
 
           {/* FILTERS */}
-          <section className="swp-report-filters mt-5 rounded-2xl border border-[#f1dfd2] bg-white p-4 shadow-sm sm:mt-8 sm:p-6">
+          <section className="swp-report-filters mt-5 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-4 shadow-sm sm:mt-8 sm:p-6">
 
             <div className="mb-5">
-              <h2 className="text-lg font-semibold text-[#3b2117]">
+              <h2 className="text-lg font-semibold text-[#1E3B2F]">
                 Report Filters
               </h2>
 
@@ -450,7 +450,7 @@ export default function ReportsPage() {
                   onChange={(event) =>
                     setFrom(event.target.value)
                   }
-                  className="h-11 rounded-xl border border-[#e8d4c5] bg-white px-3 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
+                  className="h-11 rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-3 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
                 />
               </div>
 
@@ -470,7 +470,7 @@ export default function ReportsPage() {
                   onChange={(event) =>
                     setTo(event.target.value)
                   }
-                  className="h-11 rounded-xl border border-[#e8d4c5] bg-white px-3 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
+                  className="h-11 rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-3 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
                 />
               </div>
 
@@ -490,7 +490,7 @@ export default function ReportsPage() {
                     setProductId(event.target.value)
                   }
                   disabled={loadingOptions}
-                  className="h-11 min-w-[220px] rounded-xl border border-[#e8d4c5] bg-white px-3 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0] disabled:bg-[#fffaf6]"
+                  className="h-11 min-w-[220px] rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-3 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0] disabled:bg-[#fffaf6]"
                 >
                   <option value="">
                     All Products
@@ -526,7 +526,7 @@ export default function ReportsPage() {
                     setWorkerId(event.target.value)
                   }
                   disabled={loadingOptions}
-                  className="h-11 min-w-[220px] rounded-xl border border-[#e8d4c5] bg-white px-3 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0] disabled:bg-[#fffaf6]"
+                  className="h-11 min-w-[220px] rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-3 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0] disabled:bg-[#fffaf6]"
                 >
                   <option value="">
                     All Workers
@@ -548,7 +548,7 @@ export default function ReportsPage() {
                 type="button"
                 onClick={handleGenerateReport}
                 disabled={loading || loadingOptions}
-                className="h-11 rounded-xl bg-[#d96f2b] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-60"
+                className="h-11 rounded-xl bg-[#1E3B2F] px-5 text-sm font-semibold text-[#F2EAD2] shadow-sm transition hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading
                   ? "Generating..."
@@ -562,7 +562,7 @@ export default function ReportsPage() {
                 type="button"
                 onClick={handleClear}
                 disabled={loading}
-                className="h-11 rounded-xl border border-[#e8d4c5] bg-white px-5 text-sm font-semibold text-[#5b3928] transition hover:bg-[#fff1e6] disabled:cursor-not-allowed disabled:opacity-60"
+                className="h-11 rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-5 text-sm font-semibold text-[#5b3928] transition hover:bg-[#E5E9DA] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Clear
               </button>
@@ -580,8 +580,8 @@ export default function ReportsPage() {
 
           {/* EMPTY STATE */}
           {!report && !loading && !error && (
-            <div className="mt-8 rounded-2xl border border-dashed border-[#e5cdbd] bg-white p-12 text-center shadow-sm">
-              <p className="font-semibold text-[#5b2f1f]">
+            <div className="mt-8 rounded-2xl border border-dashed border-[#e5cdbd] bg-[#F2EAD2] p-12 text-center shadow-sm">
+              <p className="font-semibold text-[#1E3B2F]">
                 No report generated yet.
               </p>
 
@@ -596,18 +596,18 @@ export default function ReportsPage() {
             <div className="swp-report-output mt-5 space-y-5 sm:mt-8 sm:space-y-8">
 
               {/* REPORT HEADER */}
-              <section className="swp-report-header rounded-2xl border border-[#f1dfd2] bg-white p-4 shadow-sm sm:p-8">
+              <section className="swp-report-header rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-4 shadow-sm sm:p-8">
 
-                <div className="border-b border-[#f1dfd2] pb-6 text-center">
-                  <p className="text-sm font-semibold tracking-wide text-[#a66a4a]">
+                <div className="border-b border-[#D5CBB3] pb-6 text-center">
+                  <p className="text-sm font-semibold tracking-wide text-[#718477]">
                     SWP
                   </p>
 
-                  <h2 className="mt-2 text-2xl font-bold text-[#3b2117]">
+                  <h2 className="mt-2 text-2xl font-bold text-[#1E3B2F]">
                     BUSINESS MANAGEMENT SYSTEM
                   </h2>
 
-                  <h3 className="mt-4 text-xl font-bold text-[#d96f2b]">
+                  <h3 className="mt-4 text-xl font-bold text-[#1E3B2F]">
                     OVERALL BUSINESS REPORT
                   </h3>
                 </div>
@@ -629,11 +629,11 @@ export default function ReportsPage() {
                   />
 
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-[#a66a4a]">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[#718477]">
                       Generated By
                     </p>
 
-                    <p className="mt-1 text-sm font-semibold text-[#3b2117]">
+                    <p className="mt-1 text-sm font-semibold text-[#1E3B2F]">
                       {report.report.generatedBy.name}
                     </p>
 
@@ -643,11 +643,11 @@ export default function ReportsPage() {
                   </div>
 
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-[#a66a4a]">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[#718477]">
                       Report Filters
                     </p>
 
-                    <p className="mt-1 text-sm font-semibold text-[#3b2117]">
+                    <p className="mt-1 text-sm font-semibold text-[#1E3B2F]">
                       Date:{" "}
                       {formatDate(
                         report.report.filters.from
@@ -673,16 +673,16 @@ export default function ReportsPage() {
                 </div>
 
                 {/* PDF BUTTON */}
-                <div className="mt-6 flex justify-end border-t border-[#f1dfd2] pt-6">
+                <div className="mt-6 flex justify-end border-t border-[#D5CBB3] pt-6">
                   <DownloadOverallReportPdf data={report} />
                 </div>
               </section>
 
               {/* SUMMARY */}
-              <section className="swp-report-summary rounded-2xl border border-[#f1dfd2] bg-white p-4 shadow-sm sm:p-8">
+              <section className="swp-report-summary rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-4 shadow-sm sm:p-8">
 
                 <div className="mb-6">
-                  <h2 className="text-lg font-bold text-[#3b2117]">
+                  <h2 className="text-lg font-bold text-[#1E3B2F]">
                     Summary
                   </h2>
 
@@ -758,7 +758,7 @@ export default function ReportsPage() {
               >
                 <table className="swp-report-table swp-report-inventory-table w-full min-w-[700px]">
                   <thead>
-                    <tr className="border-b border-[#f1dfd2] bg-[#fffaf6] text-left">
+                    <tr className="border-b border-[#D5CBB3] bg-[#fffaf6] text-left">
                       <TableHeader>Product</TableHeader>
                       <TableHeader>Code</TableHeader>
                       <TableHeader>Stock</TableHeader>
@@ -824,7 +824,7 @@ export default function ReportsPage() {
               >
                 <table className="swp-report-table swp-report-work-table w-full min-w-[850px]">
                   <thead>
-                    <tr className="border-b border-[#f1dfd2] bg-[#fffaf6] text-left">
+                    <tr className="border-b border-[#D5CBB3] bg-[#fffaf6] text-left">
                       <TableHeader>Date</TableHeader>
                       <TableHeader>Worker</TableHeader>
                       <TableHeader>Product</TableHeader>
@@ -853,7 +853,7 @@ export default function ReportsPage() {
                             </TableCell>
 
                             <td className="px-6 py-4">
-                              <p className="text-sm font-semibold text-[#3b2117]">
+                              <p className="text-sm font-semibold text-[#1E3B2F]">
                                 {entry.worker.name}
                               </p>
 
@@ -888,7 +888,7 @@ export default function ReportsPage() {
               >
                 <table className="swp-report-table swp-report-sales-table w-full min-w-[900px]">
                   <thead>
-                    <tr className="border-b border-[#f1dfd2] bg-[#fffaf6] text-left">
+                    <tr className="border-b border-[#D5CBB3] bg-[#fffaf6] text-left">
                       <TableHeader>Date</TableHeader>
                       <TableHeader>Customer</TableHeader>
                       <TableHeader>Product</TableHeader>
@@ -955,11 +955,11 @@ function ReportInfo({
 }) {
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-wide text-[#a66a4a]">
+      <p className="text-xs font-semibold uppercase tracking-wide text-[#718477]">
         {label}
       </p>
 
-      <p className="mt-1 text-sm font-semibold text-[#3b2117]">
+      <p className="mt-1 text-sm font-semibold text-[#1E3B2F]">
         {value}
       </p>
     </div>
@@ -974,12 +974,12 @@ function SummaryCard({
   value: number;
 }) {
   return (
-    <div className="rounded-xl border border-[#f1dfd2] bg-[#fffaf6] p-5">
-      <p className="text-xs font-semibold uppercase tracking-wide text-[#a66a4a]">
+    <div className="rounded-xl border border-[#D5CBB3] bg-[#fffaf6] p-5">
+      <p className="text-xs font-semibold uppercase tracking-wide text-[#718477]">
         {label}
       </p>
 
-      <p className="mt-2 text-2xl font-bold text-[#3b2117]">
+      <p className="mt-2 text-2xl font-bold text-[#1E3B2F]">
         {value.toLocaleString()}
       </p>
     </div>
@@ -996,9 +996,9 @@ function ReportTable({
   children: React.ReactNode;
 }) {
   return (
-    <section className="swp-report-table-section min-w-0 rounded-2xl border border-[#f1dfd2] bg-white shadow-sm">
-      <div className="border-b border-[#f1dfd2] px-4 py-4 sm:px-6 sm:py-5">
-        <h2 className="text-lg font-bold text-[#3b2117]">
+    <section className="swp-report-table-section min-w-0 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] shadow-sm">
+      <div className="border-b border-[#D5CBB3] px-4 py-4 sm:px-6 sm:py-5">
+        <h2 className="text-lg font-bold text-[#1E3B2F]">
           {title}
         </h2>
 
@@ -1037,7 +1037,7 @@ function TableCell({
     <td
       className={`px-6 py-4 text-sm ${
         strong
-          ? "font-semibold text-[#3b2117]"
+          ? "font-semibold text-[#1E3B2F]"
           : "text-[#5b3928]"
       }`}
     >

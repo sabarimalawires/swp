@@ -1,15 +1,18 @@
-
 "use client";
 
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import LedgerPdf, { type LedgerPdfData } from "./LedgerPdf";
 
+type LedgerType = "CUSTOMER" | "SUPPLIER" | "COMBINED";
+
 type Props = {
   data: LedgerPdfData;
-  combined: boolean;
+  ledgerType: LedgerType;
   financialYear: string;
-  customerName?: string;
   customerId?: string;
+  supplierId?: string;
+  customerName?: string;
+  supplierName?: string;
 };
 
 function safeFilename(value: string) {
@@ -22,35 +25,54 @@ function safeFilename(value: string) {
 
 export default function DownloadLedgerPdf({
   data,
-  combined,
+  ledgerType,
   financialYear,
-  customerName,
   customerId,
+  supplierId,
+  customerName,
+  supplierName,
 }: Props) {
-  const reportName = combined
-    ? "All-Customers"
-    : customerName || data.ledgers[0]?.customer.name || "Customer";
+  const isCustomer = ledgerType === "CUSTOMER";
+  const isSupplier = ledgerType === "SUPPLIER";
+
+  const reportName = isCustomer
+    ? customerName || "All-Customers"
+    : isSupplier
+      ? supplierName || "All-Suppliers"
+      : "Combined-Business";
 
   const filename =
-    `SWP-Ledger-${safeFilename(reportName)}-FY-` +
-    `${safeFilename(financialYear)}.pdf`;
+    `SWP-${ledgerType === "CUSTOMER"
+      ? "Customer"
+      : ledgerType === "SUPPLIER"
+        ? "Supplier"
+        : "Combined"
+    }-Ledger-${safeFilename(reportName)}-FY-${safeFilename(financialYear)}.pdf`;
+
+  const hasData = isCustomer
+    ? data.ledgers.length > 0
+    : isSupplier
+      ? (data.supplierLedgers?.length ?? 0) > 0
+      : data.ledgers.length > 0 ||
+        (data.supplierLedgers?.length ?? 0) > 0;
 
   return (
     <PDFDownloadLink
       document={
-  <LedgerPdf
-    data={data}
-    combined={combined}
-    customerId={customerId}
-  />
-}
+        <LedgerPdf
+          data={data}
+          ledgerType={ledgerType}
+          customerId={customerId}
+          supplierId={supplierId}
+        />
+      }
       fileName={filename}
       style={{ textDecoration: "none" }}
     >
       {({ loading, error }) => (
         <button
           type="button"
-          disabled={loading || !data.ledgers.length}
+          disabled={loading || !hasData}
           className="ledger-button"
           title={error ? "PDF generation failed" : undefined}
         >

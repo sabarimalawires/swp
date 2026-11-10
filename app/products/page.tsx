@@ -420,7 +420,7 @@ export default function ProductsPage() {
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#fff8f2]">
-        <p className="text-[#5b2f1f]">
+        <p className="text-[#1E3B2F]">
           Loading products...
         </p>
       </main>
@@ -436,11 +436,11 @@ export default function ProductsPage() {
 
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-sm font-medium text-[#a66a4a]">
+              <p className="text-sm font-medium text-[#718477]">
                 SWP Business Management System
               </p>
 
-              <h1 className="mt-2 text-3xl font-bold text-[#3b2117]">
+              <h1 className="mt-2 text-3xl font-bold text-[#1E3B2F]">
                 Products
               </h1>
 
@@ -449,12 +449,12 @@ export default function ProductsPage() {
               </p>
             </div>
 
-            <div className="swp-user-chip rounded-2xl border border-[#f1dfd2] bg-white px-6 py-4 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#a66a4a]">
+            <div className="swp-user-chip rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] px-6 py-4 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#718477]">
                 Signed in as
               </p>
 
-              <p className="mt-1 font-semibold text-[#3b2117]">
+              <p className="mt-1 font-semibold text-[#1E3B2F]">
                 {userName}
               </p>
 
@@ -476,12 +476,12 @@ export default function ProductsPage() {
             </div>
           )}
 
-          <section className="mt-5 min-w-0 rounded-2xl border border-[#f1dfd2] bg-white shadow-sm sm:mt-8">
+          <section className="mt-5 min-w-0 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] shadow-sm sm:mt-8">
 
-            <div className="flex flex-col gap-4 border-b border-[#f1dfd2] px-6 py-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-4 border-b border-[#D5CBB3] px-6 py-6 sm:flex-row sm:items-center sm:justify-between">
 
               <div>
-                <h2 className="text-lg font-bold text-[#3b2117]">
+                <h2 className="text-lg font-bold text-[#1E3B2F]">
                   Product Management
                 </h2>
 
@@ -493,7 +493,7 @@ export default function ProductsPage() {
               <button
                 type="button"
                 onClick={startCreate}
-                className="w-full rounded-xl bg-[#d96f2b] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#c85f22] sm:w-auto"
+                className="w-full rounded-xl bg-[#1E3B2F] px-5 py-3 text-sm font-semibold text-[#F2EAD2] shadow-sm transition hover:bg-[#c85f22] sm:w-auto"
               >
                 Add Product
               </button>
@@ -501,10 +501,10 @@ export default function ProductsPage() {
             </div>
 
             {showForm && (
-              <div className="border-b border-[#f1dfd2] bg-[#fffaf6] p-4 sm:p-6">
+              <div className="border-b border-[#D5CBB3] bg-[#fffaf6] p-4 sm:p-6">
 
                 <div className="mb-6">
-                  <h3 className="text-lg font-bold text-[#3b2117]">
+                  <h3 className="text-lg font-bold text-[#1E3B2F]">
                     {editingId
                       ? "Edit Product"
                       : "Add Product"}
@@ -540,7 +540,7 @@ export default function ProductsPage() {
                         )
                       }
                       required
-                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
+                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
                     />
                   </div>
 
@@ -561,7 +561,7 @@ export default function ProductsPage() {
                           event.target.value
                         )
                       }
-                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
+                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
                     />
                   </div>
 
@@ -588,7 +588,7 @@ export default function ProductsPage() {
                         editingId !== null
                       }
                       required
-                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm outline-none disabled:bg-gray-100 disabled:text-gray-500 focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
+                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm outline-none disabled:bg-gray-100 disabled:text-gray-500 focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
                     />
 
                     {editingId && (
@@ -620,7 +620,7 @@ export default function ProductsPage() {
                         )
                       }
                       required
-                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
+                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
                     />
                   </div>
 
@@ -630,7 +630,7 @@ export default function ProductsPage() {
                       type="button"
                       onClick={resetForm}
                       disabled={saving}
-                      className="rounded-xl border border-[#e8d4c5] bg-white px-5 py-3 text-sm font-semibold text-[#5b3928] hover:bg-[#fff1e6]"
+                      className="rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-5 py-3 text-sm font-semibold text-[#5b3928] hover:bg-[#E5E9DA]"
                     >
                       Cancel
                     </button>
@@ -638,7 +638,7 @@ export default function ProductsPage() {
                     <button
                       type="submit"
                       disabled={saving}
-                      className="rounded-xl bg-[#d96f2b] px-5 py-3 text-sm font-semibold text-white hover:bg-[#c85f22] disabled:opacity-60"
+                      className="rounded-xl bg-[#1E3B2F] px-5 py-3 text-sm font-semibold text-[#F2EAD2] hover:bg-[#c85f22] disabled:opacity-60"
                     >
                       {saving
                         ? "Saving..."
@@ -657,7 +657,7 @@ export default function ProductsPage() {
 
               {products.length === 0 ? (
                 <div className="p-12 text-center">
-                  <p className="font-semibold text-[#5b2f1f]">
+                  <p className="font-semibold text-[#1E3B2F]">
                     No active products found.
                   </p>
                 </div>
@@ -665,7 +665,7 @@ export default function ProductsPage() {
                 <table className="swp-products-table w-full min-w-[1050px]">
 
                   <thead>
-                    <tr className="border-b border-[#f1dfd2] bg-[#fffaf6] text-left">
+                    <tr className="border-b border-[#D5CBB3] bg-[#fffaf6] text-left">
 
                       <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-[#8b6b5a]">
                         Product
@@ -708,7 +708,7 @@ export default function ProductsPage() {
                           >
 
                             <td className="px-6 py-5">
-                              <p className="text-sm font-semibold text-[#3b2117]">
+                              <p className="text-sm font-semibold text-[#1E3B2F]">
                                 {product.name}
                               </p>
 
@@ -722,7 +722,7 @@ export default function ProductsPage() {
                                 "-"}
                             </td>
 
-                            <td className="px-6 py-5 text-sm font-semibold text-[#3b2117]">
+                            <td className="px-6 py-5 text-sm font-semibold text-[#1E3B2F]">
                               {product.initialStockKg.toLocaleString()}
                             </td>
 
@@ -749,7 +749,7 @@ export default function ProductsPage() {
                                   disabled={
                                     isUpdating
                                   }
-                                  className="rounded-lg border border-[#e8d4c5] bg-white px-4 py-2 text-xs font-semibold text-[#5b3928] hover:bg-[#fff1e6] disabled:opacity-50"
+                                  className="rounded-lg border border-[#e8d4c5] bg-[#F2EAD2] px-4 py-2 text-xs font-semibold text-[#5b3928] hover:bg-[#E5E9DA] disabled:opacity-50"
                                 >
                                   Edit
                                 </button>

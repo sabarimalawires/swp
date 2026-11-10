@@ -44,7 +44,8 @@ export default function WorkPage() {
   const [entries, setEntries] = useState<WorkEntry[]>([]);
 
   const [productId, setProductId] = useState("");
-  const [weight, setWeight] = useState("");
+const [quantity, setQuantity] = useState("");
+const [weight, setWeight] = useState("");
 
   const [saving, setSaving] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -133,6 +134,15 @@ export default function WorkPage() {
     setSuccess("");
 
     const weightKg = Number(weight);
+    const quantityValue = Number(quantity);
+
+if (
+  !Number.isInteger(quantityValue) ||
+  quantityValue <= 0
+) {
+  setError("Quantity must be a positive whole number.");
+  return;
+}
 
     if (!productId) {
       setError("Please select a product.");
@@ -159,9 +169,10 @@ export default function WorkPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          productId,
-          weight: weightKg,
-        }),
+  productId,
+  quantity: quantityValue,
+  weight: weightKg,
+}),
       });
 
       const result = await response.json();
@@ -175,7 +186,8 @@ export default function WorkPage() {
 
       setSuccess("Work entry submitted successfully.");
       setProductId("");
-      setWeight("");
+setQuantity("");
+setWeight("");
 
       await loadData("WORKER");
     } catch {
@@ -258,7 +270,7 @@ export default function WorkPage() {
   if (loading || !role) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#fff8f2]">
-        <p className="text-[#5b2f1f]">Loading...</p>
+        <p className="text-[#1E3B2F]">Loading...</p>
       </main>
     );
   }
@@ -271,11 +283,11 @@ export default function WorkPage() {
         <div className="mx-auto max-w-6xl">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[#a66a4a]">
+              <p className="text-sm text-[#718477]">
                 SWP Business Management System
               </p>
 
-              <h1 className="mt-2 text-3xl font-bold text-[#3b2117]">
+              <h1 className="mt-2 text-3xl font-bold text-[#1E3B2F]">
                 Work Entries
               </h1>
 
@@ -286,12 +298,12 @@ export default function WorkPage() {
               </p>
             </div>
 
-            <div className="rounded-xl bg-[#fff1e6] px-4 py-3">
-              <p className="text-xs text-[#a66a4a]">
+            <div className="rounded-xl bg-[#E5E9DA] px-4 py-3">
+              <p className="text-xs text-[#718477]">
                 Signed in as
               </p>
 
-              <p className="font-semibold text-[#3b2117]">
+              <p className="font-semibold text-[#1E3B2F]">
                 {userName}
               </p>
             </div>
@@ -311,13 +323,13 @@ export default function WorkPage() {
 
           {role === "WORKER" ? (
             <div className="mt-8 grid gap-6 lg:grid-cols-[380px_1fr]">
-              <div className="rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
-                <h2 className="text-lg font-semibold text-[#3b2117]">
+              <div className="rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
+                <h2 className="text-lg font-semibold text-[#1E3B2F]">
                   Submit Work
                 </h2>
 
                 <p className="mt-1 text-sm text-[#7b5a49]">
-                  Record the weight completed in kilograms (kg).
+                  Record the production quantity and weight completed.
                 </p>
 
                 <form
@@ -339,7 +351,7 @@ export default function WorkPage() {
                         setProductId(event.target.value)
                       }
                       required
-                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
+                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
                     >
                       <option value="">Select a product</option>
 
@@ -351,6 +363,27 @@ export default function WorkPage() {
                       ))}
                     </select>
                   </div>
+
+                  <div>
+  <label
+    htmlFor="quantity"
+    className="mb-2 block text-sm font-semibold text-[#5b3928]"
+  >
+    Quantity (Pieces)
+  </label>
+
+  <input
+    id="quantity"
+    type="number"
+    min="1"
+    step="1"
+    value={quantity}
+    onChange={(event) => setQuantity(event.target.value)}
+    placeholder="Enter quantity"
+    required
+    className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
+  />
+</div>
 
                   <div>
                     <label
@@ -370,7 +403,7 @@ export default function WorkPage() {
                       onChange={(event) => setWeight(event.target.value)}
                       placeholder="Enter weight in kg"
                       required
-                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
+                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
                     />
                     <p className="mt-1 text-xs text-[#9a7865]">
                       You can enter up to 3 decimal places.
@@ -380,17 +413,17 @@ export default function WorkPage() {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="w-full rounded-xl bg-[#d96f2b] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-full rounded-xl bg-[#1E3B2F] px-5 py-3 text-sm font-semibold text-[#F2EAD2] shadow-sm transition hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {saving ? "Submitting..." : "Submit Work"}
                   </button>
                 </form>
               </div>
 
-              <div className="rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
+              <div className="rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-lg font-semibold text-[#3b2117]">
+                    <h2 className="text-lg font-semibold text-[#1E3B2F]">
                       My Work Entries
                     </h2>
 
@@ -399,14 +432,14 @@ export default function WorkPage() {
                     </p>
                   </div>
 
-                  <span className="rounded-full bg-[#fff1e6] px-3 py-1 text-xs font-semibold text-[#a64b2b]">
+                  <span className="rounded-full bg-[#E5E9DA] px-3 py-1 text-xs font-semibold text-[#a64b2b]">
                     {entries.length} entries
                   </span>
                 </div>
 
                 {entries.length === 0 ? (
                   <div className="mt-8 rounded-xl border border-dashed border-[#e5cdbd] bg-[#fffaf6] p-10 text-center">
-                    <p className="font-medium text-[#5b2f1f]">
+                    <p className="font-medium text-[#1E3B2F]">
                       No work entries yet.
                     </p>
 
@@ -419,11 +452,11 @@ export default function WorkPage() {
                     {entries.map((entry) => (
                       <div
                         key={entry.id}
-                        className="rounded-xl border border-[#f1dfd2] bg-[#fffaf6] p-4"
+                        className="rounded-xl border border-[#D5CBB3] bg-[#fffaf6] p-4"
                       >
                         <div className="flex items-center justify-between gap-4">
                           <div>
-                            <p className="font-semibold text-[#3b2117]">
+                            <p className="font-semibold text-[#1E3B2F]">
                               {entry.product.name}
                             </p>
 
@@ -464,10 +497,10 @@ export default function WorkPage() {
               </div>
             </div>
           ) : (
-            <div className="mt-8 rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
+            <div className="mt-8 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold text-[#3b2117]">
+                  <h2 className="text-lg font-semibold text-[#1E3B2F]">
                     Work Review
                   </h2>
 
@@ -476,14 +509,14 @@ export default function WorkPage() {
                   </p>
                 </div>
 
-                <span className="rounded-full bg-[#fff1e6] px-3 py-1 text-xs font-semibold text-[#a64b2b]">
+                <span className="rounded-full bg-[#E5E9DA] px-3 py-1 text-xs font-semibold text-[#a64b2b]">
                   {entries.length} entries
                 </span>
               </div>
 
               {entries.length === 0 ? (
                 <div className="mt-8 rounded-xl border border-dashed border-[#e5cdbd] bg-[#fffaf6] p-10 text-center">
-                  <p className="font-medium text-[#5b2f1f]">
+                  <p className="font-medium text-[#1E3B2F]">
                     No work entries yet.
                   </p>
 
@@ -496,11 +529,11 @@ export default function WorkPage() {
                   {entries.map((entry) => (
                     <div
                       key={entry.id}
-                      className="rounded-xl border border-[#f1dfd2] bg-[#fffaf6] p-5"
+                      className="rounded-xl border border-[#D5CBB3] bg-[#fffaf6] p-5"
                     >
                       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                         <div>
-                          <p className="font-semibold text-[#3b2117]">
+                          <p className="font-semibold text-[#1E3B2F]">
                             {entry.product.name}
                           </p>
 
@@ -543,7 +576,7 @@ export default function WorkPage() {
                                 type="button"
                                 onClick={() => handleApprove(entry.id)}
                                 disabled={processingId === entry.id}
-                                className="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                className="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-[#F2EAD2] transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
                               >
                                 {processingId === entry.id
                                   ? "Processing..."
@@ -558,7 +591,7 @@ export default function WorkPage() {
                                   setError("");
                                 }}
                                 disabled={processingId === entry.id}
-                                className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-[#F2EAD2] transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
                               >
                                 Reject
                               </button>
@@ -604,7 +637,7 @@ export default function WorkPage() {
                             }
                             placeholder="Explain why this work entry is being rejected."
                             rows={3}
-                            className="w-full rounded-xl border border-red-200 bg-white px-4 py-3 text-sm text-[#3f2418] outline-none focus:border-red-400 focus:ring-4 focus:ring-red-100"
+                            className="w-full rounded-xl border border-red-200 bg-[#F2EAD2] px-4 py-3 text-sm text-[#3f2418] outline-none focus:border-red-400 focus:ring-4 focus:ring-red-100"
                           />
 
                           <div className="mt-3 flex justify-end gap-3">
@@ -614,7 +647,7 @@ export default function WorkPage() {
                                 setRejectingId(null);
                                 setRejectionReason("");
                               }}
-                              className="rounded-xl border border-[#e8d4c5] bg-white px-4 py-2 text-sm font-semibold text-[#5b3928] transition hover:bg-[#fff1e6]"
+                              className="rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 py-2 text-sm font-semibold text-[#5b3928] transition hover:bg-[#E5E9DA]"
                             >
                               Cancel
                             </button>
@@ -623,7 +656,7 @@ export default function WorkPage() {
                               type="button"
                               onClick={() => handleReject(entry.id)}
                               disabled={processingId === entry.id}
-                              className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                              className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-[#F2EAD2] transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
                             >
                               {processingId === entry.id
                                 ? "Rejecting..."

@@ -300,11 +300,11 @@ export default function HistoryPage() {
         <div className="swp-page-content mx-auto max-w-7xl">
           {/* Header */}
           <div>
-            <p className="text-sm text-[#a66a4a]">
+            <p className="text-sm text-[#718477]">
               SWP Business Management System
             </p>
 
-            <h1 className="mt-2 text-3xl font-bold text-[#3b2117]">
+            <h1 className="mt-2 text-3xl font-bold text-[#1E3B2F]">
               Activity History
             </h1>
 
@@ -315,7 +315,7 @@ export default function HistoryPage() {
           </div>
 
           {/* Filters */}
-          <div className="swp-history-filters mt-5 rounded-2xl border border-[#f1dfd2] bg-white p-4 shadow-sm sm:mt-8 sm:p-6">
+          <div className="swp-history-filters mt-5 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-4 shadow-sm sm:mt-8 sm:p-6">
             <div className="flex flex-wrap items-end gap-4">
               <div>
                 <label
@@ -332,7 +332,7 @@ export default function HistoryPage() {
                     setAction(event.target.value);
                     setPage(1);
                   }}
-                  className="h-11 rounded-xl border border-[#e8d4c5] bg-white px-3 text-sm text-[#3f2418] outline-none focus:border-[#d9793a]"
+                  className="h-11 rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-3 text-sm text-[#3f2418] outline-none focus:border-[#d9793a]"
                 >
                   {actionOptions.map((option) => (
                     <option
@@ -362,7 +362,7 @@ export default function HistoryPage() {
                     setEntityType(event.target.value);
                     setPage(1);
                   }}
-                  className="h-11 rounded-xl border border-[#e8d4c5] bg-white px-3 text-sm text-[#3f2418] outline-none focus:border-[#d9793a]"
+                  className="h-11 rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-3 text-sm text-[#3f2418] outline-none focus:border-[#d9793a]"
                 >
                   {entityOptions.map((option) => (
                     <option
@@ -393,7 +393,7 @@ export default function HistoryPage() {
                     setFrom(event.target.value);
                     setPage(1);
                   }}
-                  className="h-11 rounded-xl border border-[#e8d4c5] bg-white px-3 text-sm text-[#3f2418] outline-none focus:border-[#d9793a]"
+                  className="h-11 rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-3 text-sm text-[#3f2418] outline-none focus:border-[#d9793a]"
                 />
               </div>
 
@@ -413,14 +413,14 @@ export default function HistoryPage() {
                     setTo(event.target.value);
                     setPage(1);
                   }}
-                  className="h-11 rounded-xl border border-[#e8d4c5] bg-white px-3 text-sm text-[#3f2418] outline-none focus:border-[#d9793a]"
+                  className="h-11 rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-3 text-sm text-[#3f2418] outline-none focus:border-[#d9793a]"
                 />
               </div>
 
               <button
                 type="button"
                 onClick={handleClearFilters}
-                className="h-11 rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm font-semibold text-[#5b3928] transition hover:bg-[#fff1e6]"
+                className="h-11 rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm font-semibold text-[#5b3928] transition hover:bg-[#E5E9DA]"
               >
                 Clear Filters
               </button>
@@ -435,10 +435,10 @@ export default function HistoryPage() {
           )}
 
           {/* Table */}
-          <div className="swp-history-records mt-5 min-w-0 rounded-2xl border border-[#f1dfd2] bg-white shadow-sm sm:mt-8">
-            <div className="flex flex-col gap-2 border-b border-[#f1dfd2] px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="swp-history-records mt-5 min-w-0 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] shadow-sm sm:mt-8">
+            <div className="flex flex-col gap-2 border-b border-[#D5CBB3] px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-[#3b2117]">
+                <h2 className="text-lg font-semibold text-[#1E3B2F]">
                   Business Activity
                 </h2>
 
@@ -459,14 +459,14 @@ export default function HistoryPage() {
 
             {loading ? (
               <div className="p-12 text-center">
-                <p className="text-[#5b2f1f]">
+                <p className="text-[#1E3B2F]">
                   Loading history...
                 </p>
               </div>
             ) : !data ||
               data.auditLogs.length === 0 ? (
               <div className="p-12 text-center">
-                <p className="font-medium text-[#5b2f1f]">
+                <p className="font-medium text-[#1E3B2F]">
                   No activity found.
                 </p>
 
@@ -480,7 +480,7 @@ export default function HistoryPage() {
                 <div className="swp-history-table-wrap overflow-x-auto">
                   <table className="swp-history-table w-full min-w-[1000px]">
                     <thead>
-                      <tr className="border-b border-[#f1dfd2] bg-[#fffaf6] text-left">
+                      <tr className="border-b border-[#D5CBB3] bg-[#fffaf6] text-left">
                         <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-[#8b6b5a]">
                           Date & Time
                         </th>
@@ -514,7 +514,7 @@ export default function HistoryPage() {
                           </td>
 
                           <td className="px-6 py-5">
-                            <p className="text-sm font-semibold text-[#3b2117]">
+                            <p className="text-sm font-semibold text-[#1E3B2F]">
                               {log.user?.name ||
                                 "System"}
                             </p>
@@ -554,7 +554,7 @@ export default function HistoryPage() {
                 </div>
 
                 {/* Pagination */}
-                <div className="swp-history-pagination flex flex-col items-center justify-between gap-3 border-t border-[#f1dfd2] px-4 py-4 sm:flex-row sm:px-6">
+                <div className="swp-history-pagination flex flex-col items-center justify-between gap-3 border-t border-[#D5CBB3] px-4 py-4 sm:flex-row sm:px-6">
                   <button
                     type="button"
                     disabled={
@@ -566,7 +566,7 @@ export default function HistoryPage() {
                         Math.max(1, current - 1)
                       )
                     }
-                    className="rounded-xl border border-[#e8d4c5] bg-white px-4 py-2 text-sm font-semibold text-[#5b3928] transition hover:bg-[#fff1e6] disabled:cursor-not-allowed disabled:opacity-40"
+                    className="rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 py-2 text-sm font-semibold text-[#5b3928] transition hover:bg-[#E5E9DA] disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     ← Previous
                   </button>
@@ -596,7 +596,7 @@ export default function HistoryPage() {
                         (current) => current + 1
                       )
                     }
-                    className="rounded-xl bg-[#d96f2b] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-40"
+                    className="rounded-xl bg-[#1E3B2F] px-4 py-2 text-sm font-semibold text-[#F2EAD2] transition hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     Next →
                   </button>

@@ -358,9 +358,9 @@ export default function EmployeesPage() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#fff8f2]">
         <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-[#f1dfd2] border-t-[#d96f2b]" />
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-[#D5CBB3] border-t-[#1E3B2F]" />
 
-          <p className="mt-4 text-sm font-medium text-[#5b2f1f]">
+          <p className="mt-4 text-sm font-medium text-[#1E3B2F]">
             Loading employees...
           </p>
         </div>
@@ -378,11 +378,11 @@ export default function EmployeesPage() {
           {/* HEADER */}
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-sm font-medium text-[#a66a4a]">
+              <p className="text-sm font-medium text-[#718477]">
                 SWP Business Management System
               </p>
 
-              <h1 className="mt-2 text-3xl font-bold text-[#3b2117]">
+              <h1 className="mt-2 text-3xl font-bold text-[#1E3B2F]">
                 Employees
               </h1>
 
@@ -391,12 +391,12 @@ export default function EmployeesPage() {
               </p>
             </div>
 
-            <div className="swp-user-chip rounded-2xl border border-[#f1dfd2] bg-white px-6 py-4 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#a66a4a]">
+            <div className="swp-user-chip rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] px-6 py-4 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#718477]">
                 Signed in as
               </p>
 
-              <p className="mt-1 font-semibold text-[#3b2117]">
+              <p className="mt-1 font-semibold text-[#1E3B2F]">
                 {userName}
               </p>
 
@@ -420,13 +420,13 @@ export default function EmployeesPage() {
           )}
 
           {/* EMPLOYEE MANAGEMENT */}
-          <section className="mt-5 min-w-0 rounded-2xl border border-[#f1dfd2] bg-white shadow-sm sm:mt-8">
+          <section className="mt-5 min-w-0 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] shadow-sm sm:mt-8">
 
             {/* SECTION HEADER */}
-            <div className="flex flex-col gap-4 border-b border-[#f1dfd2] px-6 py-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-4 border-b border-[#D5CBB3] px-6 py-6 sm:flex-row sm:items-center sm:justify-between">
 
               <div>
-                <h2 className="text-lg font-bold text-[#3b2117]">
+                <h2 className="text-lg font-bold text-[#1E3B2F]">
                   Employee Management
                 </h2>
 
@@ -442,7 +442,7 @@ export default function EmployeesPage() {
                   setError("");
                   setSuccess("");
                 }}
-                className="rounded-xl bg-[#d96f2b] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#c85f22]"
+                className="rounded-xl bg-[#1E3B2F] px-5 py-3 text-sm font-semibold text-[#F2EAD2] shadow-sm transition hover:bg-[#c85f22]"
               >
                 Add Employee
               </button>
@@ -450,10 +450,10 @@ export default function EmployeesPage() {
 
             {/* ADD EMPLOYEE FORM */}
             {showForm && (
-              <div className="border-b border-[#f1dfd2] bg-[#fffaf6] p-6">
+              <div className="border-b border-[#D5CBB3] bg-[#fffaf6] p-6">
 
                 <div className="mb-6">
-                  <h3 className="text-lg font-bold text-[#3b2117]">
+                  <h3 className="text-lg font-bold text-[#1E3B2F]">
                     Add Employee
                   </h3>
 
@@ -489,7 +489,7 @@ export default function EmployeesPage() {
                       }
                       placeholder="Employee name"
                       required
-                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
+                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
                     />
                   </div>
 
@@ -513,7 +513,7 @@ export default function EmployeesPage() {
                       }
                       placeholder="Username"
                       required
-                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
+                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
                     />
                   </div>
 
@@ -538,7 +538,7 @@ export default function EmployeesPage() {
                       placeholder="Minimum 8 characters"
                       minLength={8}
                       required
-                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
+                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
                     />
                   </div>
 
@@ -547,7 +547,7 @@ export default function EmployeesPage() {
                       type="button"
                       onClick={handleCancel}
                       disabled={saving}
-                      className="rounded-xl border border-[#e8d4c5] bg-white px-5 py-3 text-sm font-semibold text-[#5b3928] transition hover:bg-[#fff1e6] disabled:opacity-60"
+                      className="rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-5 py-3 text-sm font-semibold text-[#5b3928] transition hover:bg-[#E5E9DA] disabled:opacity-60"
                     >
                       Cancel
                     </button>
@@ -555,7 +555,7 @@ export default function EmployeesPage() {
                     <button
                       type="submit"
                       disabled={saving}
-                      className="rounded-xl bg-[#d96f2b] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="rounded-xl bg-[#1E3B2F] px-5 py-3 text-sm font-semibold text-[#F2EAD2] shadow-sm transition hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {saving
                         ? "Creating..."
@@ -573,7 +573,7 @@ export default function EmployeesPage() {
               {employees.length === 0 ? (
                 <div className="p-12 text-center">
 
-                  <p className="font-semibold text-[#5b2f1f]">
+                  <p className="font-semibold text-[#1E3B2F]">
                     No employees found.
                   </p>
 
@@ -586,7 +586,7 @@ export default function EmployeesPage() {
                 <table className="swp-employee-table w-full min-w-[850px]">
 
                   <thead>
-                    <tr className="border-b border-[#f1dfd2] bg-[#fffaf6] text-left">
+                    <tr className="border-b border-[#D5CBB3] bg-[#fffaf6] text-left">
 
                       <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-[#8b6b5a]">
                         Employee
@@ -638,7 +638,7 @@ export default function EmployeesPage() {
                             {/* EMPLOYEE */}
                             <td className="px-6 py-5">
 
-                              <p className="text-sm font-semibold text-[#3b2117]">
+                              <p className="text-sm font-semibold text-[#1E3B2F]">
                                 {
                                   employee.name
                                 }
@@ -667,7 +667,7 @@ export default function EmployeesPage() {
                                 className={`rounded-full px-3 py-1 text-xs font-semibold ${
                                   isAdmin
                                     ? "bg-[#f7eee8] text-[#7a4b35]"
-                                    : "bg-[#fff1e6] text-[#a66a4a]"
+                                    : "bg-[#E5E9DA] text-[#718477]"
                                 }`}
                               >
                                 {isAdmin

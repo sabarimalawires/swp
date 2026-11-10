@@ -849,7 +849,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
       <main className="flex min-h-screen items-center justify-center bg-[#fff8f2]">
 
-        <p className="text-[#5b2f1f]">
+        <p className="text-[#1E3B2F]">
 
           Loading customer...
 
@@ -887,7 +887,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
             }
 
-            className="mt-4 rounded-xl bg-[#d96f2b] px-5 py-2 text-sm font-semibold text-white"
+            className="mt-4 rounded-xl bg-[#1E3B2F] px-5 py-2 text-sm font-semibold text-[#F2EAD2]"
 
           >
 
@@ -929,7 +929,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
                 }
 
-                className="text-sm font-semibold text-[#a66a4a] hover:text-[#d96f2b]"
+                className="text-sm font-semibold text-[#718477] hover:text-[#1E3B2F]"
 
               >
 
@@ -937,13 +937,13 @@ const handleDeletePayment = async (paymentId: string) => {
 
               </button>
 
-              <p className="mt-5 text-sm text-[#a66a4a]">
+              <p className="mt-5 text-sm text-[#718477]">
 
                 Customer Account
 
               </p>
 
-              <h1 className="mt-2 text-3xl font-bold text-[#3b2117]">
+              <h1 className="mt-2 text-3xl font-bold text-[#1E3B2F]">
 
                 {customer.name}
 
@@ -975,7 +975,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
     }}
 
-    className="rounded-xl border border-[#e5cdbd] px-4 py-2 text-sm font-semibold text-[#5b3928] hover:bg-[#fff1e6]"
+    className="rounded-xl border border-[#e5cdbd] px-4 py-2 text-sm font-semibold text-[#5b3928] hover:bg-[#E5E9DA]"
 
   >
 
@@ -997,15 +997,15 @@ const handleDeletePayment = async (paymentId: string) => {
 
             </div>
 
-            <div className="swp-user-chip rounded-xl bg-[#fff1e6] px-4 py-3">
+            <div className="swp-user-chip rounded-xl bg-[#E5E9DA] px-4 py-3">
 
-              <p className="text-xs text-[#a66a4a]">
+              <p className="text-xs text-[#718477]">
 
                 Signed in as
 
               </p>
 
-              <p className="font-semibold text-[#3b2117]">
+              <p className="font-semibold text-[#1E3B2F]">
 
                 {userName}
 
@@ -1039,9 +1039,9 @@ const handleDeletePayment = async (paymentId: string) => {
 
 {showProfileForm && (
 
-  <section className="mt-6 rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
+  <section className="mt-6 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
 
-    <h2 className="text-lg font-semibold text-[#3b2117]">
+    <h2 className="text-lg font-semibold text-[#1E3B2F]">
 
       Edit Customer Details
 
@@ -1087,7 +1087,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
           required
 
-          className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a]"
+          className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a]"
 
         />
 
@@ -1125,15 +1125,15 @@ const handleDeletePayment = async (paymentId: string) => {
 
           placeholder="Enter mobile number (optional)"
 
-          className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a]"
+          className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a]"
 
         />
 
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#f1dfd2] bg-white p-4">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#D5CBB3] bg-[#F2EAD2] p-4">
   <div>
-    <p className="font-semibold text-[#3b2117]">
+    <p className="font-semibold text-[#1E3B2F]">
       WhatsApp Due Reminders
     </p>
     <p className="mt-1 text-sm text-[#7b5a49]">
@@ -1158,7 +1158,7 @@ const handleDeletePayment = async (paymentId: string) => {
   }`}
 >
   <span
-    className={`block h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+    className={`block h-5 w-5 rounded-full bg-[#F2EAD2] shadow-sm transition-transform duration-200 ${
       customer.whatsappDueRemindersOptIn
         ? "translate-x-5"
         : "translate-x-0"
@@ -1175,7 +1175,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
         disabled={savingProfile}
 
-        className="rounded-xl bg-[#d96f2b] px-5 py-3 text-sm font-semibold text-white hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-60"
+        className="rounded-xl bg-[#1E3B2F] px-5 py-3 text-sm font-semibold text-[#F2EAD2] hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-60"
 
       >
 
@@ -1193,7 +1193,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
           <div className="swp-customer-summary mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
 
-            <div className="rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
 
               <p className="text-sm text-[#8b6b5a]">
 
@@ -1201,7 +1201,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
               </p>
 
-              <p className="mt-2 text-2xl font-bold text-[#3b2117]">
+              <p className="mt-2 text-2xl font-bold text-[#1E3B2F]">
 
                 {money(
 
@@ -1213,7 +1213,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
             </div>
 
-            <div className="rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
 
               <p className="text-sm text-[#8b6b5a]">
 
@@ -1233,7 +1233,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
             </div>
 
-            <div className="rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
               <p className="text-sm text-[#8b6b5a]">
                 Pending Balance
               </p>
@@ -1270,7 +1270,7 @@ const handleDeletePayment = async (paymentId: string) => {
         });
       });
     }}
-    className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#d96f2b] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#c85f22] active:scale-[0.98]"
+    className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#1E3B2F] px-5 py-2.5 text-sm font-semibold text-[#F2EAD2] shadow-sm transition hover:bg-[#c85f22] active:scale-[0.98]"
   >
     <span className="text-lg leading-none">+</span>
     Add Payment
@@ -1281,9 +1281,9 @@ const handleDeletePayment = async (paymentId: string) => {
 
             {/* Sales */}
 
-            <section className="mt-2 rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm">
+            <section className="mt-2 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
 
-              <h2 className="text-lg font-semibold text-[#3b2117]">
+              <h2 className="text-lg font-semibold text-[#1E3B2F]">
 
                 Sales
 
@@ -1317,7 +1317,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
                         key={sale.id}
 
-                        className="rounded-xl border border-[#f1dfd2] bg-[#fffaf6] p-4"
+                        className="rounded-xl border border-[#D5CBB3] bg-[#fffaf6] p-4"
 
                       >
 
@@ -1325,7 +1325,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
                           <div>
 
-                            <p className="font-semibold text-[#3b2117]">
+                            <p className="font-semibold text-[#1E3B2F]">
 
                               {sale.quantity}{" "}
 
@@ -1361,7 +1361,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
                           </div>
 
-                          <p className="font-bold text-[#3b2117]">
+                          <p className="font-bold text-[#1E3B2F]">
 
                             {money(
 
@@ -1389,14 +1389,14 @@ const handleDeletePayment = async (paymentId: string) => {
 
             <section
   ref={paymentHistoryRef}
-  className="scroll-mt-20 rounded-2xl border border-[#f1dfd2] bg-white p-6 shadow-sm"
+  className="scroll-mt-20 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm"
 >
 
               <div className="flex flex-wrap items-start justify-between gap-3">
 
                 <div>
 
-                  <h2 className="text-lg font-semibold text-[#3b2117]">
+                  <h2 className="text-lg font-semibold text-[#1E3B2F]">
 
                     Payment History
 
@@ -1420,7 +1420,7 @@ const handleDeletePayment = async (paymentId: string) => {
                     setShowPaymentForm((value) => !value);
                     cancelEditingPayment();
                   }}
-                  className="shrink-0 rounded-xl bg-[#d96f2b] px-4 py-2 text-sm font-semibold text-white hover:bg-[#c85f22]"
+                  className="shrink-0 rounded-xl bg-[#1E3B2F] px-4 py-2 text-sm font-semibold text-[#F2EAD2] hover:bg-[#c85f22]"
                 >
                   {showPaymentForm ? "Cancel" : "Add Payment"}
                 </button>
@@ -1434,7 +1434,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
                   onSubmit={handlePayment}
 
-                  className="mt-6 rounded-xl border border-[#f1dfd2] bg-[#fffaf6] p-5"
+                  className="mt-6 rounded-xl border border-[#D5CBB3] bg-[#fffaf6] p-5"
 
                 >
 
@@ -1487,7 +1487,7 @@ const handleDeletePayment = async (paymentId: string) => {
   }
   placeholder="e.g. 5000"
   required
-  className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
+  className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
 />
 
                   </div>
@@ -1518,7 +1518,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
                       required
 
-                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
+                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
 
                     />
 
@@ -1560,7 +1560,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
                       placeholder="Optional note"
 
-                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
+                      className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
 
                     />
 
@@ -1572,7 +1572,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
                     disabled={saving}
 
-                    className="mt-4 w-full rounded-xl bg-[#d96f2b] px-5 py-3 text-sm font-semibold text-white hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="mt-4 w-full rounded-xl bg-[#1E3B2F] px-5 py-3 text-sm font-semibold text-[#F2EAD2] hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-60"
 
                   >
 
@@ -1618,7 +1618,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
                           key={payment.id}
 
-                          className="rounded-xl border border-[#f1dfd2] bg-[#fffaf6] p-4"
+                          className="rounded-xl border border-[#D5CBB3] bg-[#fffaf6] p-4"
 
                         >
 
@@ -1694,7 +1694,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
                                   }
 
-                                  className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
+                                  className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
 
                                 />
 
@@ -1730,7 +1730,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
                                   required
 
-                                  className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
+                                  className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
 
                                 />
 
@@ -1774,7 +1774,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
                                   }
 
-                                  className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-white px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
+                                  className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm text-[#3f2418] outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
 
                                 />
 
@@ -1796,7 +1796,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
                                 }
 
-                                className="mt-4 w-full rounded-xl bg-[#d96f2b] px-5 py-3 text-sm font-semibold text-white hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-60"
+                                className="mt-4 w-full rounded-xl bg-[#1E3B2F] px-5 py-3 text-sm font-semibold text-[#F2EAD2] hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-60"
 
                               >
 
@@ -1816,7 +1816,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
   onClick={() => handleDeletePayment(payment.id)}
 
-  className="mt-2 w-full rounded-xl border border-red-200 bg-white px-5 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+  className="mt-2 w-full rounded-xl border border-red-200 bg-[#F2EAD2] px-5 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
 
 >
 
@@ -1898,7 +1898,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
                                   }
 
-                                  className="rounded-lg border border-[#e8d4c5] bg-white px-3 py-1 text-xs font-semibold text-[#7b4a35] hover:bg-[#fff1e6]"
+                                  className="rounded-lg border border-[#e8d4c5] bg-[#F2EAD2] px-3 py-1 text-xs font-semibold text-[#7b4a35] hover:bg-[#E5E9DA]"
 
                                 >
 
