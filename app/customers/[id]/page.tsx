@@ -849,7 +849,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
       <main className="flex min-h-screen items-center justify-center bg-[#fff8f2]">
 
-        <p className="text-[#1E3B2F]">
+        <p className="text-[#0B3829]">
 
           Loading customer...
 
@@ -887,7 +887,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
             }
 
-            className="mt-4 rounded-xl bg-[#1E3B2F] px-5 py-2 text-sm font-semibold text-[#F2EAD2]"
+            className="mt-4 rounded-xl bg-[#0B3829] px-5 py-2 text-sm font-semibold text-[#F2EAD2]"
 
           >
 
@@ -929,7 +929,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
                 }
 
-                className="text-sm font-semibold text-[#718477] hover:text-[#1E3B2F]"
+                className="text-sm font-semibold text-[#718477] hover:text-[#0B3829]"
 
               >
 
@@ -943,7 +943,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
               </p>
 
-              <h1 className="mt-2 text-3xl font-bold text-[#1E3B2F]">
+              <h1 className="mt-2 text-3xl font-bold text-[#0B3829]">
 
                 {customer.name}
 
@@ -1005,7 +1005,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
               </p>
 
-              <p className="font-semibold text-[#1E3B2F]">
+              <p className="font-semibold text-[#0B3829]">
 
                 {userName}
 
@@ -1041,7 +1041,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
   <section className="mt-6 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
 
-    <h2 className="text-lg font-semibold text-[#1E3B2F]">
+    <h2 className="text-lg font-semibold text-[#0B3829]">
 
       Edit Customer Details
 
@@ -1133,7 +1133,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#D5CBB3] bg-[#F2EAD2] p-4">
   <div>
-    <p className="font-semibold text-[#1E3B2F]">
+    <p className="font-semibold text-[#0B3829]">
       WhatsApp Due Reminders
     </p>
     <p className="mt-1 text-sm text-[#7b5a49]">
@@ -1151,7 +1151,7 @@ const handleDeletePayment = async (paymentId: string) => {
   disabled={savingWhatsApp}
   onClick={handleWhatsAppToggle}
   aria-label="Toggle WhatsApp due reminders"
-  className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full p-1 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+  className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full p-1 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#365B49]/30 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
     customer.whatsappDueRemindersOptIn
       ? "bg-green-600"
       : "bg-gray-300"
@@ -1175,7 +1175,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
         disabled={savingProfile}
 
-        className="rounded-xl bg-[#1E3B2F] px-5 py-3 text-sm font-semibold text-[#F2EAD2] hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-60"
+        className="rounded-xl bg-[#0B3829] px-5 py-3 text-sm font-semibold text-[#F2EAD2] hover:bg-[#365B49] disabled:cursor-not-allowed disabled:opacity-60"
 
       >
 
@@ -1201,7 +1201,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
               </p>
 
-              <p className="mt-2 text-2xl font-bold text-[#1E3B2F]">
+              <p className="mt-2 text-2xl font-bold text-[#0B3829]">
 
                 {money(
 
@@ -1270,7 +1270,7 @@ const handleDeletePayment = async (paymentId: string) => {
         });
       });
     }}
-    className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#1E3B2F] px-5 py-2.5 text-sm font-semibold text-[#F2EAD2] shadow-sm transition hover:bg-[#c85f22] active:scale-[0.98]"
+    className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#0B3829] px-5 py-2.5 text-sm font-semibold text-[#F2EAD2] shadow-sm transition hover:bg-[#365B49] active:scale-[0.98]"
   >
     <span className="text-lg leading-none">+</span>
     Add Payment
@@ -1283,7 +1283,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
             <section className="mt-2 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
 
-              <h2 className="text-lg font-semibold text-[#1E3B2F]">
+              <h2 className="text-lg font-semibold text-[#0B3829]">
 
                 Sales
 
@@ -1325,7 +1325,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
                           <div>
 
-                            <p className="font-semibold text-[#1E3B2F]">
+                            <p className="font-semibold text-[#0B3829]">
 
                               {sale.quantity}{" "}
 
@@ -1361,7 +1361,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
                           </div>
 
-                          <p className="font-bold text-[#1E3B2F]">
+                          <p className="font-bold text-[#0B3829]">
 
                             {money(
 
@@ -1396,7 +1396,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
                 <div>
 
-                  <h2 className="text-lg font-semibold text-[#1E3B2F]">
+                  <h2 className="text-lg font-semibold text-[#0B3829]">
 
                     Payment History
 
@@ -1420,7 +1420,7 @@ const handleDeletePayment = async (paymentId: string) => {
                     setShowPaymentForm((value) => !value);
                     cancelEditingPayment();
                   }}
-                  className="shrink-0 rounded-xl bg-[#1E3B2F] px-4 py-2 text-sm font-semibold text-[#F2EAD2] hover:bg-[#c85f22]"
+                  className="shrink-0 rounded-xl bg-[#0B3829] px-4 py-2 text-sm font-semibold text-[#F2EAD2] hover:bg-[#365B49]"
                 >
                   {showPaymentForm ? "Cancel" : "Add Payment"}
                 </button>
@@ -1572,7 +1572,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
                     disabled={saving}
 
-                    className="mt-4 w-full rounded-xl bg-[#1E3B2F] px-5 py-3 text-sm font-semibold text-[#F2EAD2] hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="mt-4 w-full rounded-xl bg-[#0B3829] px-5 py-3 text-sm font-semibold text-[#F2EAD2] hover:bg-[#365B49] disabled:cursor-not-allowed disabled:opacity-60"
 
                   >
 
@@ -1796,7 +1796,7 @@ const handleDeletePayment = async (paymentId: string) => {
 
                                 }
 
-                                className="mt-4 w-full rounded-xl bg-[#1E3B2F] px-5 py-3 text-sm font-semibold text-[#F2EAD2] hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-60"
+                                className="mt-4 w-full rounded-xl bg-[#0B3829] px-5 py-3 text-sm font-semibold text-[#F2EAD2] hover:bg-[#365B49] disabled:cursor-not-allowed disabled:opacity-60"
 
                               >
 

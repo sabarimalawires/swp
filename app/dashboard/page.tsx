@@ -156,9 +156,9 @@ const [selectedYear, setSelectedYear] = useState(
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#fff8f2]">
         <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-[#D5CBB3] border-t-[#1E3B2F]" />
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-[#D5CBB3] border-t-[#0B3829]" />
 
-          <p className="mt-4 text-sm font-medium text-[#1E3B2F]">
+          <p className="mt-4 text-sm font-medium text-[#0B3829]">
             Loading dashboard...
           </p>
         </div>
@@ -180,7 +180,7 @@ const [selectedYear, setSelectedYear] = useState(
                 SWP Business Management System
               </p>
 
-              <h1 className="mt-2 text-3xl font-bold text-[#1E3B2F]">
+              <h1 className="mt-2 text-3xl font-bold text-[#0B3829]">
                 Welcome, {userName}!
               </h1>
 
@@ -194,7 +194,7 @@ const [selectedYear, setSelectedYear] = useState(
                 Today
               </p>
 
-              <p className="mt-1 font-semibold text-[#1E3B2F]">
+              <p className="mt-1 font-semibold text-[#0B3829]">
                 Business Overview
               </p>
 
@@ -220,7 +220,7 @@ const [selectedYear, setSelectedYear] = useState(
 <section className="mt-8 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
 
   <div>
-    <h2 className="text-lg font-bold text-[#1E3B2F]">
+    <h2 className="text-lg font-bold text-[#0B3829]">
       Today's Business Overview
     </h2>
 
@@ -253,7 +253,7 @@ const [selectedYear, setSelectedYear] = useState(
 
   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
   <div>
-    <h2 className="text-lg font-bold text-[#1E3B2F]">
+    <h2 className="text-lg font-bold text-[#0B3829]">
       Monthly Business Overview
     </h2>
 
@@ -266,7 +266,7 @@ const [selectedYear, setSelectedYear] = useState(
   <select
     value={selectedMonth}
     onChange={(e) => setSelectedMonth(Number(e.target.value))}
-    className="h-9 min-w-0 rounded-lg border border-[#D5CBB3] bg-[#F2EAD2] px-2 text-sm font-medium text-[#1E3B2F] outline-none sm:h-12 sm:px-4 sm:text-base"
+    className="h-9 min-w-0 rounded-lg border border-[#D5CBB3] bg-[#F2EAD2] px-2 text-sm font-medium text-[#0B3829] outline-none sm:h-12 sm:px-4 sm:text-base"
   >
       {[
         "January",
@@ -291,7 +291,7 @@ const [selectedYear, setSelectedYear] = useState(
      <select
     value={selectedYear}
     onChange={(e) => setSelectedYear(Number(e.target.value))}
-    className="h-9 min-w-0 rounded-lg border border-[#D5CBB3] bg-[#F2EAD2] px-2 text-sm font-medium text-[#1E3B2F] outline-none sm:h-12 sm:px-4 sm:text-base"
+    className="h-9 min-w-0 rounded-lg border border-[#D5CBB3] bg-[#F2EAD2] px-2 text-sm font-medium text-[#0B3829] outline-none sm:h-12 sm:px-4 sm:text-base"
   >
       {Array.from(
         { length: new Date().getFullYear() - 2020 + 1 },
@@ -330,7 +330,7 @@ const [selectedYear, setSelectedYear] = useState(
 
   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
     <div>
-      <h2 className="text-lg font-bold text-[#1E3B2F]">
+      <h2 className="text-lg font-bold text-[#0B3829]">
         Overall Ledger Summary
       </h2>
 
@@ -375,7 +375,7 @@ const [selectedYear, setSelectedYear] = useState(
                 <div className="flex flex-col gap-4 border-b border-[#D5CBB3] px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
 
                   <div>
-                    <h2 className="text-lg font-bold text-[#1E3B2F]">
+                    <h2 className="text-lg font-bold text-[#0B3829]">
                       Low Stock Products
                     </h2>
 
@@ -414,7 +414,7 @@ const [selectedYear, setSelectedYear] = useState(
                       ✓
                     </div>
 
-                    <p className="mt-4 font-semibold text-[#1E3B2F]">
+                    <p className="mt-4 font-semibold text-[#0B3829]">
                       Stock levels look good
                     </p>
 
@@ -468,7 +468,7 @@ const [selectedYear, setSelectedYear] = useState(
                               >
 
                                 <td className="px-6 py-4">
-                                  <p className="text-sm font-semibold text-[#1E3B2F]">
+                                  <p className="text-sm font-semibold text-[#0B3829]">
                                     {
                                       product.name
                                     }
@@ -537,8 +537,8 @@ function MetricCard({
   const colors = {
     orange: {
       background: "bg-[#E5E9DA]",
-      text: "text-[#1E3B2F]",
-      dot: "bg-[#1E3B2F]",
+      text: "text-[#0B3829]",
+      dot: "bg-[#0B3829]",
     },
 
     brown: {
@@ -577,7 +577,7 @@ function MetricCard({
 
       </div>
 
-      <p className="mt-3 text-3xl font-bold text-[#1E3B2F]">
+      <p className="mt-3 text-3xl font-bold text-[#0B3829]">
         {value.toLocaleString()}
       </p>
 
@@ -607,7 +607,7 @@ function ActivityCard({
         {title}
       </p>
 
-      <p className="mt-2 text-3xl font-bold text-[#1E3B2F]">
+      <p className="mt-2 text-3xl font-bold text-[#0B3829]">
         {value.toLocaleString()}
       </p>
 
@@ -648,7 +648,7 @@ function MonthlyBusinessCard({
 
     orange: {
       background: "bg-[#E5E9DA]",
-      text: "text-[#1E3B2F]",
+      text: "text-[#0B3829]",
     },
   };
 
@@ -696,7 +696,7 @@ function LedgerCard({
     },
     orange: {
       background: "bg-[#E5E9DA]",
-      text: "text-[#1E3B2F]",
+      text: "text-[#0B3829]",
     },
     green: {
       background: "bg-green-50",
@@ -713,7 +713,7 @@ function LedgerCard({
         {title}
       </p>
 
-      <p className="mt-3 text-3xl font-bold text-[#1E3B2F]">
+      <p className="mt-3 text-3xl font-bold text-[#0B3829]">
         {value.toLocaleString("en-IN", {
           style: "currency",
           currency: "INR",

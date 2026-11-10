@@ -244,7 +244,7 @@ export default function InventoryPage() {
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#fff8f2]">
-        <p className="text-[#1E3B2F]">Loading inventory...</p>
+        <p className="text-[#0B3829]">Loading inventory...</p>
       </main>
     );
   }
@@ -260,7 +260,7 @@ export default function InventoryPage() {
               <p className="text-sm text-[#718477]">
                 SWP Business Management System
               </p>
-              <h1 className="mt-2 text-3xl font-bold text-[#1E3B2F]">
+              <h1 className="mt-2 text-3xl font-bold text-[#0B3829]">
                 Inventory
               </h1>
               <p className="mt-2 text-[#7b5a49]">
@@ -270,7 +270,7 @@ export default function InventoryPage() {
 
             <div className="swp-user-chip rounded-xl bg-[#E5E9DA] px-4 py-3">
               <p className="text-xs text-[#718477]">Signed in as</p>
-              <p className="font-semibold text-[#1E3B2F]">{userName}</p>
+              <p className="font-semibold text-[#0B3829]">{userName}</p>
             </div>
           </div>
 
@@ -289,7 +289,7 @@ export default function InventoryPage() {
           <section className="mt-5 min-w-0 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-4 shadow-sm sm:mt-8 sm:p-8">
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
               <div>
-                <h2 className="text-lg font-semibold text-[#1E3B2F]">
+                <h2 className="text-lg font-semibold text-[#0B3829]">
                   Product Management
                 </h2>
                 <p className="mt-1 text-sm text-[#7b5a49]">
@@ -306,7 +306,7 @@ export default function InventoryPage() {
                     setError("");
                     setSuccess("");
                   }}
-                  className="rounded-xl border border-[#1E3B2F] bg-[#F2EAD2] px-5 py-3 text-sm font-semibold text-[#1E3B2F] hover:bg-[#E5E9DA]"
+                  className="rounded-xl border border-[#0B3829] bg-[#F2EAD2] px-5 py-3 text-sm font-semibold text-[#0B3829] hover:bg-[#E5E9DA]"
                 >
                   Adjust Stock
                 </button>
@@ -319,7 +319,7 @@ export default function InventoryPage() {
                     setError("");
                     setSuccess("");
                   }}
-                  className="rounded-xl bg-[#1E3B2F] px-5 py-3 text-sm font-semibold text-[#F2EAD2] hover:bg-[#c85f22]"
+                  className="rounded-xl bg-[#0B3829] px-5 py-3 text-sm font-semibold text-[#F2EAD2] shadow-sm transition hover:bg-[#365B49]"
                 >
                   Add Product
                 </button>
@@ -331,7 +331,7 @@ export default function InventoryPage() {
                 onSubmit={handleCreateProduct}
                 className="mt-8 space-y-5 rounded-2xl border border-[#D5CBB3] bg-[#fffaf6] p-5 sm:p-6"
               >
-                <h3 className="text-lg font-semibold text-[#1E3B2F]">
+                <h3 className="text-lg font-semibold text-[#0B3829]">
                   Add Product
                 </h3>
 
@@ -414,7 +414,7 @@ export default function InventoryPage() {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="rounded-xl bg-[#1E3B2F] px-5 py-3 text-sm font-semibold text-[#F2EAD2] disabled:opacity-60"
+                    className="rounded-xl bg-[#0B3829] px-5 py-3 text-sm font-semibold text-[#F2EAD2] disabled:opacity-60"
                   >
                     {saving ? "Creating..." : "Create Product"}
                   </button>
@@ -427,7 +427,7 @@ export default function InventoryPage() {
                 onSubmit={handleAdjustStock}
                 className="mt-8 space-y-5 rounded-2xl border border-[#D5CBB3] bg-[#fffaf6] p-5 sm:p-6"
               >
-                <h3 className="text-lg font-semibold text-[#1E3B2F]">
+                <h3 className="text-lg font-semibold text-[#0B3829]">
                   Adjust Stock
                 </h3>
                 <p className="text-sm text-[#7b5a49]">
@@ -504,7 +504,7 @@ export default function InventoryPage() {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="rounded-xl bg-[#1E3B2F] px-5 py-3 text-sm font-semibold text-[#F2EAD2] disabled:opacity-60"
+                    className="rounded-xl bg-[#0B3829] px-5 py-3 text-sm font-semibold text-[#F2EAD2] disabled:opacity-60"
                   >
                     {saving ? "Saving..." : "Adjust Stock"}
                   </button>
@@ -515,7 +515,7 @@ export default function InventoryPage() {
             <div className="swp-inventory-table-wrap mt-6 overflow-hidden rounded-xl border border-[#D5CBB3] sm:mt-8">
               {inventory.length === 0 ? (
                 <div className="bg-[#fffaf6] p-10 text-center">
-                  <p className="font-medium text-[#1E3B2F]">No products yet.</p>
+                  <p className="font-medium text-[#0B3829]">No products yet.</p>
                   <p className="mt-2 text-sm text-[#8b6b5a]">
                     Create your first product using Add Product.
                   </p>
@@ -536,13 +536,13 @@ export default function InventoryPage() {
                       {inventory.map((item) => (
                         <tr key={item.id} className="border-b border-[#D5CBB3] last:border-b-0">
                           <td className="px-5 py-4">
-                            <p className="font-semibold text-[#1E3B2F]">{item.name}</p>
+                            <p className="font-semibold text-[#0B3829]">{item.name}</p>
                           </td>
                           <td className="px-5 py-4 text-sm text-[#7b5a49]">
                             {item.code || "—"}
                           </td>
                           <td className="px-5 py-4">
-                            <span className="text-lg font-bold text-[#1E3B2F]">
+                            <span className="text-lg font-bold text-[#0B3829]">
                               {formatKg(item.stockKg)}
                             </span>
                           </td>

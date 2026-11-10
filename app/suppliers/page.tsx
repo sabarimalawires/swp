@@ -235,7 +235,7 @@ export default function SuppliersPage() {
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#fff8f2]">
-        <p className="text-[#1E3B2F]">Loading suppliers...</p>
+        <p className="text-[#0B3829]">Loading suppliers...</p>
       </main>
     );
   }
@@ -251,7 +251,7 @@ export default function SuppliersPage() {
               <p className="text-sm text-[#718477]">
                 SWP Business Management System
               </p>
-              <h1 className="mt-2 text-3xl font-bold text-[#1E3B2F]">
+              <h1 className="mt-2 text-3xl font-bold text-[#0B3829]">
                 Suppliers
               </h1>
               <p className="mt-2 text-[#7b5a49]">
@@ -261,7 +261,7 @@ export default function SuppliersPage() {
 
             <div className="rounded-xl bg-[#E5E9DA] px-4 py-3">
               <p className="text-xs text-[#718477]">Signed in as</p>
-              <p className="font-semibold text-[#1E3B2F]">{userName}</p>
+              <p className="font-semibold text-[#0B3829]">{userName}</p>
             </div>
           </div>
 
@@ -280,14 +280,14 @@ export default function SuppliersPage() {
           <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-5 shadow-sm">
               <p className="text-sm text-[#8b6b5a]">Total Suppliers</p>
-              <p className="mt-2 text-2xl font-bold text-[#1E3B2F]">
+              <p className="mt-2 text-2xl font-bold text-[#0B3829]">
                 {suppliers.length}
               </p>
             </div>
 
             <div className="rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-5 shadow-sm">
               <p className="text-sm text-[#8b6b5a]">Total Purchases</p>
-              <p className="mt-2 text-2xl font-bold text-[#1E3B2F]">
+              <p className="mt-2 text-2xl font-bold text-[#0B3829]">
                 ₹{money(totalPurchases)}
               </p>
             </div>
@@ -309,7 +309,7 @@ export default function SuppliersPage() {
 
           {showForm && (
             <div className="mt-8 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-[#1E3B2F]">
+              <h2 className="text-lg font-semibold text-[#0B3829]">
                 {editingId ? "Edit Supplier" : "Add Supplier"}
               </h2>
 
@@ -342,7 +342,7 @@ export default function SuppliersPage() {
                         maxLength={field === "name" ? 200 : 200}
                         required={field === "name"}
                         placeholder={placeholder}
-                        className="w-full rounded-xl border border-[#e5cdbd] px-4 py-3 text-[#1E3B2F] outline-none focus:border-[#1E3B2F]"
+                        className="w-full rounded-xl border border-[#e5cdbd] px-4 py-3 text-[#0B3829] outline-none focus:border-[#0B3829]"
                       />
                     </div>
                   ))}
@@ -360,7 +360,7 @@ export default function SuppliersPage() {
                     rows={3}
                     maxLength={1000}
                     placeholder="Enter supplier address"
-                    className="w-full rounded-xl border border-[#e5cdbd] px-4 py-3 text-[#1E3B2F] outline-none focus:border-[#1E3B2F]"
+                    className="w-full rounded-xl border border-[#e5cdbd] px-4 py-3 text-[#0B3829] outline-none focus:border-[#0B3829]"
                   />
                 </div>
 
@@ -368,7 +368,7 @@ export default function SuppliersPage() {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="rounded-xl bg-[#1E3B2F] px-5 py-2.5 text-sm font-semibold text-[#F2EAD2] hover:bg-[#c85f22] disabled:opacity-50"
+                    className="rounded-xl bg-[#0B3829] px-5 py-2.5 text-sm font-semibold text-[#F2EAD2] hover:bg-[#365B49] disabled:opacity-50"
                   >
                     {saving
                       ? "Saving..."
@@ -393,7 +393,7 @@ export default function SuppliersPage() {
           <div className="mt-8 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h2 className="text-lg font-semibold text-[#1E3B2F]">
+                <h2 className="text-lg font-semibold text-[#0B3829]">
                   Supplier Directory
                 </h2>
                 <p className="mt-1 text-sm text-[#7b5a49]">
@@ -404,7 +404,7 @@ export default function SuppliersPage() {
               <button
                 type="button"
                 onClick={openAddForm}
-                className="rounded-xl bg-[#1E3B2F] px-4 py-2.5 text-sm font-semibold text-[#F2EAD2] hover:bg-[#c85f22]"
+                className="rounded-xl bg-[#0B3829] px-4 py-2.5 text-sm font-semibold text-[#F2EAD2] hover:bg-[#365B49]"
               >
                 + Add Supplier
               </button>
@@ -416,13 +416,13 @@ export default function SuppliersPage() {
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search by supplier name, phone, email or GST..."
-                className="w-full rounded-xl border border-[#e5cdbd] px-4 py-3 text-sm text-[#1E3B2F] outline-none focus:border-[#1E3B2F]"
+                className="w-full rounded-xl border border-[#e5cdbd] px-4 py-3 text-sm text-[#0B3829] outline-none focus:border-[#0B3829]"
               />
             </div>
 
             {filteredSuppliers.length === 0 ? (
               <div className="mt-6 rounded-xl border border-dashed border-[#e5cdbd] bg-[#fffaf6] p-10 text-center">
-                <p className="font-medium text-[#1E3B2F]">
+                <p className="font-medium text-[#0B3829]">
                   {search ? "No matching suppliers found." : "No suppliers yet."}
                 </p>
                 <p className="mt-2 text-sm text-[#8b6b5a]">
@@ -450,7 +450,7 @@ export default function SuppliersPage() {
                         className="border-b border-[#f3e5db] last:border-0 hover:bg-[#fffaf6]"
                       >
                         <td className="px-4 py-4">
-                          <p className="font-semibold text-[#1E3B2F]">
+                          <p className="font-semibold text-[#0B3829]">
                             {supplier.name}
                           </p>
                           <p className="mt-1 text-xs text-[#9a7865]">
@@ -467,7 +467,7 @@ export default function SuppliersPage() {
                           {supplier.purchasesCount}
                         </td>
 
-                        <td className="px-4 py-4 text-sm font-semibold text-[#1E3B2F]">
+                        <td className="px-4 py-4 text-sm font-semibold text-[#0B3829]">
                           ₹{money(supplier.totalPurchases)}
                         </td>
 
@@ -498,7 +498,7 @@ export default function SuppliersPage() {
                               onClick={() =>
                                 router.push(`/suppliers/${supplier.id}`)
                               }
-                              className="rounded-xl bg-[#1E3B2F] px-4 py-2 text-sm font-semibold text-[#F2EAD2] hover:bg-[#c85f22]"
+                              className="rounded-xl bg-[#0B3829] px-4 py-2 text-sm font-semibold text-[#F2EAD2] hover:bg-[#365B49]"
                             >
                               Open
                             </button>

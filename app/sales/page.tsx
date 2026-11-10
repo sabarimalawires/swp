@@ -974,7 +974,7 @@ const handleDeleteSale = async (saleId: string) => {
 
       <main className="flex min-h-screen items-center justify-center bg-[#fff8f2]">
 
-        <p className="text-[#1E3B2F]">Loading sales...</p>
+        <p className="text-[#0B3829]">Loading sales...</p>
 
       </main>
 
@@ -1002,7 +1002,7 @@ const handleDeleteSale = async (saleId: string) => {
 
               </p>
 
-              <h1 className="mt-2 text-3xl font-bold text-[#1E3B2F]">
+              <h1 className="mt-2 text-3xl font-bold text-[#0B3829]">
 
                 Sales
 
@@ -1020,7 +1020,7 @@ const handleDeleteSale = async (saleId: string) => {
 
               <p className="text-xs text-[#718477]">Signed in as</p>
 
-              <p className="font-semibold text-[#1E3B2F]">{userName}</p>
+              <p className="font-semibold text-[#0B3829]">{userName}</p>
 
             </div>
 
@@ -1050,7 +1050,7 @@ const handleDeleteSale = async (saleId: string) => {
 
             <section className="swp-sales-form rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-5 shadow-sm sm:p-6">
 
-              <h2 className="text-lg font-semibold text-[#1E3B2F]">
+              <h2 className="text-lg font-semibold text-[#0B3829]">
 
                 {editingSaleId ? "Edit Sale" : "Create Sale"}
 
@@ -1216,7 +1216,7 @@ const handleDeleteSale = async (saleId: string) => {
 
         }}
 
-        className="mt-3 text-sm font-semibold text-[#c85f22] hover:underline"
+        className="mt-3 text-sm font-semibold text-[#365B49] hover:underline"
 
       >
 
@@ -1260,7 +1260,7 @@ const handleDeleteSale = async (saleId: string) => {
 
       }}
 
-      className="mt-2 text-sm font-semibold text-[#c85f22] hover:underline"
+      className="mt-2 text-sm font-semibold text-[#365B49] hover:underline"
 
     >
 
@@ -1308,7 +1308,7 @@ const handleDeleteSale = async (saleId: string) => {
 
     placeholder="Enter mobile number (optional)"
 
-    className="w-full rounded-xl border border-[#e5cdbd] px-4 py-3 text-[#1E3B2F] outline-none focus:border-[#1E3B2F]"
+    className="w-full rounded-xl border border-[#e5cdbd] px-4 py-3 text-[#0B3829] outline-none focus:border-[#0B3829]"
 
   />
 
@@ -1344,7 +1344,7 @@ const handleDeleteSale = async (saleId: string) => {
 
                   <div className="flex items-center justify-between">
 
-                    <h3 className="font-semibold text-[#1E3B2F]">
+                    <h3 className="font-semibold text-[#0B3829]">
 
                       Products ({items.length})
 
@@ -1404,7 +1404,7 @@ const handleDeleteSale = async (saleId: string) => {
 
                               <span>
 
-                                <span className="block text-sm font-medium text-[#1E3B2F]">
+                                <span className="block text-sm font-medium text-[#0B3829]">
 
                                   {product.name}
 
@@ -1490,7 +1490,7 @@ const handleDeleteSale = async (saleId: string) => {
 
                             </p>
 
-                            <p className="mt-1 font-semibold text-[#1E3B2F]">
+                            <p className="mt-1 font-semibold text-[#0B3829]">
 
                               {product?.name || "Choose a product above"}
 
@@ -1624,7 +1624,7 @@ const handleDeleteSale = async (saleId: string) => {
 
                           <div>
                             <span className="text-sm text-[#5b3928]">Amount</span>
-                            <div className="mt-1 flex h-11 items-center rounded-xl border border-[#ead8c9] bg-[#f8f2ec] px-3 font-semibold text-[#1E3B2F]">
+                            <div className="mt-1 flex h-11 items-center rounded-xl border border-[#ead8c9] bg-[#f8f2ec] px-3 font-semibold text-[#0B3829]">
                               {money(lineAmounts[index])}
                             </div>
                           </div>
@@ -1648,7 +1648,7 @@ const handleDeleteSale = async (saleId: string) => {
 
                     </span>
 
-                    <span className="text-xl font-bold text-[#1E3B2F]">
+                    <span className="text-xl font-bold text-[#0B3829]">
 
                       {money(totalAmount)}
 
@@ -1670,7 +1670,7 @@ const handleDeleteSale = async (saleId: string) => {
 
                   disabled={saving || items.length === 0}
 
-                  className="w-full rounded-xl bg-[#1E3B2F] px-5 py-3 text-sm font-semibold text-[#F2EAD2] shadow-sm transition hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="w-full rounded-xl bg-[#0B3829] px-5 py-3 text-sm font-semibold text-[#F2EAD2] shadow-sm transition hover:bg-[#365B49] disabled:cursor-not-allowed disabled:opacity-60"
 
                 >
 
@@ -1716,15 +1716,14 @@ const handleDeleteSale = async (saleId: string) => {
 
                 {stockConfirmation && (
 
-                  <div className="rounded-xl border border-amber-300 bg-amber-50 p-4">
-
-                    <h3 className="font-semibold text-amber-900">
+                  <div className="rounded-xl border border-[#D5CBB3] bg-[#E5E9DA] p-4">
+  <h3 className="font-semibold text-[#0B3829]">
 
                       Insufficient stock
 
                     </h3>
 
-                    <p className="mt-1 text-sm text-amber-800">
+                    <p className="mt-1 text-[#0B3829] text-amber-800">
 
                       Some products do not have enough stock. Continuing will
 
@@ -1810,7 +1809,7 @@ const handleDeleteSale = async (saleId: string) => {
 
                 <div>
 
-                  <h2 className="text-lg font-semibold text-[#1E3B2F]">
+                  <h2 className="text-lg font-semibold text-[#0B3829]">
 
                     Sales History
 
@@ -1877,7 +1876,7 @@ const handleDeleteSale = async (saleId: string) => {
         setSalesDateFilter("");
       }}
       disabled={!salesCustomerSearch && !salesDateFilter}
-      className="h-11 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm font-semibold text-[#c85f22] transition hover:bg-[#fff7ed] disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+      className="h-11 w-full rounded-xl border border-[#e8d4c5] bg-[#F2EAD2] px-4 text-sm font-semibold text-[#365B49] transition hover:bg-[#fff7ed] disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
     >
       Clear Filters
     </button>
@@ -1895,7 +1894,7 @@ const handleDeleteSale = async (saleId: string) => {
 
                 <div className="mt-8 rounded-xl border border-dashed border-[#e5cdbd] bg-[#fffaf6] p-10 text-center">
 
-                  <p className="font-medium text-[#1E3B2F]">
+                  <p className="font-medium text-[#0B3829]">
   {sales.length === 0
     ? "No sales yet."
     : "No matching sales found."}
@@ -1961,7 +1960,7 @@ const handleDeleteSale = async (saleId: string) => {
 
                           <div>
 
-                            <p className="font-semibold text-[#1E3B2F]">
+                            <p className="font-semibold text-[#0B3829]">
 
                               {sale.customer.name}
 
@@ -2017,7 +2016,7 @@ const handleDeleteSale = async (saleId: string) => {
 
       disabled={saving}
 
-      className="shrink-0 rounded-lg bg-[#1E3B2F] px-3 py-2 text-[11px] font-semibold text-[#F2EAD2] transition hover:bg-[#c85f22] sm:rounded-xl sm:px-4 sm:py-2.5 sm:text-xs sm:shadow-sm"
+      className="shrink-0 rounded-lg bg-[#0B3829] px-3 py-2 text-[11px] font-semibold text-[#F2EAD2] transition hover:bg-[#365B49] sm:rounded-xl sm:px-4 sm:py-2.5 sm:text-xs sm:shadow-sm"
 
     >
 
@@ -2125,7 +2124,7 @@ const handleDeleteSale = async (saleId: string) => {
 
                                 >
 
-                                  <td className="py-2 pr-3 font-medium text-[#1E3B2F]">
+                                  <td className="py-2 pr-3 font-medium text-[#0B3829]">
 
                                     {item.productName}
 
@@ -2193,7 +2192,7 @@ const handleDeleteSale = async (saleId: string) => {
 
                           </div>
 
-                          <p className="text-lg font-bold text-[#1E3B2F]">
+                          <p className="text-lg font-bold text-[#0B3829]">
 
                             Total: {money(Number(sale.amount))}
 

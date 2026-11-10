@@ -1,24 +1,13 @@
 
 @import "tailwindcss";
 
-/*:root {
-  --background: #F2EAD2;
-  --foreground: #1E3B2F;
-  --primary: #1E3B2F;
-  --primary-hover: #bd5b20;
-  --border: #D5CBB3;
-  --muted: #718477;
-  --surface: #ffffff;
-  --surface-accent: #E5E9DA;
-}*/
-
 :root {
   /* SWP Forest Green + Butter Cream Theme */
 
   --background: #F2EAD2;
-  --foreground: #1E3B2F;
+  --foreground: #0B3829;
 
-  --primary: #1E3B2F;
+  --primary: #0B3829;
   --primary-hover: #294F3E;
 
   --border: #D5CBB3;
@@ -27,8 +16,8 @@
   --surface: #FBF7EA;
   --surface-accent: #E5E9DA;
 
-  --forest-green: #1E3B2F;
-  --forest-green-light: #365B49;
+  --forest-green: #0B3829;
+  --forest-green-light: #1E3B2F;
   --butter-cream: #F2EAD2;
   --warm-neutral: #D5CBB3;
 }
@@ -1605,8 +1594,7 @@ button[class*="bg-amber-"] {
 
 button[class*="bg-orange-"]:hover,
 button[class*="bg-amber-"]:hover {
-  background-color: var(--forest-green-light) !important;
-}
+background-color: #365B49 !important;}
 
 /* Form controls */
 input,

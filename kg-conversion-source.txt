@@ -406,7 +406,7 @@ export default function WorkPage() {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="w-full rounded-xl bg-[#d96f2b] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-full rounded-xl bg-[#d96f2b] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#365B49] disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {saving
                       ? "Submitting..."

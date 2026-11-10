@@ -1,252 +1,240 @@
-
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, type FormEvent } from "react";
 import { authClient } from "@/src/lib/auth-client";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
+
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showIntro, setShowIntro] = useState(true);
 
-useEffect(() => {
-  const timer = window.setTimeout(() => {
-    setShowIntro(false);
-  }, 1550);
+  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-  return () => window.clearTimeout(timer);
-}, []);
-  const router = useRouter();
+    try {
+      const result = await authClient.signIn.username({
+        username,
+        password,
+      });
+
+      if (result.error) {
+        setError(
+          result.error.message || "Invalid username or password."
+        );
+        return;
+      }
+
+      router.push("/dashboard");
+    } catch {
+      setError("Unable to sign in. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <main
-      className="relative min-h-screen overflow-hidden bg-cover bg-center bg-no-repeat text-[#F2EAD2]"
-      style={{ backgroundImage: "url('/Golden Hour Fence Line.png')" }}
+      className="relative h-[100dvh] min-h-0 w-full overflow-hidden bg-[#F2EAD2] bg-cover bg-center bg-no-repeat text-[#0B3829] lg:min-h-screen"
+      style={{
+        backgroundImage: "url('/login-background.png')",
+      }}
     >
+      {/* SUBTLE OVERLAY - BACKGROUND REMAINS VISIBLE */}
+      <div className="absolute inset-0 bg-transparent" />
 
-      {/* Cinematic opening animation */}
-{showIntro && (
-  <div className="login-intro" aria-hidden="true">
-    <div className="intro-panel intro-panel-top" />
-    <div className="intro-panel intro-panel-bottom" />
-    <div className="intro-white-line" />
-  </div>
-)}
-      {/* Dark cinematic overlay */}
-      <div className="absolute inset-0 bg-black/35" />
-      <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/15 to-black/65" />
+      {/* CIRCULAR SWP EMBLEM - LEFT SIDE */}
+      <div className="absolute left-[5.5%] top-85 hidden -translate-y-1/2 items-center justify-center lg:flex">
+        <img
+          src="/swp-emblem.png"
+          alt="Sabarimala Wire Products - Standard Fencing"
+          className="w-[min(26vw,490px)] object-contain drop-shadow-[0_15px_25px_rgba(0,0,0,0.25)]"
+        />
+      </div>
 
-      <div className="relative z-10 flex min-h-screen items-center justify-center p-4 sm:p-8">
-        <div className="grid w-full max-w-[1500px] items-center gap-8 lg:grid-cols-[1.15fr_0.85fr]">
-
-          {/* LEFT BRANDING */}
-<section className="hidden min-h-[78vh] flex-col justify-between px-6 lg:flex xl:px-14">
-
-  <img
-    src="/company-brand.png"
-    alt="Sabarimala Wire Products"
-    className="w-full max-w-[630px] object-contain d  rop-shadow-2xl transition-all duration-700 hover:scale-[1.03] hover:drop-shadow-[0_0_30px_rgba(249,115,22,0.4)]"
-  />
-
-  {/* FEATURES AT THE BOTTOM */}
-  <div className="mt-auto grid max-w-[650px] grid-cols-3 divide-x divide-white/40 pt-16">
-
-    {[
-      { icon: "◈", title: "STRONGER", sub: "PERIMETERS" },
-      { icon: "⚙", title: "RELIABLE", sub: "SOLUTIONS" },
-      { icon: "♧", title: "TRUSTED", sub: "PARTNER" },
-    ].map((item) => (
-      <div
-        key={item.title}
-        className="group cursor-default px-5 py-5 text-center transition-all duration-300 hover:-translate-y-3"
-      >
-        <div className="mb-4 text-4xl text-orange-400 transition-all duration-300 group-hover:scale-125 group-hover:text-amber-300 group-hover:drop-shadow-[0_0_12px_rgba(251,146,60,0.8)]">
-          {item.icon}
+      {/* RIGHT SIDE CONTENT */}
+<section className="relative z-10 mx-auto flex h-full min-h-0 w-full flex-col items-center justify-center gap-2 px-4 py-2 sm:px-6 lg:absolute lg:left-[47.5%] lg:top-0 lg:h-screen lg:w-[47%] lg:gap-0 lg:px-0 lg:py-0">
+        {/* HORIZONTAL SWP BRANDING */}
+        <div className="mb-2 flex w-full max-w-[680px] items-center justify-center sm:mb-4 lg:mb-7">
+          <img
+            src="/swp-logo.png"
+            alt="Sabarimala Wire & Wire Products"
+            className="h-auto max-h-[65px] w-full object-contain sm:max-h-[85px] lg:max-h-[145px]"
+          />
         </div>
 
-        <p className="text-sm font-bold tracking-[0.16em] transition-colors duration-300 group-hover:text-orange-300">
-          {item.title}
-        </p>
+        {/* LOGIN CARD */}
+<div className="w-full max-w-[680px] rounded-[24px] border border-[#E5D9BD] bg-[#FBF7EA]/95 px-5 py-4 shadow-[0_20px_55px_rgba(30,59,47,0.15)] backdrop-blur-sm sm:px-8 sm:py-6 lg:rounded-[30px] lg:px-11 lg:py-6">
+          {/* MOBILE EMBLEM */}
+          <div className="mb-3 flex justify-center lg:hidden">
+            <img
+              src="/swp-emblem.png"
+              alt="SWP"
+              className="h-14 w-14 object-contain sm:h-16 sm:w-16"
+            />
+          </div>
 
-        <p className="text-sm font-bold tracking-[0.16em] transition-colors duration-300 group-hover:text-orange-300">
-          {item.sub}
-        </p>
-      </div>
-    ))}
+          {/* WELCOME HEADING */}
+          <div className="mb-6 text-center">
+            <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-[#0B3829] sm:text-[48px]">
+              Welcome Back
+            </h1>
 
-  </div>
-</section>
+            {/* DOUBLE LINE SUBTITLE */}
+            <div className="mt-3 flex items-center justify-center gap-5">
+              <span className="h-px w-[58px] shrink-0 bg-[#718477]" />
 
-          {/* LOGIN PANEL */}
-          <section className="mx-auto w-full max-w-[570px] rounded-[30px] border border-orange-400/50 bg-[#101418]/85 p-7 shadow-[0_25px_100px_rgba(0,0,0,0.65)] backdrop-blur-xl sm:p-10 lg:p-12">
-
-            {/* Mobile logo */}
-            <div className="mb-7 text-center lg:hidden">
-              <img
-                src="/company-brand.png"
-                alt="SWP"
-                className="mx-auto mb-5 max-h-24 max-w-full object-contain"
-              />
-            </div>
-
-            <div className="mb-10 text-center">
-              <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
-                Welcome <span className="text-orange-500">Back</span>
-              </h1>
-              <p className="mt-3 text-sm text-gray-300 sm:text-base">
+              <p className="whitespace-nowrap text-xs font-medium text-[#1E3B2F] sm:text-base">
                 Sign in to continue to SWP Management
               </p>
+
+              <span className="h-px w-[58px] shrink-0 bg-[#718477]" />
+            </div>
+          </div>
+
+          {/* LOGIN FORM */}
+          <form onSubmit={handleLogin} className="space-y-5">
+
+            {/* USERNAME */}
+            <div>
+              <label
+                htmlFor="username"
+                className="mb-2 block text-sm font-bold text-[#0B3829]"
+              >
+                Username
+              </label>
+
+              <div className="relative">
+                <svg
+                  className="absolute left-6 top-1/2 h-6 w-6 -translate-y-1/2 text-[#718477]"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                >
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 21c0-4.2 3.6-7 8-7s8 2.8 8 7" />
+                </svg>
+
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  required
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  autoComplete="username"
+                  placeholder="Enter your username"
+                  className="h-[54px] w-full rounded-2xl border border-[#E0D3B9] bg-[#FBF7EA] pl-16 pr-5 text-base text-[#0B3829] outline-none transition placeholder:text-[#89958B] focus:border-[#0B3829] focus:ring-4 focus:ring-[#0B3829]/10"
+                />
+              </div>
             </div>
 
-            <form
-              className="space-y-6"
-              onSubmit={async (e) => {
-                e.preventDefault();
-                setError("");
-                setLoading(true);
-
-                try {
-                  const result = await authClient.signIn.username({
-                    username,
-                    password,
-                  });
-
-                  if (result.error) {
-                    setError(
-                      result.error.message ||
-                        "Invalid username or password."
-                    );
-                    return;
-                  }
-
-                  router.push("/dashboard");
-                } catch {
-                  setError("Unable to sign in. Please try again.");
-                } finally {
-                  setLoading(false);
-                }
-              }}
-            >
-              {/* Username */}
-              <div>
-                <label
-                  htmlFor="username"
-                  className="mb-2 block text-sm font-semibold text-gray-200"
-                >
-                  Username
-                </label>
-
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl text-orange-400">
-                    ♙
-                  </span>
-
-                  <input
-                    id="username"
-                    name="username"
-                    type="text"
-                    required
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    autoComplete="username"
-                    placeholder="Enter your username"
-                    className="h-16 w-full rounded-2xl border border-white/25 bg-[#F2EAD2]/[0.06] pl-12 pr-4 text-[#F2EAD2] outline-none transition placeholder:text-gray-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-500/30"
-                  />
-                </div>
-              </div>
-
-              {/* Password */}
-              <div>
-                <label
-                  htmlFor="password"
-                  className="mb-2 block text-sm font-semibold text-gray-200"
-                >
-                  Password
-                </label>
-
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl text-orange-400">
-                    ♙
-                  </span>
-
-                  <input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    autoComplete="current-password"
-                    placeholder="Enter your password"
-                    className="h-16 w-full rounded-2xl border border-white/25 bg-[#F2EAD2]/[0.06] pl-12 pr-14 text-[#F2EAD2] outline-none transition placeholder:text-gray-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-500/30"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-xl text-gray-300 hover:text-orange-400"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? "◉" : "◎"}
-                  </button>
-                </div>
-              </div>
-
-              {/* Forgot password */}
-              <div className="flex justify-end">
-                <span className="text-sm text-orange-400">
-                  Forgot password? Contact an Admin.
-                </span>
-              </div>
-
-              {error && (
-                <p className="rounded-xl border border-red-400/30 bg-red-500/10 p-3 text-sm text-red-300">
-                  {error}
-                </p>
-              )}
-
-              {/* Sign in */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="group flex h-16 w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-600 text-base font-extrabold text-black shadow-[0_10px_35px_rgba(249,115,22,0.3)] transition hover:scale-[1.015] hover:shadow-[0_12px_40px_rgba(249,115,22,0.45)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+            {/* PASSWORD */}
+            <div>
+              <label
+                htmlFor="password"
+                className="mb-2 block text-sm font-bold text-[#0B3829]"
               >
-                {loading ? "Signing in..." : "Sign In"}
-                {!loading && (
-                  <span className="text-xl transition-transform group-hover:translate-x-1">
-                    →
-                  </span>
-                )}
-              </button>
-            </form>
+                Password
+              </label>
 
-            
-{/* Developer branding */}
-<div className="mt-8 border-t border-white/15 pt-6">
+              <div className="relative">
+                <svg
+                  className="absolute left-6 top-1/2 h-6 w-6 -translate-y-1/2 text-[#718477]"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                >
+                  <rect x="4" y="10" width="16" height="11" rx="2" />
+                  <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+                  <circle cx="12" cy="15" r="1" />
+                  <path d="M12 16v2" />
+                </svg>
+
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  placeholder="Enter your password"
+                  className="h-[60px] w-full rounded-2xl border border-[#E0D3B9] bg-[#FBF7EA] pl-16 pr-16 text-base text-[#0B3829] outline-none transition placeholder:text-[#89958B] focus:border-[#0B3829] focus:ring-4 focus:ring-[#0B3829]/10"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-6 top-1/2 -translate-y-1/2 text-xl text-[#1E3B2F] hover:text-[#0B3829]"
+                  aria-label={
+                    showPassword ? "Hide password" : "Show password"
+                  }
+                >
+                  {showPassword ? "◉" : "◎"}
+                </button>
+              </div>
+            </div>
+
+            {/* FORGOT PASSWORD */}
+            <div className="flex justify-end pt-1">
+              <span className="text-sm font-medium text-[#1E3B2F]">
+                Forgot password? Contact an Admin.
+              </span>
+            </div>
+
+            {/* ERROR MESSAGE */}
+            {error && (
+              <p
+                role="alert"
+                className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm font-medium text-red-700"
+              >
+                {error}
+              </p>
+            )}
+
+            {/* SIGN IN BUTTON */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="group flex h-[56px] w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[#0B3829] to-[#0B3829] text-lg font-extrabold text-[#F2EAD2] shadow-[0_12px_30px_rgba(30,59,47,0.20)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_35px_rgba(30,59,47,0.30)] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? "Signing in..." : "Sign In"}
+
+              {!loading && (
+                <span className="text-2xl transition-transform group-hover:translate-x-2">
+                  →
+                </span>
+              )}
+            </button>
+          </form>
+
+          {/* DEVELOPER BRANDING */}
+<div className="mt-6 border-t border-[#E0D3B9] pt-4">
   <a
     href="https://www.linkedin.com/in/ganesh-bp0810/"
     target="_blank"
     rel="noopener noreferrer"
     aria-label="Connect with Ganesh BP on LinkedIn"
-    className="mx-auto block w-full max-w-[233px] overflow-hidden transition duration-300 hover:scale-[1.03]"
+    className="mx-auto block w-full max-w-[110px] transition duration-300 hover:scale-[1.025] sm:max-w-[230px] lg:max-w-[270px]"
   >
-    <div className="aspect-[3.2/1] w-full overflow-hidden">
-      <img
-        src="/Ganesh_Branding.png"
-        alt="Designed and developed by Ganesh"
-        className="h-full w-full object-cover object-center"
-      />
-    </div>
+    <img
+      src="/Ganesh_Branding.png"
+      alt="Designed and developed by Ganesh"
+      className="mx-auto h-auto max-h-[240px] w-full object-contain sm:max-h-[70px] lg:max-h-[90px]"
+    />
   </a>
 </div>
-
-          </section>
         </div>
-      </div>
+      </section>
     </main>
   );
 }

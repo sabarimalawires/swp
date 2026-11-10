@@ -73,7 +73,7 @@ export default function DownloadLedgerPdf({
         <button
           type="button"
           disabled={loading || !hasData}
-          className="ledger-button"
+         className="rounded-xl bg-[#365B49] px-5 py-3 text-sm font-semibold text-[#F2EAD2] shadow-sm transition-colors duration-200 hover:bg-[#1E3B2F] disabled:cursor-not-allowed disabled:opacity-50"
           title={error ? "PDF generation failed" : undefined}
         >
           {loading

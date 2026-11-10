@@ -64,28 +64,28 @@ function formatDate(value: string) {
 function getActionColor(action: string) {
   switch (action) {
     case "APPROVE":
-      return "bg-green-100 text-green-700";
+      return "bg-green-100 text-[#F2EAD2]";
 
     case "REJECT":
-      return "bg-red-100 text-red-700";
+      return "bg-red-100 text-[#F2EAD2]";
 
     case "VOID":
-      return "bg-purple-100 text-purple-700";
+      return "bg-purple-100 text-[#F2EAD2]";
 
     case "UPDATE":
-      return "bg-blue-100 text-blue-700";
+      return "bg-blue-100 text-[#F2EAD2]";
 
     case "CREATE":
-      return "bg-orange-100 text-orange-700";
+      return "bg-[#365B49] text-[#F2EAD2]";
 
     case "DEACTIVATE":
-      return "bg-red-100 text-red-700";
+      return "bg-red-100 text-[#F2EAD2]";
 
     case "REACTIVATE":
-      return "bg-green-100 text-green-700";
+      return "bg-green-100 text-[#F2EAD2]";
 
     default:
-      return "bg-gray-100 text-gray-700";
+      return "bg-gray-100 text-[#F2EAD2]";
   }
 }
 
@@ -304,7 +304,7 @@ export default function HistoryPage() {
               SWP Business Management System
             </p>
 
-            <h1 className="mt-2 text-3xl font-bold text-[#1E3B2F]">
+            <h1 className="mt-2 text-3xl font-bold text-[#0B3829]">
               Activity History
             </h1>
 
@@ -438,7 +438,7 @@ export default function HistoryPage() {
           <div className="swp-history-records mt-5 min-w-0 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] shadow-sm sm:mt-8">
             <div className="flex flex-col gap-2 border-b border-[#D5CBB3] px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-[#1E3B2F]">
+                <h2 className="text-lg font-semibold text-[#0B3829]">
                   Business Activity
                 </h2>
 
@@ -459,14 +459,14 @@ export default function HistoryPage() {
 
             {loading ? (
               <div className="p-12 text-center">
-                <p className="text-[#1E3B2F]">
+                <p className="text-[#0B3829]">
                   Loading history...
                 </p>
               </div>
             ) : !data ||
               data.auditLogs.length === 0 ? (
               <div className="p-12 text-center">
-                <p className="font-medium text-[#1E3B2F]">
+                <p className="font-medium text-[#0B3829]">
                   No activity found.
                 </p>
 
@@ -514,7 +514,7 @@ export default function HistoryPage() {
                           </td>
 
                           <td className="px-6 py-5">
-                            <p className="text-sm font-semibold text-[#1E3B2F]">
+                            <p className="text-sm font-semibold text-[#0B3829]">
                               {log.user?.name ||
                                 "System"}
                             </p>
@@ -596,7 +596,7 @@ export default function HistoryPage() {
                         (current) => current + 1
                       )
                     }
-                    className="rounded-xl bg-[#1E3B2F] px-4 py-2 text-sm font-semibold text-[#F2EAD2] transition hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-40"
+                    className="rounded-xl bg-[#0B3829] px-4 py-2 text-sm font-semibold text-[#F2EAD2] transition hover:bg-[#365B49] disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     Next →
                   </button>

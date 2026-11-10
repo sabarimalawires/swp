@@ -185,7 +185,7 @@ const handleSaveCustomer = async (
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#fff8f2]">
-        <p className="text-[#1E3B2F]">
+        <p className="text-[#0B3829]">
           Loading customers...
         </p>
       </main>
@@ -202,7 +202,7 @@ const handleSaveCustomer = async (
               <p className="text-sm text-[#718477]">
                 SWP Business Management System
               </p>
-              <h1 className="mt-2 text-3xl font-bold text-[#1E3B2F]">
+              <h1 className="mt-2 text-3xl font-bold text-[#0B3829]">
                 Customers
               </h1>
               <p className="mt-2 text-[#7b5a49]">
@@ -214,7 +214,7 @@ const handleSaveCustomer = async (
               <p className="text-xs text-[#718477]">
                 Signed in as
               </p>
-              <p className="font-semibold text-[#1E3B2F]">
+              <p className="font-semibold text-[#0B3829]">
                 {userName}
               </p>
             </div>
@@ -232,7 +232,7 @@ const handleSaveCustomer = async (
               <p className="text-sm text-[#8b6b5a]">
                 Customers
               </p>
-              <p className="mt-2 text-2xl font-bold text-[#1E3B2F]">
+              <p className="mt-2 text-2xl font-bold text-[#0B3829]">
                 {customers.length}
               </p>
             </div>
@@ -240,7 +240,7 @@ const handleSaveCustomer = async (
               <p className="text-sm text-[#8b6b5a]">
                 Total Purchases
               </p>
-              <p className="mt-2 text-2xl font-bold text-[#1E3B2F]">
+              <p className="mt-2 text-2xl font-bold text-[#0B3829]">
                 ₹
                 {customers
                   .reduce(
@@ -261,7 +261,7 @@ const handleSaveCustomer = async (
               <p className="text-sm text-[#8b6b5a]">
                 Total Pending
               </p>
-              <p className="mt-2 text-2xl font-bold text-[#1E3B2F]">
+              <p className="mt-2 text-2xl font-bold text-[#0B3829]">
                 ₹
                 {customers
                   .reduce(
@@ -283,7 +283,7 @@ const handleSaveCustomer = async (
 )}
 {showCustomerForm && (
   <div className="mt-6 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
-    <h2 className="text-lg font-semibold text-[#1E3B2F]">
+    <h2 className="text-lg font-semibold text-[#0B3829]">
       {editingCustomerId ? "Edit Customer" : "Add Customer"}
     </h2>
     {formError && (
@@ -303,7 +303,7 @@ const handleSaveCustomer = async (
           onChange={(event) => setFormName(event.target.value)}
           maxLength={200}
           required
-          className="w-full rounded-xl border border-[#e5cdbd] px-4 py-3 text-[#1E3B2F] outline-none focus:border-[#1E3B2F]"
+          className="w-full rounded-xl border border-[#e5cdbd] px-4 py-3 text-[#0B3829] outline-none focus:border-[#0B3829]"
           placeholder="Enter customer name"
         />
       </div>
@@ -317,7 +317,7 @@ const handleSaveCustomer = async (
           value={formPhone}
           onChange={(event) => setFormPhone(event.target.value)}
           maxLength={20}
-          className="w-full rounded-xl border border-[#e5cdbd] px-4 py-3 text-[#1E3B2F] outline-none focus:border-[#1E3B2F]"
+          className="w-full rounded-xl border border-[#e5cdbd] px-4 py-3 text-[#0B3829] outline-none focus:border-[#0B3829]"
           placeholder="Enter mobile number (optional)"
         />
       </div>
@@ -325,7 +325,7 @@ const handleSaveCustomer = async (
         <button
           type="submit"
           disabled={savingCustomer}
-          className="rounded-xl bg-[#1E3B2F] px-5 py-2.5 text-sm font-semibold text-[#F2EAD2] hover:bg-[#c85f22] disabled:opacity-50"
+          className="rounded-xl bg-[#0B3829] px-5 py-2.5 text-sm font-semibold text-[#F2EAD2] hover:bg-[#365B49] disabled:opacity-50"
         >
           {savingCustomer
             ? "Saving..."
@@ -353,13 +353,13 @@ const handleSaveCustomer = async (
           <div className="swp-customer-list mt-8 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
             <div className="swp-customer-list-header flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-[#1E3B2F]">
+                <h2 className="text-lg font-semibold text-[#0B3829]">
                   Customer List
                 </h2>
 <button
   type="button"
   onClick={openAddCustomerForm}
-  className="mt-4 rounded-xl bg-[#1E3B2F] px-4 py-2 text-sm font-semibold text-[#F2EAD2] transition hover:bg-[#c85f22]"
+  className="mt-4 rounded-xl bg-[#0B3829] px-4 py-2 text-sm font-semibold text-[#F2EAD2] transition hover:bg-[#365B49]"
 >
   + Add Customer
 </button>
@@ -374,7 +374,7 @@ const handleSaveCustomer = async (
             </div>
             {customers.length === 0 ? (
               <div className="mt-8 rounded-xl border border-dashed border-[#e5cdbd] bg-[#fffaf6] p-10 text-center">
-                <p className="font-medium text-[#1E3B2F]">
+                <p className="font-medium text-[#0B3829]">
                   No customers yet.
                 </p>
                 <p className="mt-2 text-sm text-[#8b6b5a]">
@@ -415,7 +415,7 @@ const handleSaveCustomer = async (
                           className="border-b border-[#f3e5db] last:border-0 hover:bg-[#fffaf6]"
                         >
                           <td className="px-4 py-4">
-                            <p className="font-semibold text-[#1E3B2F]">
+                            <p className="font-semibold text-[#0B3829]">
                               {customer.name}
                             </p>
                             <p className="mt-1 text-xs text-[#9a7865]">
@@ -428,7 +428,7 @@ const handleSaveCustomer = async (
                           <td className="px-4 py-4 text-sm text-[#5b3928]">
                             {customer.salesCount}
                           </td>
-                          <td className="px-4 py-4 text-sm font-semibold text-[#1E3B2F]">
+                          <td className="px-4 py-4 text-sm font-semibold text-[#0B3829]">
                             ₹
                             {Number(
                               customer.totalPurchases
@@ -491,7 +491,7 @@ const handleSaveCustomer = async (
                                   `/customers/${customer.id}`
                                 )
                               }
-                              className="rounded-xl bg-[#1E3B2F] px-4 py-2 text-sm font-semibold text-[#F2EAD2] transition hover:bg-[#c85f22]"
+                              className="rounded-xl bg-[#0B3829] px-4 py-2 text-sm font-semibold text-[#F2EAD2] transition hover:bg-[#365B49]"
                             >
                               Open
                             </button>

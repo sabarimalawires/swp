@@ -306,7 +306,7 @@ export default function PurchasePage() {
           {/* PAGE HEADER */}
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
             <div>
-              <h1 className="text-2xl font-bold text-[#1E3B2F]">
+              <h1 className="text-2xl font-bold text-[#0B3829]">
                 Purchase Management
               </h1>
 
@@ -320,7 +320,7 @@ export default function PurchasePage() {
               <button
                 type="button"
                 onClick={() => router.push("/suppliers")}
-                className="rounded-xl bg-[#1E3B2F] px-4 py-2.5 text-sm font-semibold text-[#F2EAD2] transition hover:bg-[#c85f22]"
+                className="rounded-xl bg-[#0B3829] px-4 py-2.5 text-sm font-semibold text-[#F2EAD2] transition hover:bg-[#365B49]"
               >
                 Manage Suppliers →
               </button>
@@ -348,7 +348,7 @@ export default function PurchasePage() {
           {/* NEW PURCHASE FORM */}
           <section className="rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-5 shadow-sm sm:p-6">
             <div className="mb-5">
-              <h2 className="text-lg font-semibold text-[#1E3B2F]">
+              <h2 className="text-lg font-semibold text-[#0B3829]">
                 New Purchase
               </h2>
 
@@ -416,7 +416,7 @@ export default function PurchasePage() {
               {/* PURCHASED PRODUCTS */}
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h3 className="font-semibold text-[#1E3B2F]">
+                  <h3 className="font-semibold text-[#0B3829]">
                     Purchased Products
                   </h3>
 
@@ -534,7 +534,7 @@ export default function PurchasePage() {
                           Amount
                         </span>
 
-                        <div className="mt-1 flex h-11 items-center rounded-xl border border-[#ead8c9] bg-[#f8f2ec] px-3 font-semibold text-[#1E3B2F]">
+                        <div className="mt-1 flex h-11 items-center rounded-xl border border-[#ead8c9] bg-[#f8f2ec] px-3 font-semibold text-[#0B3829]">
                           ₹ {money(lineAmounts[index])}
                         </div>
                       </div>
@@ -550,7 +550,7 @@ export default function PurchasePage() {
                     Total Purchase Amount
                   </span>
 
-                  <span className="text-xl font-bold text-[#1E3B2F]">
+                  <span className="text-xl font-bold text-[#0B3829]">
                     ₹ {money(totalAmount)}
                   </span>
                 </div>
@@ -559,7 +559,7 @@ export default function PurchasePage() {
               <button
                 type="submit"
                 disabled={saving || items.length === 0}
-                className="w-full rounded-xl bg-[#1E3B2F] px-5 py-3 text-sm font-semibold text-[#F2EAD2] shadow-sm transition hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full rounded-xl bg-[#0B3829] px-5 py-3 text-sm font-semibold text-[#F2EAD2] shadow-sm transition hover:bg-[#365B49] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {saving ? "Saving..." : "Save Purchase"}
               </button>
@@ -570,7 +570,7 @@ export default function PurchasePage() {
           <section className="rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-5 shadow-sm sm:p-6">
             <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
               <div>
-                <h2 className="text-lg font-semibold text-[#1E3B2F]">
+                <h2 className="text-lg font-semibold text-[#0B3829]">
                   Purchase History
                 </h2>
 
@@ -606,7 +606,7 @@ export default function PurchasePage() {
                   setPurchaseSearch("");
                   setDateFilter("");
                 }}
-                className="h-11 rounded-xl border border-[#e8d4c5] px-4 text-sm font-semibold text-[#c85f22] hover:bg-[#fff7ed]"
+                className="h-11 rounded-xl border border-[#e8d4c5] px-4 text-sm font-semibold text-[#365B49] hover:bg-[#fff7ed]"
               >
                 Clear Filters
               </button>
@@ -615,7 +615,7 @@ export default function PurchasePage() {
             {/* EMPTY STATE */}
             {filteredPurchases.length === 0 ? (
               <div className="mt-6 rounded-xl border border-dashed border-[#e5cdbd] bg-[#fffaf6] p-10 text-center">
-                <p className="font-medium text-[#1E3B2F]">
+                <p className="font-medium text-[#0B3829]">
                   No purchases found.
                 </p>
 
@@ -632,7 +632,7 @@ export default function PurchasePage() {
                   >
                     <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                       <div>
-                        <p className="font-semibold text-[#1E3B2F]">
+                        <p className="font-semibold text-[#0B3829]">
                           {purchase.supplier.name}
                         </p>
 
@@ -659,7 +659,7 @@ export default function PurchasePage() {
                           {purchase.status}
                         </span>
 
-                        <span className="text-lg font-bold text-[#1E3B2F]">
+                        <span className="text-lg font-bold text-[#0B3829]">
                           ₹ {money(Number(purchase.totalAmount))}
                         </span>
                       </div>

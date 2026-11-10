@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 36,
     fontFamily: "Helvetica",
     fontSize: 9,
-    color: "#1E3B2F",
+    color: "#0B3829",
   },
 
   header: {
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   reportTitle: {
     marginTop: 8,
     fontSize: 13,
-    color: "#1E3B2F",
+    color: "#0B3829",
     fontWeight: "bold",
   },
 
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 11,
     fontWeight: "bold",
-    color: "#1E3B2F",
+    color: "#0B3829",
     marginBottom: 7,
   },
 

@@ -127,7 +127,7 @@ export default function Sidebar() {
           />
 
           <div className="leading-tight">
-            <h1 className="text-[17px] font-bold text-[#1E3B2F]">
+            <h1 className="text-[17px] font-bold text-[#0B3829]">
               SWP
             </h1>
             <p className="mt-1 text-[11px] text-[#718477]">
@@ -136,7 +136,7 @@ export default function Sidebar() {
           </div>
         </div>
 
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1E3B2F] text-sm font-bold text-[#F2EAD2] shadow-sm">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0B3829] text-sm font-bold text-[#F2EAD2] shadow-sm">
           {profileInitial}
         </div>
       </header>
@@ -170,7 +170,7 @@ export default function Sidebar() {
 
             {!collapsed && (
               <div className="min-w-0">
-                <h1 className="font-bold text-[#1E3B2F]">SWP</h1>
+                <h1 className="font-bold text-[#0B3829]">SWP</h1>
                 <p className="whitespace-nowrap text-xs text-[#718477]">
                   Business Management
                 </p>
@@ -183,7 +183,7 @@ export default function Sidebar() {
             onClick={() => setCollapsed((current) => !current)}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[#365B49] transition hover:bg-[#E5E9DA] hover:text-[#1E3B2F]"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[#1E3B2F] transition hover:bg-[#E5E9DA] hover:text-[#0B3829]"
           >
             {collapsed ? (
               <Menu size={21} />
@@ -218,8 +218,8 @@ export default function Sidebar() {
                     : "gap-3 px-4"
                 } ${
                   active
-                    ? "bg-[#1E3B2F] text-[#F2EAD2] shadow-sm"
-                    : "text-[#1E3B2F] hover:bg-[#E5E9DA] hover:text-[#1E3B2F]"
+                    ? "bg-[#0B3829] text-[#F2EAD2] shadow-sm"
+                    : "text-[#0B3829] hover:bg-[#E5E9DA] hover:text-[#0B3829]"
                 }`}
               >
                 <Icon
@@ -281,8 +281,8 @@ export default function Sidebar() {
                   href={item.href}
                   className={`block rounded-xl px-4 py-3 text-sm font-medium ${
                     pathname === item.href
-                      ? "bg-[#E5E9DA] text-[#1E3B2F]"
-                      : "text-[#1E3B2F] hover:bg-[#E5E9DA]"
+                      ? "bg-[#E5E9DA] text-[#0B3829]"
+                      : "text-[#0B3829] hover:bg-[#E5E9DA]"
                   }`}
                 >
                   {item.name}
@@ -315,7 +315,7 @@ export default function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={`flex min-h-[58px] flex-col items-center justify-center gap-1 rounded-xl text-center transition ${
-                  active ? "text-[#1E3B2F]" : "text-[#718477]"
+                  active ? "text-[#0B3829]" : "text-[#718477]"
                 }`}
               >
                 <span className="text-2xl leading-none">
@@ -337,7 +337,7 @@ export default function Sidebar() {
                 moreNavigation.some(
                   (item) => item.href === pathname
                 )
-                  ? "text-[#1E3B2F]"
+                  ? "text-[#0B3829]"
                   : "text-[#718477]"
               }`}
             >

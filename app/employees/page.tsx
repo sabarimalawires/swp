@@ -358,9 +358,9 @@ export default function EmployeesPage() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#fff8f2]">
         <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-[#D5CBB3] border-t-[#1E3B2F]" />
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-[#D5CBB3] border-t-[#0B3829]" />
 
-          <p className="mt-4 text-sm font-medium text-[#1E3B2F]">
+          <p className="mt-4 text-sm font-medium text-[#0B3829]">
             Loading employees...
           </p>
         </div>
@@ -382,7 +382,7 @@ export default function EmployeesPage() {
                 SWP Business Management System
               </p>
 
-              <h1 className="mt-2 text-3xl font-bold text-[#1E3B2F]">
+              <h1 className="mt-2 text-3xl font-bold text-[#0B3829]">
                 Employees
               </h1>
 
@@ -396,7 +396,7 @@ export default function EmployeesPage() {
                 Signed in as
               </p>
 
-              <p className="mt-1 font-semibold text-[#1E3B2F]">
+              <p className="mt-1 font-semibold text-[#0B3829]">
                 {userName}
               </p>
 
@@ -426,7 +426,7 @@ export default function EmployeesPage() {
             <div className="flex flex-col gap-4 border-b border-[#D5CBB3] px-6 py-6 sm:flex-row sm:items-center sm:justify-between">
 
               <div>
-                <h2 className="text-lg font-bold text-[#1E3B2F]">
+                <h2 className="text-lg font-bold text-[#0B3829]">
                   Employee Management
                 </h2>
 
@@ -442,8 +442,7 @@ export default function EmployeesPage() {
                   setError("");
                   setSuccess("");
                 }}
-                className="rounded-xl bg-[#1E3B2F] px-5 py-3 text-sm font-semibold text-[#F2EAD2] shadow-sm transition hover:bg-[#c85f22]"
-              >
+className="rounded-xl bg-[#0B3829] px-5 py-3 text-sm font-semibold text-[#F2EAD2] shadow-sm transition hover:bg-[#365B49]"              >
                 Add Employee
               </button>
             </div>
@@ -453,7 +452,7 @@ export default function EmployeesPage() {
               <div className="border-b border-[#D5CBB3] bg-[#fffaf6] p-6">
 
                 <div className="mb-6">
-                  <h3 className="text-lg font-bold text-[#1E3B2F]">
+                  <h3 className="text-lg font-bold text-[#0B3829]">
                     Add Employee
                   </h3>
 
@@ -555,7 +554,7 @@ export default function EmployeesPage() {
                     <button
                       type="submit"
                       disabled={saving}
-                      className="rounded-xl bg-[#1E3B2F] px-5 py-3 text-sm font-semibold text-[#F2EAD2] shadow-sm transition hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="rounded-xl bg-[#0B3829] px-5 py-3 text-sm font-semibold text-[#F2EAD2] shadow-sm transition hover:bg-[#365B49] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {saving
                         ? "Creating..."
@@ -573,7 +572,7 @@ export default function EmployeesPage() {
               {employees.length === 0 ? (
                 <div className="p-12 text-center">
 
-                  <p className="font-semibold text-[#1E3B2F]">
+                  <p className="font-semibold text-[#0B3829]">
                     No employees found.
                   </p>
 
@@ -638,7 +637,7 @@ export default function EmployeesPage() {
                             {/* EMPLOYEE */}
                             <td className="px-6 py-5">
 
-                              <p className="text-sm font-semibold text-[#1E3B2F]">
+                              <p className="text-sm font-semibold text-[#0B3829]">
                                 {
                                   employee.name
                                 }

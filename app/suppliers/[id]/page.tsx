@@ -374,7 +374,7 @@ export default function SupplierPage() {
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#fff8f2]">
-        <p className="text-[#1E3B2F]">Loading supplier account...</p>
+        <p className="text-[#0B3829]">Loading supplier account...</p>
       </main>
     );
   }
@@ -386,7 +386,7 @@ export default function SupplierPage() {
           <p className="text-red-600">{error || "Supplier not found."}</p>
           <button
             onClick={() => router.push("/suppliers")}
-            className="mt-4 rounded-xl bg-[#1E3B2F] px-5 py-2 text-[#F2EAD2]"
+            className="mt-4 rounded-xl bg-[#0B3829] px-5 py-2 text-[#F2EAD2]"
           >
             Back to Suppliers
           </button>
@@ -407,7 +407,7 @@ export default function SupplierPage() {
             <div>
               <button
                 onClick={() => router.push("/suppliers")}
-                className="text-sm font-semibold text-[#718477] hover:text-[#1E3B2F]"
+                className="text-sm font-semibold text-[#718477] hover:text-[#0B3829]"
               >
                 ← Back to Suppliers
               </button>
@@ -416,7 +416,7 @@ export default function SupplierPage() {
                 Supplier Account
               </p>
 
-              <h1 className="mt-2 text-3xl font-bold text-[#1E3B2F]">
+              <h1 className="mt-2 text-3xl font-bold text-[#0B3829]">
                 {supplier.name}
               </h1>
 
@@ -436,7 +436,7 @@ export default function SupplierPage() {
 
             <div className="rounded-xl bg-[#E5E9DA] px-4 py-3">
               <p className="text-xs text-[#718477]">Signed in as</p>
-              <p className="font-semibold text-[#1E3B2F]">{userName}</p>
+              <p className="font-semibold text-[#0B3829]">{userName}</p>
             </div>
           </div>
 
@@ -454,7 +454,7 @@ export default function SupplierPage() {
 
           {showProfileForm && (
             <section className="mt-6 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-[#1E3B2F]">
+              <h2 className="text-lg font-semibold text-[#0B3829]">
                 Edit Supplier Details
               </h2>
 
@@ -477,7 +477,7 @@ export default function SupplierPage() {
                         onChange={(event) =>
                           updateProfileField(field, event.target.value)
                         }
-                        className="w-full rounded-xl border border-[#e5cdbd] px-4 py-3 text-[#1E3B2F] outline-none focus:border-[#1E3B2F]"
+                        className="w-full rounded-xl border border-[#e5cdbd] px-4 py-3 text-[#0B3829] outline-none focus:border-[#0B3829]"
                       />
                     </div>
                   ))}
@@ -493,14 +493,14 @@ export default function SupplierPage() {
                     onChange={(event) =>
                       updateProfileField("address", event.target.value)
                     }
-                    className="w-full rounded-xl border border-[#e5cdbd] px-4 py-3 text-[#1E3B2F] outline-none focus:border-[#1E3B2F]"
+                    className="w-full rounded-xl border border-[#e5cdbd] px-4 py-3 text-[#0B3829] outline-none focus:border-[#0B3829]"
                   />
                 </div>
 
                 <div className="flex gap-3">
                   <button
                     disabled={saving}
-                    className="rounded-xl bg-[#1E3B2F] px-5 py-2.5 text-sm font-semibold text-[#F2EAD2] disabled:opacity-50"
+                    className="rounded-xl bg-[#0B3829] px-5 py-2.5 text-sm font-semibold text-[#F2EAD2] disabled:opacity-50"
                   >
                     {saving ? "Saving..." : "Save Changes"}
                   </button>
@@ -519,7 +519,7 @@ export default function SupplierPage() {
           <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-5 shadow-sm">
               <p className="text-sm text-[#8b6b5a]">Total Purchases</p>
-              <p className="mt-2 text-2xl font-bold text-[#1E3B2F]">
+              <p className="mt-2 text-2xl font-bold text-[#0B3829]">
                 {money(data.totalPurchases)}
               </p>
             </div>
@@ -549,7 +549,7 @@ export default function SupplierPage() {
           <section className="mt-8 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-lg font-semibold text-[#1E3B2F]">
+                <h2 className="text-lg font-semibold text-[#0B3829]">
                   Supplier Payments
                 </h2>
                 <p className="mt-1 text-sm text-[#7b5a49]">
@@ -563,7 +563,7 @@ export default function SupplierPage() {
                   cancelEditingPayment();
                   setError("");
                 }}
-                className="rounded-xl bg-[#1E3B2F] px-4 py-2.5 text-sm font-semibold text-[#F2EAD2] hover:bg-[#c85f22]"
+                className="rounded-xl bg-[#0B3829] px-4 py-2.5 text-sm font-semibold text-[#F2EAD2] hover:bg-[#365B49]"
               >
                 {showPaymentForm ? "Cancel" : "+ Record Payment"}
               </button>
@@ -574,7 +574,7 @@ export default function SupplierPage() {
                 onSubmit={submitPayment}
                 className="mt-5 rounded-xl bg-[#fffaf6] p-5"
               >
-                <h3 className="font-semibold text-[#1E3B2F]">
+                <h3 className="font-semibold text-[#0B3829]">
                   Record New Payment
                 </h3>
 
@@ -591,7 +591,7 @@ export default function SupplierPage() {
                       value={paymentAmount}
                       onChange={(event) => setPaymentAmount(event.target.value)}
                       placeholder="Enter amount"
-                      className="w-full rounded-xl border border-[#e5cdbd] bg-[#F2EAD2] px-4 py-3 text-[#1E3B2F]"
+                      className="w-full rounded-xl border border-[#e5cdbd] bg-[#F2EAD2] px-4 py-3 text-[#0B3829]"
                     />
                   </div>
 
@@ -604,7 +604,7 @@ export default function SupplierPage() {
                       required
                       value={paymentDate}
                       onChange={(event) => setPaymentDate(event.target.value)}
-                      className="w-full rounded-xl border border-[#e5cdbd] bg-[#F2EAD2] px-4 py-3 text-[#1E3B2F]"
+                      className="w-full rounded-xl border border-[#e5cdbd] bg-[#F2EAD2] px-4 py-3 text-[#0B3829]"
                     />
                   </div>
 
@@ -617,14 +617,14 @@ export default function SupplierPage() {
                       onChange={(event) => setPaymentNote(event.target.value)}
                       maxLength={500}
                       placeholder="Optional note"
-                      className="w-full rounded-xl border border-[#e5cdbd] bg-[#F2EAD2] px-4 py-3 text-[#1E3B2F]"
+                      className="w-full rounded-xl border border-[#e5cdbd] bg-[#F2EAD2] px-4 py-3 text-[#0B3829]"
                     />
                   </div>
                 </div>
 
                 <button
                   disabled={saving}
-                  className="mt-4 rounded-xl bg-[#1E3B2F] px-5 py-2.5 text-sm font-semibold text-[#F2EAD2] disabled:opacity-50"
+                  className="mt-4 rounded-xl bg-[#0B3829] px-5 py-2.5 text-sm font-semibold text-[#F2EAD2] disabled:opacity-50"
                 >
                   {saving ? "Saving..." : "Save Payment"}
                 </button>
@@ -698,7 +698,7 @@ export default function SupplierPage() {
                                 <button
                                   disabled={saving}
                                   onClick={() => savePaymentEdit(payment.id)}
-                                  className="rounded-lg bg-[#1E3B2F] px-3 py-2 text-xs font-semibold text-[#F2EAD2]"
+                                  className="rounded-lg bg-[#0B3829] px-3 py-2 text-xs font-semibold text-[#F2EAD2]"
                                 >
                                   Save
                                 </button>
@@ -738,7 +738,7 @@ export default function SupplierPage() {
           </section>
 
           <section className="mt-8 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-[#1E3B2F]">
+            <h2 className="text-lg font-semibold text-[#0B3829]">
               Purchase History
             </h2>
             <p className="mt-1 text-sm text-[#7b5a49]">
@@ -758,7 +758,7 @@ export default function SupplierPage() {
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
-                        <p className="font-semibold text-[#1E3B2F]">
+                        <p className="font-semibold text-[#0B3829]">
                           {purchase.invoiceNumber
                             ? `Invoice ${purchase.invoiceNumber}`
                             : "Purchase"}
@@ -767,7 +767,7 @@ export default function SupplierPage() {
                           {formatDate(purchase.purchaseDate)}
                         </p>
                       </div>
-                      <p className="font-bold text-[#1E3B2F]">
+                      <p className="font-bold text-[#0B3829]">
                         {money(purchase.totalAmount)}
                       </p>
                     </div>
@@ -786,7 +786,7 @@ export default function SupplierPage() {
                         <tbody>
                           {purchase.items.map((item) => (
                             <tr key={item.id} className="border-b border-[#f3e5db]">
-                              <td className="py-3 text-[#1E3B2F]">
+                              <td className="py-3 text-[#0B3829]">
                                 {item.product.name}
                                 {item.product.code && (
                                   <span className="ml-2 text-xs text-[#9a7865]">
@@ -803,7 +803,7 @@ export default function SupplierPage() {
                               <td className="py-3 text-[#5b3928]">
                                 {money(item.rate)}
                               </td>
-                              <td className="py-3 font-semibold text-[#1E3B2F]">
+                              <td className="py-3 font-semibold text-[#0B3829]">
                                 {money(item.amount)}
                               </td>
                             </tr>
@@ -818,7 +818,7 @@ export default function SupplierPage() {
           </section>
 
           <section className="mt-8 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-[#1E3B2F]">
+            <h2 className="text-lg font-semibold text-[#0B3829]">
               Supplier Ledger
             </h2>
             <p className="mt-1 text-sm text-[#7b5a49]">
@@ -851,16 +851,16 @@ export default function SupplierPage() {
                         <td className="px-3 py-4 text-sm text-[#5b3928]">
                           {formatDate(entry.date)}
                         </td>
-                        <td className="px-3 py-4 text-sm text-[#1E3B2F]">
+                        <td className="px-3 py-4 text-sm text-[#0B3829]">
                           {entry.description}
                         </td>
                         <td className="px-3 py-4 text-sm font-semibold text-green-700">
                           {entry.debit > 0 ? money(entry.debit) : "—"}
                         </td>
-                        <td className="px-3 py-4 text-sm font-semibold text-[#1E3B2F]">
+                        <td className="px-3 py-4 text-sm font-semibold text-[#0B3829]">
                           {entry.credit > 0 ? money(entry.credit) : "—"}
                         </td>
-                        <td className="px-3 py-4 text-sm font-bold text-[#1E3B2F]">
+                        <td className="px-3 py-4 text-sm font-bold text-[#0B3829]">
                           {money(entry.balance)}
                           {entry.balance < 0 && (
                             <span className="ml-1 text-xs text-blue-700">
@@ -884,13 +884,13 @@ export default function SupplierPage() {
               </p>
               <p className="text-[#5b3928]">
                 Total Credit:{" "}
-                <strong className="text-[#1E3B2F]">
+                <strong className="text-[#0B3829]">
                   {money(data.totalPurchases)}
                 </strong>
               </p>
               <p className="text-[#5b3928]">
                 Net Balance:{" "}
-                <strong className="text-[#1E3B2F]">
+                <strong className="text-[#0B3829]">
                   {money(data.totalPurchases - data.totalPaid)}
                 </strong>
               </p>

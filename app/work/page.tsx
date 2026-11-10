@@ -270,7 +270,7 @@ setWeight("");
   if (loading || !role) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#fff8f2]">
-        <p className="text-[#1E3B2F]">Loading...</p>
+        <p className="text-[#0B3829]">Loading...</p>
       </main>
     );
   }
@@ -287,7 +287,7 @@ setWeight("");
                 SWP Business Management System
               </p>
 
-              <h1 className="mt-2 text-3xl font-bold text-[#1E3B2F]">
+              <h1 className="mt-2 text-3xl font-bold text-[#0B3829]">
                 Work Entries
               </h1>
 
@@ -303,7 +303,7 @@ setWeight("");
                 Signed in as
               </p>
 
-              <p className="font-semibold text-[#1E3B2F]">
+              <p className="font-semibold text-[#0B3829]">
                 {userName}
               </p>
             </div>
@@ -324,7 +324,7 @@ setWeight("");
           {role === "WORKER" ? (
             <div className="mt-8 grid gap-6 lg:grid-cols-[380px_1fr]">
               <div className="rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
-                <h2 className="text-lg font-semibold text-[#1E3B2F]">
+                <h2 className="text-lg font-semibold text-[#0B3829]">
                   Submit Work
                 </h2>
 
@@ -413,7 +413,7 @@ setWeight("");
                   <button
                     type="submit"
                     disabled={saving}
-                    className="w-full rounded-xl bg-[#1E3B2F] px-5 py-3 text-sm font-semibold text-[#F2EAD2] shadow-sm transition hover:bg-[#c85f22] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-full rounded-xl bg-[#0B3829] px-5 py-3 text-sm font-semibold text-[#F2EAD2] shadow-sm transition hover:bg-[#365B49] disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {saving ? "Submitting..." : "Submit Work"}
                   </button>
@@ -423,7 +423,7 @@ setWeight("");
               <div className="rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-lg font-semibold text-[#1E3B2F]">
+                    <h2 className="text-lg font-semibold text-[#0B3829]">
                       My Work Entries
                     </h2>
 
@@ -439,7 +439,7 @@ setWeight("");
 
                 {entries.length === 0 ? (
                   <div className="mt-8 rounded-xl border border-dashed border-[#e5cdbd] bg-[#fffaf6] p-10 text-center">
-                    <p className="font-medium text-[#1E3B2F]">
+                    <p className="font-medium text-[#0B3829]">
                       No work entries yet.
                     </p>
 
@@ -456,7 +456,7 @@ setWeight("");
                       >
                         <div className="flex items-center justify-between gap-4">
                           <div>
-                            <p className="font-semibold text-[#1E3B2F]">
+                            <p className="font-semibold text-[#0B3829]">
                               {entry.product.name}
                             </p>
 
@@ -500,7 +500,7 @@ setWeight("");
             <div className="mt-8 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold text-[#1E3B2F]">
+                  <h2 className="text-lg font-semibold text-[#0B3829]">
                     Work Review
                   </h2>
 
@@ -516,7 +516,7 @@ setWeight("");
 
               {entries.length === 0 ? (
                 <div className="mt-8 rounded-xl border border-dashed border-[#e5cdbd] bg-[#fffaf6] p-10 text-center">
-                  <p className="font-medium text-[#1E3B2F]">
+                  <p className="font-medium text-[#0B3829]">
                     No work entries yet.
                   </p>
 
@@ -533,7 +533,7 @@ setWeight("");
                     >
                       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                         <div>
-                          <p className="font-semibold text-[#1E3B2F]">
+                          <p className="font-semibold text-[#0B3829]">
                             {entry.product.name}
                           </p>
 

@@ -1,4 +1,4 @@
-
+﻿
     "use client";
 
     import { useCallback, useEffect, useState } from "react";
@@ -432,7 +432,7 @@ const selectedSupplierLedger =
     margin: 0;
     box-sizing: border-box;
         padding: 28px;
-        color: #1E3B2F;
+        color: #0B3829;
         background: #F2EAD2;
         min-height: 100vh;
       }
@@ -442,7 +442,7 @@ const selectedSupplierLedger =
       }
 
       .ledger-page header h1 {
-        color: #1E3B2F;
+        color: #0B3829;
       }
 
       .ledger-toolbar {
@@ -462,7 +462,7 @@ const selectedSupplierLedger =
       .ledger-field label {
         font-size: 13px;
         font-weight: 600;
-        color: #1E3B2F;
+        color: #0B3829;
       }
 
       .ledger-field select,
@@ -472,13 +472,13 @@ const selectedSupplierLedger =
         border-radius: 10px;
         padding: 10px 12px;
         background: white;
-        color: #1E3B2F;
+        color: #0B3829;
         font: inherit;
       }
 
       .ledger-page button {
-        border: 1px solid #1E3B2F;
-        background: #1E3B2F;
+        border: 1px solid #0B3829;
+        background: #0B3829;
         color: white;
         padding: 11px 17px;
         border-radius: 10px;
@@ -487,8 +487,9 @@ const selectedSupplierLedger =
       }
 
       .ledger-page button:hover:not(:disabled) {
-        background: #bd5b20;
-      }
+  background: #365B49 !important;
+  border-color: #365B49 !important;
+}
 
       .ledger-page button:disabled {
         opacity: 0.6;
@@ -508,7 +509,7 @@ const selectedSupplierLedger =
         border: 1px solid #D5CBB3;
         background: white;
         border-radius: 16px;
-        box-shadow: 0 4px 16px #1E3B2F08;
+        box-shadow: 0 4px 16px #0B382908;
       }
 
       .ledger-stat {
@@ -525,7 +526,7 @@ const selectedSupplierLedger =
       }
 
       .ledger-stat strong {
-        color: #1E3B2F;
+        color: #0B3829;
         font-size: 19px;
         overflow-wrap: anywhere;
       }
@@ -539,7 +540,7 @@ const selectedSupplierLedger =
       .ledger-heading {
         text-align: center;
         margin-bottom: 20px;
-        color: #1E3B2F;
+        color: #0B3829;
       }
 
       .ledger-heading h2 {
@@ -575,7 +576,7 @@ const selectedSupplierLedger =
 
       .ledger-table th {
         background: #E5E9DA;
-        color: #1E3B2F;
+        color: #0B3829;
         font-weight: 700;
       }
 
@@ -594,7 +595,7 @@ const selectedSupplierLedger =
       .ledger-table .closing-row td {
         font-weight: 700;
         background: #E5E9DA;
-        color: #1E3B2F;
+        color: #0B3829;
       }
 
       .ledger-muted {
@@ -609,7 +610,7 @@ const selectedSupplierLedger =
 
       .opening-balance-panel h2 {
         margin: 0 0 8px;
-        color: #1E3B2F;
+        color: #0B3829;
         font-size: 18px;
       }
 
