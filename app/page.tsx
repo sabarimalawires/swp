@@ -229,7 +229,7 @@ export default function Home() {
     <img
       src="/Ganesh_Branding.png"
       alt="Designed and developed by Ganesh"
-      className="mx-auto h-auto max-h-[240px] w-full object-contain sm:max-h-[70px] lg:max-h-[90px]"
+      className="mx-auto h-auto max-h-[120px] w-full object-contain sm:max-h-[45px] lg:max-h-[58px]"
     />
   </a>
 </div>
