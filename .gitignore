@@ -47,3 +47,4 @@ next-env.d.ts
 .windsurf/
 src/generated/
 .vercel
+.env*

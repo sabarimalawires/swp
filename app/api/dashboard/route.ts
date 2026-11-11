@@ -252,8 +252,7 @@ const ledgerSummary = {
         inventoryTransactions.some(
           (transaction) =>
             transaction.productId === product.id &&
-            transaction.type === "INITIAL_STOCK" &&
-            Number(transaction.weight) !== 0
+            transaction.type === "INITIAL_STOCK"
         );
 
       if (hasKgInitialStockTransaction) {
@@ -277,29 +276,44 @@ const ledgerSummary = {
       const current =
         inventoryByProduct.get(transaction.productId) ?? 0;
 
-      switch (transaction.type) {
-        case "INITIAL_STOCK":
-        case "PRODUCTION":
-        case "STOCK_ADJUSTMENT_ADD":
-        case "SALE_VOID":
-          inventoryByProduct.set(
-            transaction.productId,
-            roundKg(current + weight)
-          );
-          break;
+      
+switch (transaction.type) {
+  case "INITIAL_STOCK":
+  case "PRODUCTION":
+  case "PURCHASE":
+  case "STOCK_ADJUSTMENT_ADD":
+  case "SALE_VOID":
+    inventoryByProduct.set(
+      transaction.productId,
+      roundKg(current + weight)
+    );
+    break;
 
-        case "SALE":
-        case "STOCK_ADJUSTMENT_REMOVE":
-        case "PRODUCTION_REVERSAL":
-          inventoryByProduct.set(
-            transaction.productId,
-            roundKg(current - weight)
-          );
-          break;
+  case "SALE":
+  case "PURCHASE_VOID":
+  case "PURCHASE_EDIT_REVERSAL":
+  case "STOCK_ADJUSTMENT_REMOVE":
+  case "PRODUCTION_REVERSAL":
+    inventoryByProduct.set(
+      transaction.productId,
+      roundKg(Math.max(0, current - weight))
+    );
+    break;
 
-        default:
-          break;
-      }
+  default:
+    break;
+}
+
+inventoryByProduct.set(
+  transaction.productId,
+  roundKg(
+    Math.max(
+      0,
+      inventoryByProduct.get(transaction.productId) ?? 0
+    )
+  )
+);
+
     }
 
     // Products at or below their configured kg threshold.

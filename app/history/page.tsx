@@ -63,30 +63,30 @@ function formatDate(value: string) {
 
 function getActionColor(action: string) {
   switch (action) {
-    case "APPROVE":
-      return "bg-green-100 text-[#F2EAD2]";
+  case "APPROVE":
+    return "bg-green-100 text-green-800";
 
-    case "REJECT":
-      return "bg-red-100 text-[#F2EAD2]";
+  case "REJECT":
+    return "bg-red-100 text-red-800";
 
-    case "VOID":
-      return "bg-purple-100 text-[#F2EAD2]";
+  case "VOID":
+    return "bg-purple-100 text-purple-800";
 
-    case "UPDATE":
-      return "bg-blue-100 text-[#F2EAD2]";
+  case "UPDATE":
+    return "bg-blue-100 text-blue-800";
 
-    case "CREATE":
-      return "bg-[#365B49] text-[#F2EAD2]";
+  case "CREATE":
+    return "bg-[#365B49] text-[#F2EAD2]";
 
-    case "DEACTIVATE":
-      return "bg-red-100 text-[#F2EAD2]";
+  case "DEACTIVATE":
+    return "bg-red-100 text-red-800";
 
-    case "REACTIVATE":
-      return "bg-green-100 text-[#F2EAD2]";
+  case "REACTIVATE":
+    return "bg-green-100 text-green-800";
 
-    default:
-      return "bg-gray-100 text-[#F2EAD2]";
-  }
+  default:
+    return "bg-gray-100 text-gray-800";
+}
 }
 
 function getValue(

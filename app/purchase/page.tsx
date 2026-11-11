@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -33,6 +34,7 @@ type Purchase = {
   supplier: { id: string; name: string };
   items: {
     id: string;
+    productId: string;
     quantity?: number | null;
     weight: number;
     rate: number;
@@ -52,6 +54,8 @@ export default function PurchasePage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [editingPurchaseId, setEditingPurchaseId] = useState<string | null>(null);
+
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
@@ -59,6 +63,7 @@ export default function PurchasePage() {
   const [supplierId, setSupplierId] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [purchaseDate, setPurchaseDate] = useState("");
+
   const [items, setItems] = useState<PurchaseItem[]>([
     { productId: "", quantity: "", weight: "", rate: "" },
   ]);
@@ -66,6 +71,7 @@ export default function PurchasePage() {
   const [supplierSearch, setSupplierSearch] = useState("");
   const [purchaseSearch, setPurchaseSearch] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -213,15 +219,92 @@ export default function PurchasePage() {
   };
 
   const resetForm = () => {
+    setEditingPurchaseId(null);
     setSupplierId("");
     setInvoiceNumber("");
     setItems([{ productId: "", quantity: "", weight: "", rate: "" }]);
+
+    const today = new Date();
+
+    setPurchaseDate(
+      [
+        today.getFullYear(),
+        String(today.getMonth() + 1).padStart(2, "0"),
+        String(today.getDate()).padStart(2, "0"),
+      ].join("-")
+    );
+  };
+
+  const handleEdit = (purchase: Purchase) => {
+    if (purchase.status !== "ACTIVE") return;
+
+    setEditingPurchaseId(purchase.id);
+    setSupplierId(purchase.supplier.id);
+    setInvoiceNumber(purchase.invoiceNumber ?? "");
+    setPurchaseDate(purchase.purchaseDate.slice(0, 10));
+
+    setItems(
+      purchase.items.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity?.toString() ?? "",
+        weight: item.weight.toString(),
+        rate: item.rate.toString(),
+      }))
+    );
+
+    setError("");
+    setSuccess("");
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleDelete = async (purchase: Purchase) => {
+    if (purchase.status !== "ACTIVE") return;
+
+    const confirmed = window.confirm(
+      `Permanently delete purchase ${purchase.invoiceNumber || purchase.id} from ${purchase.supplier.name}?\n\nInventory will be reversed and supplier balances recalculated. This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    setError("");
+    setSuccess("");
+    setSaving(true);
+
+    try {
+      const response = await fetch(`/api/purchases/${purchase.id}`, {
+        method: "DELETE",
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to delete purchase.");
+      }
+
+      if (editingPurchaseId === purchase.id) {
+        resetForm();
+      }
+
+      await loadData();
+
+      setSuccess(
+        "Purchase deleted successfully. Inventory and supplier balances updated."
+      );
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to delete purchase."
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSubmit = async (
     event: React.FormEvent<HTMLFormElement>
   ) => {
     event.preventDefault();
+
     setError("");
     setSuccess("");
 
@@ -230,15 +313,25 @@ export default function PurchasePage() {
       return;
     }
 
+    if (!purchaseDate) {
+      setError("Please select a purchase date.");
+      return;
+    }
+
     if (
       items.some(
         (item) =>
           !item.productId ||
+          !Number.isFinite(Number(item.weight)) ||
           Number(item.weight) <= 0 ||
-          Number(item.rate) <= 0
+          !Number.isFinite(Number(item.rate)) ||
+          Number(item.rate) <= 0 ||
+          (item.quantity.trim() !== "" &&
+            (!Number.isInteger(Number(item.quantity)) ||
+              Number(item.quantity) <= 0))
       )
     ) {
-      setError("Please select products and enter valid weight and rate.");
+      setError("Please select products and enter valid quantity, weight and rate.");
       return;
     }
 
@@ -252,8 +345,14 @@ export default function PurchasePage() {
     setSaving(true);
 
     try {
-      const response = await fetch("/api/purchases", {
-        method: "POST",
+      const isEditing = Boolean(editingPurchaseId);
+
+      const url = editingPurchaseId
+        ? `/api/purchases/${editingPurchaseId}`
+        : "/api/purchases";
+
+      const response = await fetch(url, {
+        method: editingPurchaseId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           supplierId,
@@ -272,12 +371,18 @@ export default function PurchasePage() {
 
       const result = await response.json();
 
-      if (!response.ok)
+      if (!response.ok) {
         throw new Error(result.error || "Failed to save purchase.");
+      }
 
       await loadData();
       resetForm();
-      setSuccess("Purchase saved successfully.");
+
+      setSuccess(
+        isEditing
+          ? "Purchase updated successfully."
+          : "Purchase saved successfully."
+      );
     } catch (err) {
       setError(
         err instanceof Error
@@ -298,7 +403,7 @@ export default function PurchasePage() {
   }
 
   return (
-   <div className="flex min-h-screen bg-[#fffaf6]">
+    <div className="flex min-h-screen bg-[#fffaf6]">
       <Sidebar />
 
       <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
@@ -315,16 +420,7 @@ export default function PurchasePage() {
               </p>
             </div>
 
-            {/* MANAGE SUPPLIERS BUTTON */}
             <div className="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                onClick={() => router.push("/suppliers")}
-                className="rounded-xl bg-[#0B3829] px-4 py-2.5 text-sm font-semibold text-[#F2EAD2] transition hover:bg-[#365B49]"
-              >
-                Manage Suppliers →
-              </button>
-
               <span className="w-fit rounded-full bg-[#E5E9DA] px-4 py-2 text-sm font-semibold text-[#a64b2b]">
                 {purchases.length} purchase records
               </span>
@@ -345,30 +441,22 @@ export default function PurchasePage() {
             </div>
           )}
 
-          {/* NEW PURCHASE FORM */}
+          {/* PURCHASE FORM */}
           <section className="rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-5 shadow-sm sm:p-6">
             <div className="mb-5">
               <h2 className="text-lg font-semibold text-[#0B3829]">
-                New Purchase
+                {editingPurchaseId ? "Edit Purchase" : "New Purchase"}
               </h2>
 
               <p className="mt-1 text-sm text-[#7b5a49]">
-                Enter supplier and invoice details, then add purchased products.
+                {editingPurchaseId
+                  ? "Update supplier, invoice details and purchased products."
+                  : "Enter supplier and invoice details, then add purchased products."}
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <label className="text-sm font-medium text-[#5b3928]">
-                  Search Supplier
-
-                  <input
-                    value={supplierSearch}
-                    onChange={(e) => setSupplierSearch(e.target.value)}
-                    placeholder="Search supplier name or phone"
-                    className={inputClass}
-                  />
-                </label>
 
                 <label className="text-sm font-medium text-[#5b3928]">
                   Select Supplier
@@ -428,7 +516,8 @@ export default function PurchasePage() {
                 <button
                   type="button"
                   onClick={addItem}
-                  className="rounded-xl border border-[#e8d4c5] bg-[#fff7ed] px-4 py-2.5 text-sm font-semibold text-[#a64b2b] transition hover:bg-[#ffeddd]"
+                  disabled={saving}
+                  className="rounded-xl border border-[#e8d4c5] bg-[#fff7ed] px-4 py-2.5 text-sm font-semibold text-[#a64b2b] transition hover:bg-[#ffeddd] disabled:opacity-60"
                 >
                   + Add Product
                 </button>
@@ -449,7 +538,8 @@ export default function PurchasePage() {
                         <button
                           type="button"
                           onClick={() => removeItem(index)}
-                          className="text-sm font-semibold text-red-600 hover:underline"
+                          disabled={saving}
+                          className="text-sm font-semibold text-red-600 hover:underline disabled:opacity-60"
                         >
                           Remove
                         </button>
@@ -466,6 +556,7 @@ export default function PurchasePage() {
                           onChange={(e) =>
                             updateItem(index, "productId", e.target.value)
                           }
+                          disabled={saving}
                           className={inputClass}
                         >
                           <option value="">Select product</option>
@@ -491,6 +582,7 @@ export default function PurchasePage() {
                             updateItem(index, "quantity", e.target.value)
                           }
                           placeholder="Optional"
+                          disabled={saving}
                           className={inputClass}
                         />
                       </label>
@@ -508,6 +600,7 @@ export default function PurchasePage() {
                             updateItem(index, "weight", e.target.value)
                           }
                           placeholder="0.000"
+                          disabled={saving}
                           className={inputClass}
                         />
                       </label>
@@ -525,6 +618,7 @@ export default function PurchasePage() {
                             updateItem(index, "rate", e.target.value)
                           }
                           placeholder="0.00"
+                          disabled={saving}
                           className={inputClass}
                         />
                       </label>
@@ -556,13 +650,30 @@ export default function PurchasePage() {
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={saving || items.length === 0}
-                className="w-full rounded-xl bg-[#0B3829] px-5 py-3 text-sm font-semibold text-[#F2EAD2] shadow-sm transition hover:bg-[#365B49] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {saving ? "Saving..." : "Save Purchase"}
-              </button>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="submit"
+                  disabled={saving || items.length === 0}
+                  className="w-full rounded-xl bg-[#0B3829] px-5 py-3 text-sm font-semibold text-[#F2EAD2] shadow-sm transition hover:bg-[#365B49] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {saving
+                    ? "Saving..."
+                    : editingPurchaseId
+                      ? "Update Purchase"
+                      : "Save Purchase"}
+                </button>
+
+                {editingPurchaseId && (
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    disabled={saving}
+                    className="w-full rounded-xl border border-[#0B3829] px-5 py-3 text-sm font-semibold text-[#0B3829] transition hover:bg-[#E5E9DA] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Cancel Edit
+                  </button>
+                )}
+              </div>
             </form>
           </section>
 
@@ -684,6 +795,28 @@ export default function PurchasePage() {
                         </div>
                       ))}
                     </div>
+
+                    {purchase.status === "ACTIVE" && (
+                      <div className="mt-3 flex flex-wrap gap-3 border-t border-[#D5CBB3] pt-3">
+                        <button
+                          type="button"
+                          onClick={() => handleEdit(purchase)}
+                          disabled={saving}
+                          className="rounded-lg bg-[#0B3829] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#365B49] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          Edit
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(purchase)}
+                          disabled={saving}
+                          className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
                   </article>
                 ))}
               </div>

@@ -16,6 +16,7 @@ import {
   ChartNoAxesCombined,
   BookOpen,
   PackageSearch,
+  Truck,
   Menu,
   LogOut,
   ChevronLeft,
@@ -24,16 +25,17 @@ import { authClient } from "@/src/lib/auth-client";
 
 const adminNavigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Employees", href: "/employees", icon: Users },
-  { name: "Work Entries", href: "/work", icon: ClipboardList },
-  { name: "Inventory", href: "/inventory", icon: Package },
+  { name: "Ledger", href: "/ledger", icon: BookOpen },
   { name: "Sales", href: "/sales", icon: ShoppingCart },
   { name: "Customers", href: "/customers", icon: UserRound },
   { name: "Purchase", href: "/purchase", icon: ShoppingBag },
-  { name: "History", href: "/history", icon: History },
+  { name: "Suppliers", href: "/suppliers", icon: Truck },
+  { name: "Inventory", href: "/inventory", icon: Package },
+  { name: "Work Entries", href: "/work", icon: ClipboardList },
   { name: "Reports", href: "/reports", icon: ChartNoAxesCombined },
-  { name: "Ledger", href: "/ledger", icon: BookOpen },
   { name: "Products", href: "/products", icon: PackageSearch },
+  { name: "Employees", href: "/employees", icon: Users },
+  { name: "History", href: "/history", icon: History },
 ];
 
 const workerNavigation = [
@@ -43,9 +45,9 @@ const workerNavigation = [
 
 const mobileAdminNavigation = [
   { name: "Dashboard", href: "/dashboard", icon: "⌂" },
+  { name: "Ledger", href: "/ledger", icon: "▤" },
   { name: "Sales", href: "/sales", icon: "🛒" },
   { name: "Customers", href: "/customers", icon: "♙" },
-  { name: "Ledger", href: "/ledger", icon: "▤" },
 ];
 
 const mobileWorkerNavigation = [

@@ -739,86 +739,6 @@ export default function SupplierPage() {
 
           <section className="mt-8 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
             <h2 className="text-lg font-semibold text-[#0B3829]">
-              Purchase History
-            </h2>
-            <p className="mt-1 text-sm text-[#7b5a49]">
-              All active purchases recorded for this supplier.
-            </p>
-
-            {purchases.length === 0 ? (
-              <p className="mt-6 rounded-xl bg-[#fffaf6] p-6 text-center text-sm text-[#8b6b5a]">
-                No purchases recorded yet.
-              </p>
-            ) : (
-              <div className="mt-5 space-y-4">
-                {purchases.map((purchase) => (
-                  <div
-                    key={purchase.id}
-                    className="rounded-xl border border-[#D5CBB3] p-5"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <p className="font-semibold text-[#0B3829]">
-                          {purchase.invoiceNumber
-                            ? `Invoice ${purchase.invoiceNumber}`
-                            : "Purchase"}
-                        </p>
-                        <p className="mt-1 text-xs text-[#8b6b5a]">
-                          {formatDate(purchase.purchaseDate)}
-                        </p>
-                      </div>
-                      <p className="font-bold text-[#0B3829]">
-                        {money(purchase.totalAmount)}
-                      </p>
-                    </div>
-
-                    <div className="mt-4 overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b border-[#ead8c9] text-left text-xs text-[#8b6b5a]">
-                            <th className="py-2">Product</th>
-                            <th className="py-2">Quantity</th>
-                            <th className="py-2">Weight (kg)</th>
-                            <th className="py-2">Rate/kg</th>
-                            <th className="py-2">Amount</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {purchase.items.map((item) => (
-                            <tr key={item.id} className="border-b border-[#f3e5db]">
-                              <td className="py-3 text-[#0B3829]">
-                                {item.product.name}
-                                {item.product.code && (
-                                  <span className="ml-2 text-xs text-[#9a7865]">
-                                    ({item.product.code})
-                                  </span>
-                                )}
-                              </td>
-                              <td className="py-3 text-[#5b3928]">
-                                {item.quantity ?? "—"}
-                              </td>
-                              <td className="py-3 text-[#5b3928]">
-                                {Number(item.weight).toFixed(3)}
-                              </td>
-                              <td className="py-3 text-[#5b3928]">
-                                {money(item.rate)}
-                              </td>
-                              <td className="py-3 font-semibold text-[#0B3829]">
-                                {money(item.amount)}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-
-          <section className="mt-8 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-[#0B3829]">
               Supplier Ledger
             </h2>
             <p className="mt-1 text-sm text-[#7b5a49]">
@@ -895,6 +815,86 @@ export default function SupplierPage() {
                 </strong>
               </p>
             </div>
+          </section>
+
+          <section className="mt-8 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-[#0B3829]">
+              Purchase History
+            </h2>
+            <p className="mt-1 text-sm text-[#7b5a49]">
+              All active purchases recorded for this supplier.
+            </p>
+
+            {purchases.length === 0 ? (
+              <p className="mt-6 rounded-xl bg-[#fffaf6] p-6 text-center text-sm text-[#8b6b5a]">
+                No purchases recorded yet.
+              </p>
+            ) : (
+              <div className="mt-5 space-y-4">
+                {purchases.map((purchase) => (
+                  <div
+                    key={purchase.id}
+                    className="rounded-xl border border-[#D5CBB3] p-5"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-[#0B3829]">
+                          {purchase.invoiceNumber
+                            ? `Invoice ${purchase.invoiceNumber}`
+                            : "Purchase"}
+                        </p>
+                        <p className="mt-1 text-xs text-[#8b6b5a]">
+                          {formatDate(purchase.purchaseDate)}
+                        </p>
+                      </div>
+                      <p className="font-bold text-[#0B3829]">
+                        {money(purchase.totalAmount)}
+                      </p>
+                    </div>
+
+                    <div className="mt-4 overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-[#ead8c9] text-left text-xs text-[#8b6b5a]">
+                            <th className="py-2">Product</th>
+                            <th className="py-2">Quantity</th>
+                            <th className="py-2">Weight (kg)</th>
+                            <th className="py-2">Rate/kg</th>
+                            <th className="py-2">Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {purchase.items.map((item) => (
+                            <tr key={item.id} className="border-b border-[#f3e5db]">
+                              <td className="py-3 text-[#0B3829]">
+                                {item.product.name}
+                                {item.product.code && (
+                                  <span className="ml-2 text-xs text-[#9a7865]">
+                                    ({item.product.code})
+                                  </span>
+                                )}
+                              </td>
+                              <td className="py-3 text-[#5b3928]">
+                                {item.quantity ?? "—"}
+                              </td>
+                              <td className="py-3 text-[#5b3928]">
+                                {Number(item.weight).toFixed(3)}
+                              </td>
+                              <td className="py-3 text-[#5b3928]">
+                                {money(item.rate)}
+                              </td>
+                              <td className="py-3 font-semibold text-[#0B3829]">
+                                {money(item.amount)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
         </div>
       </main>

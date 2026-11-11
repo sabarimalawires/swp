@@ -46,94 +46,96 @@ export async function GET(request: Request) {
       ? await prisma.inventoryTransaction.findMany({
           where: { productId: { in: productIds } },
           select: {
-            productId: true,
-            type: true,
-            quantity: true,
-            weight: true,
-          },
-          orderBy: { createdAt: "asc" },
+  id: true,
+  productId: true,
+  type: true,
+  quantity: true,
+  weight: true,
+},
+orderBy: [
+  { createdAt: "asc" },
+  { id: "asc" },
+],
         })
       : [];
 
-    const inventory = products.map((product) => {
-      const productTransactions = transactions.filter(
-        (transaction) => transaction.productId === product.id,
-      );
+    
+const inventory = products.map((product) => {
+  const productTransactions = transactions.filter(
+    (transaction) => transaction.productId === product.id,
+  );
 
-      let stockKg = 0;
-      let stockQuantity = 0;
+  const hasInitialStockTransaction =
+  productTransactions.some(
+    (transaction) => transaction.type === "INITIAL_STOCK",
+  );
 
-      for (const transaction of productTransactions) {
-        const weightKg = Number(transaction.weight) || 0;
-        const quantity = Number(transaction.quantity) || 0;
+  const hasInitialWeightTransaction =
+    productTransactions.some(
+      (transaction) =>
+        transaction.type === "INITIAL_STOCK" &&
+        Number(transaction.weight) !== 0,
+    );
 
-        switch (transaction.type) {
-          case "INITIAL_STOCK":
-          case "PRODUCTION":
-          case "PURCHASE":
-          case "STOCK_ADJUSTMENT_ADD":
-          case "SALE_VOID":
-            stockKg += weightKg;
-            stockQuantity += quantity;
-            break;
+  // Start with opening stock.
+  let stockQuantity = hasInitialStockTransaction
+  ? 0
+  : Number(product.initialStockQuantity ?? 0);
 
-          case "SALE":
-          case "PURCHASE_VOID":
-          case "PURCHASE_EDIT_REVERSAL":
-          case "STOCK_ADJUSTMENT_REMOVE":
-          case "PRODUCTION_REVERSAL":
-            stockKg -= weightKg;
-            stockQuantity -= quantity;
-            break;
+let stockKg = hasInitialStockTransaction
+  ? 0
+  : Number(product.initialStockKg ?? 0);
 
-          default:
-            break;
-        }
-      }
+  for (const transaction of productTransactions) {
+    const weightKg = Number(transaction.weight) || 0;
+    const quantity = Number(transaction.quantity) || 0;
 
-      // Opening quantity: use the product opening stock
-      // unless an explicit INITIAL_STOCK quantity exists.
-      const hasInitialQuantityTransaction =
-        productTransactions.some(
-          (transaction) =>
-            transaction.type === "INITIAL_STOCK" &&
-            Number(transaction.quantity) !== 0,
-        );
+    switch (transaction.type) {
+      case "INITIAL_STOCK":
+      case "PRODUCTION":
+      case "PURCHASE":
+      case "STOCK_ADJUSTMENT_ADD":
+      case "SALE_VOID":
+        stockKg += weightKg;
+        stockQuantity += quantity;
+        break;
 
-      if (!hasInitialQuantityTransaction) {
-        stockQuantity += Number(product.initialStockQuantity ?? 0);
-      }
+      case "SALE":
+      case "PURCHASE_VOID":
+      case "PURCHASE_EDIT_REVERSAL":
+      case "STOCK_ADJUSTMENT_REMOVE":
+      case "PRODUCTION_REVERSAL":
+        stockKg -= weightKg;
+        stockQuantity -= quantity;
+        break;
 
-      // Opening weight: use the product opening weight
-      // unless an explicit INITIAL_STOCK kg value exists.
-      const hasInitialWeightTransaction =
-        productTransactions.some(
-          (transaction) =>
-            transaction.type === "INITIAL_STOCK" &&
-            Number(transaction.weight) !== 0,
-        );
+      default:
+        break;
+    }
 
-      if (!hasInitialWeightTransaction) {
-        stockKg += Number(product.initialStockKg);
-      }
+    // Never allow negative stock.
+    stockKg = Math.max(0, stockKg);
+    stockQuantity = Math.max(0, stockQuantity);
+  }
 
-      stockKg =
-        Math.round((stockKg + Number.EPSILON) * 1000) / 1000;
+  stockKg =
+    Math.round((stockKg + Number.EPSILON) * 1000) / 1000;
 
-      const lowStockThresholdKg = Number(
-        product.lowStockThresholdKg,
-      );
+  const lowStockThresholdKg = Number(
+    product.lowStockThresholdKg,
+  );
 
-      return {
-        id: product.id,
-        name: product.name,
-        code: product.code,
-        stockQuantity,
-        stockKg,
-        lowStockThresholdKg,
-        isLowStock: stockKg <= lowStockThresholdKg,
-      };
-    });
+  return {
+    id: product.id,
+    name: product.name,
+    code: product.code,
+    stockQuantity,
+    stockKg,
+    lowStockThresholdKg,
+    isLowStock: stockKg <= lowStockThresholdKg,
+  };
+});
+
 
     return NextResponse.json(inventory);
   } catch (error) {
@@ -145,3 +147,4 @@ export async function GET(request: Request) {
     );
   }
 }
+
