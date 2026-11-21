@@ -57,6 +57,18 @@ export default function ProductsPage() {
 
   const [success, setSuccess] =
     useState("");
+      const [reportProductId, setReportProductId] = useState("");
+  const [reportFrom, setReportFrom] = useState("");
+  const [reportTo, setReportTo] = useState("");
+  const [reportLoading, setReportLoading] = useState(false);
+
+  const [reportResult, setReportResult] = useState<{
+    totalWeight: number;
+    saleCount: number;
+    productName: string;
+  } | null>(null);
+
+  const [reportError, setReportError] = useState("");
 
   const loadProducts = async () => {
     const response = await fetch(
@@ -108,7 +120,67 @@ export default function ProductsPage() {
 
     setProducts(result);
   };
+  useEffect(() => {
+  if (!reportProductId || !reportFrom || !reportTo) {
+    setReportResult(null);
+    setReportError("");
+    return;
+  }
 
+  if (reportFrom > reportTo) {
+    setReportResult(null);
+    setReportError("From date cannot be later than To date.");
+    return;
+  }
+
+  const controller = new AbortController();
+
+  const fetchReport = async () => {
+    try {
+      setReportLoading(true);
+      setReportError("");
+      setReportResult(null);
+
+      const params = new URLSearchParams({
+        productId: reportProductId,
+        from: reportFrom,
+        to: reportTo,
+      });
+
+      const response = await fetch(
+        `/api/products/sales-weight?${params.toString()}`,
+        {
+          cache: "no-store",
+          signal: controller.signal,
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to generate report.");
+      }
+
+      setReportResult(data);
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        return;
+      }
+
+      setReportError(
+        error instanceof Error ? error.message : "Something went wrong."
+      );
+    } finally {
+      if (!controller.signal.aborted) {
+        setReportLoading(false);
+      }
+    }
+  };
+
+  fetchReport();
+
+  return () => controller.abort();
+}, [reportProductId, reportFrom, reportTo]);
   useEffect(() => {
     let cancelled = false;
 
@@ -416,7 +488,56 @@ export default function ProductsPage() {
       setUpdatingId(null);
     }
   };
+  const handleSalesWeightReport = async () => {
+    setReportError("");
+    setReportResult(null);
 
+    if (!reportProductId || !reportFrom || !reportTo) {
+      setReportError("Select a product and both dates.");
+      return;
+    }
+
+    if (reportFrom > reportTo) {
+      setReportError("From date cannot be later than To date.");
+      return;
+    }
+
+    setReportLoading(true);
+
+    try {
+      const params = new URLSearchParams({
+        productId: reportProductId,
+        from: reportFrom,
+        to: reportTo,
+      });
+
+      const response = await fetch(
+        `/api/products/sales-weight?${params.toString()}`,
+        {
+          method: "GET",
+          cache: "no-store",
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.error || "Failed to generate sales weight report."
+        );
+      }
+
+      setReportResult(result);
+    } catch (error) {
+      setReportError(
+        error instanceof Error
+          ? error.message
+          : "Failed to generate sales weight report."
+      );
+    } finally {
+      setReportLoading(false);
+    }
+  };
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#fff8f2]">
@@ -475,6 +596,120 @@ export default function ProductsPage() {
               {success}
             </div>
           )}
+
+          {/* SALES WEIGHT REPORT */}
+          <section className="mt-6 min-w-0 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] shadow-sm sm:mt-8">
+
+            <div className="border-b border-[#D5CBB3] px-6 py-6">
+              <h2 className="text-lg font-bold text-[#0B3829]">
+                Sales Weight Report
+              </h2>
+
+              <p className="mt-1 text-sm text-[#7b5a49]">
+                View the total weight sold for a selected product and date range.
+              </p>
+            </div>
+
+            <div className="grid gap-4 p-6 sm:grid-cols-2 lg:grid-cols-4">
+
+              <div className="sm:col-span-2">
+                <label
+                  htmlFor="report-product"
+                  className="mb-2 block text-sm font-semibold text-[#5b3928]"
+                >
+                  Product
+                </label>
+
+                <select
+                  id="report-product"
+                  value={reportProductId}
+                  onChange={(event) =>
+                    setReportProductId(event.target.value)
+                  }
+                  className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#fffaf6] px-4 text-sm outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
+                >
+                  <option value="">Select product</option>
+
+                  {products.map((product) => (
+                    <option key={product.id} value={product.id}>
+                      {product.name}
+                      {product.code ? ` (${product.code})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="report-from"
+                  className="mb-2 block text-sm font-semibold text-[#5b3928]"
+                >
+                  From Date
+                </label>
+
+                <input
+                  id="report-from"
+                  type="date"
+                  value={reportFrom}
+                  onChange={(event) =>
+                    setReportFrom(event.target.value)
+                  }
+                  className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#fffaf6] px-4 text-sm outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="report-to"
+                  className="mb-2 block text-sm font-semibold text-[#5b3928]"
+                >
+                  To Date
+                </label>
+
+                <input
+                  id="report-to"
+                  type="date"
+                  value={reportTo}
+                  onChange={(event) =>
+                    setReportTo(event.target.value)
+                  }
+                  className="h-12 w-full rounded-xl border border-[#e8d4c5] bg-[#fffaf6] px-4 text-sm outline-none focus:border-[#d9793a] focus:ring-4 focus:ring-[#fce3d0]"
+                />
+              </div>
+
+              <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:items-center lg:col-span-4">
+
+                {reportError && (
+                  <p className="text-sm font-medium text-red-700">
+                    {reportError}
+                  </p>
+                )}
+              </div>
+
+              {reportResult && (
+                <div className="rounded-xl border border-[#D5CBB3] bg-[#fffaf6] p-5 sm:col-span-2 lg:col-span-4">
+
+                  <p className="text-sm font-medium text-[#718477]">
+                    Total Sale Weight · {reportResult.productName}
+                  </p>
+
+                  <p className="mt-2 text-3xl font-bold text-[#0B3829]">
+                    {reportResult.totalWeight.toLocaleString("en-IN", {
+                      minimumFractionDigits: 3,
+                      maximumFractionDigits: 3,
+                    })} kg
+                  </p>
+
+                  <p className="mt-2 text-sm text-[#7b5a49]">
+                    {reportResult.saleCount} sale from{" "}
+                    {reportFrom} to {reportTo}
+                  </p>
+
+                </div>
+              )}
+
+            </div>
+          </section>
 
           <section className="mt-5 min-w-0 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] shadow-sm sm:mt-8">
 

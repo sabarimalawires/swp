@@ -19,6 +19,7 @@ function money(value: number) {
   return Math.round((value + Number.EPSILON) * 100) / 100;
 }
 
+
 function getCurrentStock(
   initialStockKg: number,
   transactions: { type: string; weight: number }[],
@@ -26,28 +27,35 @@ function getCurrentStock(
   let stockKg = 0;
 
   if (!transactions.some((t) => t.type === "INITIAL_STOCK")) {
-    stockKg += initialStockKg;
+    stockKg = initialStockKg;
   }
 
   for (const transaction of transactions) {
     switch (transaction.type) {
       case "INITIAL_STOCK":
       case "PRODUCTION":
+      case "PURCHASE":
       case "STOCK_ADJUSTMENT_ADD":
       case "SALE_VOID":
         stockKg += transaction.weight;
         break;
 
       case "SALE":
+      case "PURCHASE_VOID":
+      case "PURCHASE_EDIT_REVERSAL":
       case "STOCK_ADJUSTMENT_REMOVE":
       case "PRODUCTION_REVERSAL":
         stockKg -= transaction.weight;
         break;
     }
+
+    // Stock must never go below zero.
+    stockKg = Math.max(0, stockKg);
   }
 
-  return stockKg;
+  return Math.round((stockKg + Number.EPSILON) * 1000) / 1000;
 }
+
 
 const VALID_UNITS: SalesUnit[] = ["KGS", "SQ_FT", "R_FT", "R_MTR"];
 
@@ -431,9 +439,10 @@ export async function POST(request: Request) {
             if (!product.isActive) throw new Error("PRODUCT_INACTIVE");
 
             const transactions = await tx.inventoryTransaction.findMany({
-              where: { productId: product.id },
-              select: { type: true, weight: true },
-            });
+  where: { productId: product.id },
+  orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+  select: { type: true, weight: true },
+});
 
             const available = getCurrentStock(
               Number(product.initialStockKg),
@@ -453,18 +462,24 @@ export async function POST(request: Request) {
             }
 
             preparedItems.push({
-              productId: product.id,
-              productName: product.name,
-              quantity: item.quantity,
+  productId: product.id,
+  productName: product.name,
+  quantity: item.quantity,
 
-              // Keep weight as the actual inventory deduction in KGs.
-              weight: item.inventoryDeductionKg,
-              salesMeasurement: item.salesMeasurement,
-              salesUnit: item.salesUnit,
-              rate: item.rate,
-              amount: lineAmounts[index],
-              deductedWeight: item.inventoryDeductionKg,
-            });
+  // Preserve the full sold weight.
+  weight: item.inventoryDeductionKg,
+
+  salesMeasurement: item.salesMeasurement,
+  salesUnit: item.salesUnit,
+  rate: item.rate,
+  amount: lineAmounts[index],
+
+  // Deduct only the stock actually available.
+  deductedWeight: Math.min(
+    item.inventoryDeductionKg,
+    available,
+  ),
+});
           }
 
           if (shortages.length > 0 && !confirmInsufficientStock) {

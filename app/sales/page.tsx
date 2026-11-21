@@ -152,6 +152,9 @@ export default function SalesPage() {
   const [salesCustomerSearch, setSalesCustomerSearch] = useState("");
 const [salesDateFilter, setSalesDateFilter] = useState("");
 
+const [salesPage, setSalesPage] = useState<number>(1);
+const SALES_PER_PAGE = 20;
+
   const [customerSearch, setCustomerSearch] = useState("");
 
   const [showCustomerList, setShowCustomerList] = useState(false);
@@ -359,6 +362,20 @@ const [salesDateFilter, setSalesDateFilter] = useState("");
     return matchesCustomer && matchesDate;
   });
 }, [sales, salesCustomerSearch, salesDateFilter]);
+
+useEffect(() => {
+  setSalesPage(1);
+}, [salesCustomerSearch, salesDateFilter]);
+
+const totalSalesPages = Math.max(
+  1,
+  Math.ceil(filteredSales.length / SALES_PER_PAGE)
+);
+
+const paginatedSales = filteredSales.slice(
+  (salesPage - 1) * SALES_PER_PAGE,
+  salesPage * SALES_PER_PAGE
+);
 
 
 
@@ -1803,7 +1820,7 @@ const handleDeleteSale = async (saleId: string) => {
 
             </section>
 
-            <section className="swp-sales-history min-w-0 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-5 shadow-sm sm:p-6">
+            <section id="history" className="swp-sales-history min-w-0 rounded-2xl border border-[#D5CBB3] bg-[#F2EAD2] p-5 shadow-sm sm:p-6">
 
               <div className="flex items-center justify-between gap-3">
 
@@ -1830,6 +1847,7 @@ const handleDeleteSale = async (saleId: string) => {
                 </span>
 
               </div>
+              
 
               {/* SALES HISTORY FILTERS */}
 <div className="mt-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_220px_auto]">
@@ -1885,7 +1903,13 @@ const handleDeleteSale = async (saleId: string) => {
 </div>
 
 <p className="mt-3 text-xs text-[#8b6b5a]">
-  Showing {filteredSales.length} of {sales.length} sales
+  Showing{" "}
+{filteredSales.length === 0
+  ? 0
+  : (salesPage - 1) * SALES_PER_PAGE + 1}
+{" "}–{" "}
+{Math.min(salesPage * SALES_PER_PAGE, filteredSales.length)}
+{" "}of {filteredSales.length} matching sales
 </p>
 
               {filteredSales.length === 0 ? (
@@ -1912,7 +1936,7 @@ const handleDeleteSale = async (saleId: string) => {
 
                 <div className="mt-6 space-y-4">
 
-                  {filteredSales.map((sale) => {
+                  {paginatedSales.map((sale) => {
 
                     const saleItems =
 
@@ -2205,6 +2229,36 @@ const handleDeleteSale = async (saleId: string) => {
                     );
 
                   })}
+
+                  <div className="mt-6 flex flex-col items-center justify-between gap-3 border-t border-[#e8d4c5] pt-4 sm:flex-row">
+  <p className="text-sm text-[#7b5a49]">
+    Page {salesPage} of {totalSalesPages}
+  </p>
+
+  <div className="flex items-center gap-3">
+    <button
+      type="button"
+      onClick={() =>
+        setSalesPage((page) => Math.max(1, page - 1))
+      }
+      disabled={salesPage === 1}
+      className="rounded-xl border border-[#e8d4c5] px-4 py-2 text-sm font-semibold text-[#365B49] transition hover:bg-[#F2EAD2] disabled:cursor-not-allowed disabled:opacity-40"
+    >
+      Previous
+    </button>
+
+    <button
+      type="button"
+      onClick={() =>
+        setSalesPage((page) => Math.min(totalSalesPages, page + 1))
+      }
+      disabled={salesPage >= totalSalesPages}
+      className="rounded-xl border border-[#e8d4c5] px-4 py-2 text-sm font-semibold text-[#365B49] transition hover:bg-[#F2EAD2] disabled:cursor-not-allowed disabled:opacity-40"
+    >
+      Next
+    </button>
+  </div>
+</div>
 
                 </div>
 

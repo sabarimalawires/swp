@@ -275,9 +275,10 @@ export async function PATCH(
 
         for (const product of products) {
           const transactions = await tx.inventoryTransaction.findMany({
-            where: { productId: product.id },
-            select: { type: true, weight: true },
-          });
+  where: { productId: product.id },
+  orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+  select: { type: true, weight: true },
+});
 
           const currentStock = getCurrentStock(
             Number(product.initialStockKg),
@@ -346,13 +347,21 @@ export async function PATCH(
           }
 
           return {
-            ...item,
-            productName: product.name,
-            weight: item.inventoryDeductionKg,
-            amount: money(item.salesMeasurement * item.rate),
-            deductedQuantity: 0,
-            deductedWeight: item.inventoryDeductionKg,
-          };
+  ...item,
+  productName: product.name,
+
+  // Keep the full sold weight in the sale record.
+  weight: item.inventoryDeductionKg,
+
+  amount: money(item.salesMeasurement * item.rate),
+  deductedQuantity: 0,
+
+  // Deduct only available stock.
+  deductedWeight: Math.min(
+    item.inventoryDeductionKg,
+    available,
+  ),
+};
         });
 
         if (shortages.length > 0 && !confirmInsufficientStock) {

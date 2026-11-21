@@ -72,6 +72,9 @@ export default function PurchasePage() {
   const [purchaseSearch, setPurchaseSearch] = useState("");
   const [dateFilter, setDateFilter] = useState("");
 
+  const [purchasePage, setPurchasePage] = useState<number>(1);
+const PURCHASES_PER_PAGE = 20;
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -179,6 +182,22 @@ export default function PurchasePage() {
       return (matchesSupplier || matchesInvoice) && matchesDate;
     });
   }, [purchases, purchaseSearch, dateFilter]);
+
+  // Reset to page 1 whenever search or date filter changes.
+useEffect(() => {
+  setPurchasePage(1);
+}, [purchaseSearch, dateFilter]);
+
+// Pagination calculations.
+const totalPurchasePages = Math.max(
+  1,
+  Math.ceil(filteredPurchases.length / PURCHASES_PER_PAGE)
+);
+
+const paginatedPurchases = filteredPurchases.slice(
+  (purchasePage - 1) * PURCHASES_PER_PAGE,
+  purchasePage * PURCHASES_PER_PAGE
+);
 
   const lineAmounts = items.map((item) => {
     const weight = Number(item.weight);
@@ -819,6 +838,61 @@ export default function PurchasePage() {
                     )}
                   </article>
                 ))}
+                            </div>
+            )}
+
+            {/* PURCHASE HISTORY PAGINATION */}
+            {filteredPurchases.length > 0 && (
+              <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-[#D5CBB3] pt-4 sm:flex-row">
+
+                <p className="text-sm text-[#7b5a49]">
+                  Showing{" "}
+                  <span className="font-semibold text-[#0B3829]">
+                    {(purchasePage - 1) * PURCHASES_PER_PAGE + 1}
+                  </span>
+                  {" "}to{" "}
+                  <span className="font-semibold text-[#0B3829]">
+                    {Math.min(
+                      purchasePage * PURCHASES_PER_PAGE,
+                      filteredPurchases.length
+                    )}
+                  </span>
+                  {" "}of{" "}
+                  <span className="font-semibold text-[#0B3829]">
+                    {filteredPurchases.length}
+                  </span>
+                  {" "}purchases
+                </p>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPurchasePage((page) => Math.max(1, page - 1))
+                    }
+                    disabled={purchasePage === 1}
+                    className="rounded-lg border border-[#D5CBB3] bg-[#fffaf6] px-4 py-2 text-sm font-semibold text-[#365B49] transition hover:bg-[#E5E9DA] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Previous
+                  </button>
+
+                  <span className="text-sm font-semibold text-[#0B3829]">
+                    Page {purchasePage} of {totalPurchasePages}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPurchasePage((page) =>
+                        Math.min(totalPurchasePages, page + 1)
+                      )
+                    }
+                    disabled={purchasePage === totalPurchasePages}
+                    className="rounded-lg border border-[#D5CBB3] bg-[#fffaf6] px-4 py-2 text-sm font-semibold text-[#365B49] transition hover:bg-[#E5E9DA] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             )}
           </section>
