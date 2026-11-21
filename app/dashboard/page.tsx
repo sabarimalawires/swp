@@ -253,7 +253,19 @@ export default function DashboardPage() {
                       Track your sales performance over time.
                     </p>
                   </div>
-
+               <select
+                    value={selectedFY}
+                    onChange={(e) => setSelectedFY(Number(e.target.value))}
+                    className="h-10 w-full rounded-xl border border-[#D5E4D7] bg-white px-3 text-sm font-semibold text-[#174B32] outline-none transition focus:border-[#176B45] focus:ring-2 focus:ring-[#176B45]/10 sm:w-auto"
+                  >
+                    {Array.from({ length: 7 }, (_, i) => currentFY - i).map(
+                      (year) => (
+                        <option key={year} value={year}>
+                          FY {year}-{String(year + 1).slice(-2)}
+                        </option>
+                      )
+                    )}
+                  </select>
                   <div className="grid w-full grid-cols-3 gap-2 sm:flex sm:w-auto">
                     {(["daily", "monthly", "yearly"] as Period[]).map(
                       (item) => (
@@ -271,36 +283,6 @@ export default function DashboardPage() {
                       )
                     )}
                   </div>
-                </div>
-
-                <div className="flex flex-col gap-3 border-b border-[#E3ECE4] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-[#82998A] sm:text-xs">
-                      Sales amount
-                    </p>
-                    <p className="mt-1 break-words text-2xl font-extrabold leading-tight tracking-tight text-[#125536] sm:text-3xl">
-                      {money(
-                        dashboard.salesTrend.reduce(
-                          (sum, item) => sum + item.amount,
-                          0
-                        )
-                      )}
-                    </p>
-                  </div>
-
-                  <select
-                    value={selectedFY}
-                    onChange={(e) => setSelectedFY(Number(e.target.value))}
-                    className="h-10 w-full rounded-xl border border-[#D5E4D7] bg-white px-3 text-sm font-semibold text-[#174B32] outline-none transition focus:border-[#176B45] focus:ring-2 focus:ring-[#176B45]/10 sm:w-auto"
-                  >
-                    {Array.from({ length: 7 }, (_, i) => currentFY - i).map(
-                      (year) => (
-                        <option key={year} value={year}>
-                          FY {year}-{String(year + 1).slice(-2)}
-                        </option>
-                      )
-                    )}
-                  </select>
                 </div>
 
                 <div className="w-full overflow-x-auto px-3 pb-5 pt-3 sm:px-6 sm:pb-7">
@@ -636,21 +618,25 @@ function LedgerMetric({
   );
 }
 
+
 function SalesChart({
   data,
 }: {
   data: { label: string; amount: number }[];
 }) {
+  const [activePoint, setActivePoint] = useState<number | null>(null);
+
   const width = 900;
-  const height = 200;
+  const height = 220;
   const left = 65;
   const right = 25;
-  const top = 20;
+  const top = 65;
   const bottom = 45;
 
   const max = Math.max(...data.map((item) => item.amount), 1);
   const chartWidth = width - left - right;
   const chartHeight = height - top - bottom;
+  const baseline = top + chartHeight;
 
   const points = data.map((item, index) => ({
     x:
@@ -669,8 +655,8 @@ function SalesChart({
     .join(" ");
 
   const area = `${line} L ${points[points.length - 1]?.x ?? left} ${
-    top + chartHeight
-  } L ${left} ${top + chartHeight} Z`;
+    baseline
+  } L ${left} ${baseline} Z`;
 
   const formatAxis = (value: number) =>
     value >= 100000
@@ -679,6 +665,14 @@ function SalesChart({
         ? `₹${(value / 1000).toFixed(0)}k`
         : `₹${Math.round(value)}`;
 
+  const formatTooltipAmount = (value: number) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+
   if (data.length === 0) {
     return (
       <div className="flex h-[280px] items-center justify-center text-sm text-[#92765E]">
@@ -686,6 +680,17 @@ function SalesChart({
       </div>
     );
   }
+
+  const selected =
+    activePoint !== null ? points[activePoint] : null;
+
+  const tooltipX = selected
+    ? Math.max(90, Math.min(width - 90, selected.x))
+    : 0;
+
+  const tooltipY = selected
+    ? selected.y - 65
+    : 0;
 
   return (
     <div className="w-full">
@@ -696,10 +701,19 @@ function SalesChart({
         aria-label="Sales amount trend chart"
       >
         <defs>
-          <linearGradient id="salesAreaGradient" x1="0" x2="0" y1="0" y2="1">
+          <linearGradient
+            id="salesAreaGradient"
+            x1="0"
+            x2="0"
+            y1="0"
+            y2="1"
+          >
             <stop offset="0%" stopColor="#176B45" stopOpacity="0.22" />
             <stop offset="100%" stopColor="#176B45" stopOpacity="0.01" />
           </linearGradient>
+          <filter id="tooltipShadow" x="-30%" y="-30%" width="160%" height="180%">
+  <feDropShadow dx="0" dy="3" stdDeviation="4" floodOpacity="0.25" />
+</filter>
         </defs>
 
         {[0, 1, 2, 3].map((step) => {
@@ -740,17 +754,66 @@ function SalesChart({
           strokeLinejoin="round"
         />
 
+        {/* Selected point vertical guide line */}
+        {selected && (
+          <line
+            x1={selected.x}
+            x2={selected.x}
+            y1={selected.y + 8}
+            y2={baseline}
+            stroke="#176B45"
+            strokeWidth="1.5"
+            strokeDasharray="4 4"
+            opacity="0.65"
+          />
+        )}
+
         {points.map((point, index) => (
-          <g key={`${point.label}-${index}`}>
+          <g
+            key={`${point.label}-${index}`}
+            onPointerEnter={(event) => {
+              if (event.pointerType === "mouse") {
+                setActivePoint(index);
+              }
+            }}
+            onPointerLeave={(event) => {
+              if (event.pointerType === "mouse") {
+                setActivePoint(null);
+              }
+            }}
+            onPointerDown={() => setActivePoint(index)}
+            className="cursor-pointer"
+          >
+            {/* Larger invisible touch target */}
             <circle
               cx={point.x}
               cy={point.y}
-              r="5"
+              r="14"
+              fill="transparent"
+            />
+
+            {/* Highlight selected point */}
+            {activePoint === index && (
+              <circle
+                cx={point.x}
+                cy={point.y}
+                r="9"
+                fill="#176B45"
+                fillOpacity="0.15"
+              />
+            )}
+
+            <circle
+              cx={point.x}
+              cy={point.y}
+              r={activePoint === index ? 6 : 5}
               fill="#FFFFFF"
               stroke="#176B45"
-              strokeWidth="2.5"
+              strokeWidth={activePoint === index ? 3 : 2.5}
             >
-              <title>{`${point.label}: ${money(point.amount)}`}</title>
+              <title>
+                {`${point.label}: ${formatTooltipAmount(point.amount)}`}
+              </title>
             </circle>
 
             {(data.length <= 12 ||
@@ -768,10 +831,56 @@ function SalesChart({
             )}
           </g>
         ))}
+
+        {/* Custom tooltip */}
+        {selected && (
+          <g pointerEvents="none">
+            <path
+              d={`M ${tooltipX - 8} ${tooltipY + 54}
+                  L ${tooltipX + 8} ${tooltipY + 54}
+                  L ${selected.x} ${selected.y - 5} Z`}
+              fill="#164D2B"
+            />
+
+            <rect
+              x={tooltipX - 90}
+              y={tooltipY}
+              width="180"
+              height="54"
+              rx="10"
+              fill="#164D2B"
+              stroke="#0D3D20"
+              strokeWidth="1"
+              filter="url(#tooltipShadow)"
+            />
+
+            <text
+              x={tooltipX}
+              y={tooltipY + 19}
+              textAnchor="middle"
+              fontSize="12"
+              fill="#FFFFFF"
+            >
+              {selected.label}
+            </text>
+
+            <text
+              x={tooltipX}
+              y={tooltipY + 39}
+              textAnchor="middle"
+              fontSize="14"
+              fontWeight="700"
+              fill="#FFFFFF"
+            >
+              {formatTooltipAmount(selected.amount)}
+            </text>
+          </g>
+        )}
       </svg>
     </div>
   );
 }
+
 
 function CalendarIcon() {
   return (
